@@ -3,12 +3,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys,os
+import sys, os
 
 import numpy as np
 import time
 import h5py
-import random
 
 try:
     import matplotlib
@@ -24,7 +23,7 @@ except:
 import numpy as np
 import tensorflow as tf
 import glob
-import psrchive as psr
+# import psrchive as psr
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -109,8 +108,6 @@ def construct_conv2d(features_only=False, fit=False,
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
-    # train_labels = keras.utils.to_categorical(train_labels)
-    # eval_labels = keras.utils.to_categorical(eval_labels)
 
     if fit is True:
         print("Using batch_size: %d" % batch_size)
@@ -185,39 +182,44 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
+def simulate_background(shape=(256, 512)):
+    '''Returns numpy array that simulates background noise similar 
+    to the .ar files. These backgrounds will be injected
+    with FRBs to be used in classification later on.'''
+    return np.random.uniform(low=10, high=100, size=shape)
+
 def injectFRB(data):
     '''
     inject FRB in input numpy array
     '''
-    # shape: (256, 512)
+    # default shape: (256, 512)
     data = np.array(data)
     nchan = data.shape[0]
     nbins = data.shape[1]    
 
-    # TODO: randomize band fraction between 0.4 to 0.8
-    frac = 0.5 # Fraction of band signal is strong
+    # randomizes fraction of strong band signal between 0.4 to 0.8
+    # was originally 0.5
+    frac = np.random.uniform(0.4, 0.8)
 
-    # TODO: randomize width from 2 to 10
-    wid = 2 # Maximum width of the injected burst in number of bins
-    SNRmin = 10 # Minimum SNR limit
+    # randomize max width of injected burst in num_bins
+    # originally wid = 2
+    wid = np.random.uniform(2, 10)
+    SNRmin = 6 # Minimum SNR limit
     SNRmax = 20 # Maximum SNR limit
 
-    st = random.randint(0, nbins-random.randint(0,wid)) # Random point to inject FRB
+    # Random point to inject FRB
+    st = np.random.randint(0, nbins - np.random.randint(0, wid))
 
-    prof = np.mean(data,axis=0)
+    # get the mean noise in each row?
+    prof = np.mean(data, axis=0)
     
-    #Very simple broadband pulse
-    #data[...,st:st+wid] = data[...,st:st+wid] + random.randint(SNRmin,SNRmax)*np.std(prof)
-
-    #Partial inject
-    stch = random.randint(0,nchan-(nchan)*frac)
-    data[stch:int(stch+(nchan*frac)),st:st+wid] = data[stch:int(stch+(nchan*frac)),st:st+wid] + random.randint(SNRmin,SNRmax)*np.std(prof)
-
-    #TODO: Find a better way to inject it
+    # Partial inject
+    stch = np.random.randint(0,nchan-(nchan)*frac)
+    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + np.random.randint(SNRmin, SNRmax) * np.std(prof)
 
     return data
 
-def psr2np(fname,NCHAN,dm):
+'''def psr2np(fname,NCHAN,dm):
     #Get psrchive file as input and outputs numpy array
     fpsr = psr.Archive_load(fname)
     fpsr.dededisperse() 
@@ -247,7 +249,7 @@ def psr2np(fname,NCHAN,dm):
     # Convert to time to msec
     taxis = taxis*1000
 
-    return data
+    return data'''
 
 
 if __name__ == "__main__":
@@ -255,8 +257,8 @@ if __name__ == "__main__":
     # Read archive files and extract data arrays
 
     path = sys.argv[1] # Path and Pattern to find all the .ar files to read and train on
-    NFREQ = 64
-    NTINT = 256
+    NFREQ = 256
+    NTINT = 512
     DM = 102.4
 
     if path is not None:
@@ -269,37 +271,33 @@ if __name__ == "__main__":
     ftdata = [] 
     label = []
 
+    # TODO: change for loop so that it iterates over simulated arrays
     for fl in files:
-        '''
-        cmd = "pdv -t " + fl + " | awk '{print$4}' >  test.text"
-        print(cmd)
-        os.system(cmd)
-        data = np.loadtxt("test.text",skiprows=1) 
-        data = np.reshape(data,(NFREQ,NTINT)) 
-        ftdata.append(data)
-        '''
-        #ar file with FRB
-        data = []
-        #data = psr2np(fl,NFREQ,30)
+        #previously, ar file with FRB
+        # now, filled with simulated data
+        fake_noise = simulate_background()
         
-        # TODO: put simulated data into ftdata instead of psr2np data
-        ftdata.append(psr2np(fl,NFREQ,DM))
+        # put simulated data into ftdata and label it RFI
+        ftdata.append(fake_noise)
         label.append(0)
-        #ar file with injected FRB
-        data1 = []
-        data1 = injectFRB(psr2np(fl,NFREQ,30))
-        ftdata.append(data1)
+        
+        # inject FRB into data and label it true
+        frb_array = injectFRB(fake_noise)
+        ftdata.append(ftdata)
         label.append(1)
 
     ftdata = np.array(ftdata)
 
+    # TODO: fix whatever's wrong with the ftdata shape
     if ftdata is not None:
           Nfl = ftdata.shape[0]
-          nfreq=ftdata.shape[1]
-          ntime=ftdata.shape[2]
+          nfreq = ftdata.shape[1]
+          ntime = ftdata.shape[2]
   
-    print(Nfl,nfreq,ntime)
-    print(label)
+    print(f"Nfl: {Nfl}")
+    print(f"nfreq; {nfreq}")
+    print(f"ntime: {ntime}")
+    print(f"label array: {label}")
 
     dshape = ftdata.shape
 
@@ -366,18 +364,18 @@ if __name__ == "__main__":
                                 nfreq=NFREQ, ntime=NTINT)
     else:
         print("Only classifiying")
-        model_freq_time=load_model('freq_time.hdf5')
+        model_freq_time = load_model('freq_time.hdf5')
      
     y_pred_prob1 = model_freq_time.predict(eval_data_freq)
     y_pred_prob = list(y_pred_prob1[:,1])
-    rfi_prob    = list(y_pred_prob1[:,0])
-    prob_threshold=0.5
+    rfi_prob = list(y_pred_prob1[:,0])
+    prob_threshold = 0.5
     y_pred_freq_time = np.array(list(np.round(y_pred_prob)))
     print_metric(eval_label1, y_pred_freq_time)
     
     ind_frb = np.where(y_pred_prob>prob_threshold)[0]
 
-    TP,FP,TN,FN=get_classification_results(eval_label1,y_pred_freq_time)
+    TP, FP, TN, FN = get_classification_results(eval_label1, y_pred_freq_time)
     
     y_pred_prob = np.array(y_pred_prob)
     if TP.size:
