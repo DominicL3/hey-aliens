@@ -281,6 +281,7 @@ if __name__ == "__main__":
         #ar file with FRB
         data = []
         #data = psr2np(fl,NFREQ,30)
+        
         # TODO: put simulated data into ftdata instead of psr2np data
         ftdata.append(psr2np(fl,NFREQ,DM))
         label.append(0)
@@ -421,6 +422,3 @@ if __name__ == "__main__":
     plt.savefig('confusion_matrix.png')
 
     plt.show()
-
-
-
