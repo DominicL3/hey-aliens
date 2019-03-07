@@ -111,10 +111,10 @@ def construct_conv2d(features_only=False, fit=False,
 
 
     if fit:
-        print("Using batch_size: %d" % batch_size)
-        print("Using %d epochs" % epochs)
+        print(f"Using batch_size: {batch_size}" % batch_size)
+        print(f"Using {epochs} epochs")
         cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
-                                         batch_size=32, write_graph=True, write_grads=False,
+                                         batch_size=batch_size, write_graph=True, write_grads=False,
                                          write_images=True, embeddings_freq=0, embeddings_layer_names=None,
                                          embeddings_metadata=None)
 
