@@ -356,7 +356,7 @@ if __name__ == "__main__":
                                 features_only=False, fit=True,
                                 train_data=train_data_freq, eval_data=eval_data_freq,
                                 train_labels=train_labels, eval_labels=eval_labels,
-                                epochs=32, nfilt1=32, nfilt2=64, batch_size=16,
+                                epochs=32, nfilt1=32, nfilt2=64, batch_size=32,
                                 nfreq=NFREQ, ntime=NTINT)
     else:
         print("Only classifiying")
