@@ -8,6 +8,7 @@ import sys, os
 import numpy as np
 import time
 import h5py
+from tqdm import tqdm, trange # progress bar
 
 try:
     import matplotlib
@@ -183,9 +184,10 @@ def print_metric(y_true, y_pred):
     return accuracy, precision, recall, fscore
 
 def simulate_background(shape=(256, 512)):
-    '''Returns numpy array that simulates background noise similar 
-    to the .ar files. These backgrounds will be injected
-    with FRBs to be used in classification later on.'''
+    '''Returns 3D numpy array that simulates background noise similar 
+    to the .ar files. These backgrounds will be injected with FRBs to 
+    be used in classification later on.'''
+
     return np.random.uniform(low=10, high=100, size=shape)
 
 def injectFRB(data):
@@ -203,7 +205,7 @@ def injectFRB(data):
 
     # randomize max width of injected burst in num_bins
     # originally wid = 2
-    wid = np.random.uniform(2, 10)
+    wid = np.random.randint(2, 10)
     SNRmin = 6 # Minimum SNR limit
     SNRmax = 20 # Maximum SNR limit
 
@@ -214,7 +216,7 @@ def injectFRB(data):
     prof = np.mean(data, axis=0)
     
     # Partial inject
-    stch = np.random.randint(0,nchan-(nchan)*frac)
+    stch = np.random.randint(0, nchan - nchan*frac)
     data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + np.random.randint(SNRmin, SNRmax) * np.std(prof)
 
     return data
@@ -256,24 +258,24 @@ if __name__ == "__main__":
 
     # Read archive files and extract data arrays
 
-    path = sys.argv[1] # Path and Pattern to find all the .ar files to read and train on
+    #path = sys.argv[1] # Path and Pattern to find all the .ar files to read and train on
+    num_sims = int(sys.argv[1])
     NFREQ = 256
     NTINT = 512
     DM = 102.4
 
-    if path is not None:
+    ''' if path is not None:
         #files = glob.glob(path+"1stCand*.ar")
         files = glob.glob(path+"*.ar")
     else:    
         #files = glob.glob("1stCand*.ar")
-        files = glob.glob("*.ar")
+        files = glob.glob("*.ar")'''
    
-    ftdata = [] 
+    ftdata = []
     label = []
 
-    # TODO: change for loop so that it iterates over simulated arrays
-    for fl in files:
-        #previously, ar file with FRB
+    for fl in trange(num_sims):
+        # previously, ar file with FRB
         # now, filled with simulated data
         fake_noise = simulate_background()
         
@@ -283,21 +285,18 @@ if __name__ == "__main__":
         
         # inject FRB into data and label it true
         frb_array = injectFRB(fake_noise)
-        ftdata.append(ftdata)
+        ftdata.append(frb_array)
         label.append(1)
 
+    print("Finished simulating backgrounds and FRBs")
+    
     ftdata = np.array(ftdata)
+    num_arrays, nfreq, ntime = ftdata.shape
 
-    # TODO: fix whatever's wrong with the ftdata shape
-    if ftdata is not None:
-          Nfl = ftdata.shape[0]
-          nfreq = ftdata.shape[1]
-          ntime = ftdata.shape[2]
-  
-    print(f"Nfl: {Nfl}")
-    print(f"nfreq; {nfreq}")
-    print(f"ntime: {ntime}")
-    print(f"label array: {label}")
+    print (f"num_arrays: {num_arrays}")
+    print (f"nfreq; {nfreq}")
+    print (f"ntime: {ntime}")
+    print (f"label array: {label}")
 
     dshape = ftdata.shape
 
@@ -307,7 +306,7 @@ if __name__ == "__main__":
     ftdata /= np.std(ftdata, axis=-1)[:, None]
 
     # zero out nans
-    ftdata[ftdata!=ftdata] = 0.0
+    ftdata[ftdata != ftdata] = 0.0
     ftdata = ftdata.reshape(dshape)
 
     #Get 4D vector for Keras
@@ -315,7 +314,7 @@ if __name__ == "__main__":
 
     NTRAIN = int(len(label)*0.5)
 
-    ind = np.arange(Nfl)
+    ind = np.arange(num_arrays)
     np.random.shuffle(ind)
 
     #print(ind,NTRAIN)
@@ -337,11 +336,8 @@ if __name__ == "__main__":
     eval_labels = label[ind_eval]
     '''
 
-    train_labels = []
-    eval_labels = []
-
-    for i in ind_train: train_labels.append(label[i])
-    for j in ind_eval: eval_labels.append(label[j])
+    train_labels = [label[i] for i in ind_train]
+    eval_labels = [label[j] for j in ind_eval]
 
     #print(train_labels,ind_train)
     #print(eval_labels,ind_eval)
@@ -355,7 +351,7 @@ if __name__ == "__main__":
     fit = True
 
     # Fit convolution neural network to the training data
-    if fit is True:
+    if fit:
         model_freq_time, score_freq_time = construct_conv2d(
                                 features_only=False, fit=True,
                                 train_data=train_data_freq, eval_data=eval_data_freq,
