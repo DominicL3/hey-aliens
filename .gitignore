@@ -3,3 +3,4 @@
 psr
 *.pyc
 *.local
+*.pytest*
