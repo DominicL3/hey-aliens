@@ -16,7 +16,7 @@ try:
 
     import matplotlib.pyplot as plt
     from matplotlib import gridspec
-    print("Worked")
+    print("Successfully imported matplotlib")
 except:
     "Didn't work"
     pass
@@ -110,7 +110,7 @@ def construct_conv2d(features_only=False, fit=False,
     model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
 
-    if fit is True:
+    if fit:
         print("Using batch_size: %d" % batch_size)
         print("Using %d epochs" % epochs)
         cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
@@ -356,7 +356,7 @@ if __name__ == "__main__":
                                 features_only=False, fit=True,
                                 train_data=train_data_freq, eval_data=eval_data_freq,
                                 train_labels=train_labels, eval_labels=eval_labels,
-                                epochs=32, nfilt1=32, nfilt2=64,
+                                epochs=32, nfilt1=32, nfilt2=64, batch_size=16,
                                 nfreq=NFREQ, ntime=NTINT)
     else:
         print("Only classifiying")
