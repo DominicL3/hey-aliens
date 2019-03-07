@@ -359,17 +359,17 @@ if __name__ == "__main__":
                                 epochs=32, nfilt1=32, nfilt2=64, batch_size=32,
                                 nfreq=NFREQ, ntime=NTINT)
     else:
-        print("Only classifiying")
+        print("Only classifying")
         model_freq_time = load_model('freq_time.hdf5')
      
     y_pred_prob1 = model_freq_time.predict(eval_data_freq)
-    y_pred_prob = list(y_pred_prob1[:,1])
-    rfi_prob = list(y_pred_prob1[:,0])
+    y_pred_prob = y_pred_prob1[:,1]
+    rfi_prob = y_pred_prob1[:,0]
     prob_threshold = 0.5
     y_pred_freq_time = np.array(list(np.round(y_pred_prob)))
     print_metric(eval_label1, y_pred_freq_time)
     
-    ind_frb = np.where(y_pred_prob>prob_threshold)[0]
+    ind_frb = np.where(y_pred_prob > prob_threshold)[0]
 
     TP, FP, TN, FN = get_classification_results(eval_label1, y_pred_freq_time)
     
