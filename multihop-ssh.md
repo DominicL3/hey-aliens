@@ -103,7 +103,7 @@ If you've done this right, you can just use `blph0` or whatever `Host` you've se
 
 Repeat this process of copying your SSH key for however many machines you need to tunnel through.
 
-## Final Tests
+## Final Examination
 If you've gotten through all this successfully, you can test it back on your local machine by using 
 ```
 ssh blpc0
