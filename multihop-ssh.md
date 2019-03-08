@@ -12,7 +12,7 @@ Now it's my turn to pass on their wisdom to you, gentle reader.
 
 **NOTE**: I worked on a 2017 Macbook Pro at the time I wrote this, so I can't be sure that it's the exact same process in Linux or Windows, but I hope it'll lead you on the right track.
 
-## Set up  ~/.ssh/config file
+## Edit  ~/.ssh/config file
 First, open up your ~/.ssh/config file. If it's not there, just make a plain text file. You can do this in terminal via `touch ~/.ssh/config` or with whatever text editor you like. Next, you'll want to paste in this code:
 
 ```
