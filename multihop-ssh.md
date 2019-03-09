@@ -68,7 +68,7 @@ The key's randomart image is:
 ```
 Passwords are optional, though I recommend it for your personal security.
 
-Now, you can use the `ssh-copy-id` command like so to copy your RSA key to the server. Since i first SSH to the digilab server, the public key on my machine gets copied there.
+Now, you can use the `ssh-copy-id` command like so to copy your RSA key to the server. Since I first SSH to the digilab server, the public key on my machine gets copied there.
 
 ```
 # default mykey is id_rsa.pub
