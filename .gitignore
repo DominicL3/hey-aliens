@@ -4,3 +4,4 @@ psr
 *.pyc
 *.local
 *.pytest*
+*.vscode
