@@ -310,15 +310,13 @@ if __name__ == "__main__":
     ftdata, label = make_labels(num_sims)
     print("Finished simulating backgrounds and FRBs")
     
-    ftdata = np.array(ftdata)
-    num_arrays, nfreq, ntime = ftdata.shape
+    dshape = ftdata.shape
+    num_arrays, nfreq, ntime = dshape
 
     print (f"num_arrays: {num_arrays}")
     print (f"nfreq: {nfreq}")
     print (f"ntime: {ntime}")
     print (f"label array: {label}")
-
-    dshape = ftdata.shape
 
     # normalize data
     ftdata = ftdata.reshape(len(ftdata), -1)
@@ -332,25 +330,25 @@ if __name__ == "__main__":
     #Get 4D vector for Keras
     ftdata = ftdata[..., None]
 
-    NTRAIN = int(len(label)*0.5)
+    # 80-20 split for training and testing
+    NTRAIN = int(len(label)*0.80)
 
-    ind = np.arange(num_arrays)
-    np.random.shuffle(ind)
+    # shuffle around the arrays for random test-train split
+    permute(ftdata, label)
 
-    #print(ind,NTRAIN)
+    # split labels into training and evaluation
+    train_labels = label[:NTRAIN]
+    eval_labels = label[NTRAIN:]
 
-    ind_train = ind[:NTRAIN]
-    ind_eval = ind[NTRAIN:]
-
-    # create training and evaluation labels for each value in ind
-    train_labels = [label[i] for i in ind_train]
-    eval_labels = [label[j] for j in ind_eval]
+    assert len(eval_labels.shape) == 1, "Labels are not a 1D array"
     eval_label1 = np.array(eval_labels)
 
+    # for cross-entropy calculations
     train_labels = keras.utils.to_categorical(train_labels)
     eval_labels = keras.utils.to_categorical(eval_labels)
 
-    train_data_freq, eval_data_freq = ftdata[ind_train], ftdata[ind_eval]
+    # split the ftdata into training and validation sets
+    train_data_freq, eval_data_freq = ftdata[:NTRAIN], ftdata[NTRAIN:]
 
     fit = True
 
@@ -366,9 +364,11 @@ if __name__ == "__main__":
         print("Only classifying")
         model_freq_time = load_model('freq_time.hdf5')
      
+    print ("Model fitting completed")
+    
     y_pred_prob1 = model_freq_time.predict(eval_data_freq)
     y_pred_prob = y_pred_prob1[:,1]
-    rfi_prob = y_pred_prob1[:,0]
+    rfi_prob = y_pred_prob1[:, 0]
     prob_threshold = 0.5
     y_pred_freq_time = np.array(list(np.round(y_pred_prob)))
     print_metric(eval_label1, y_pred_freq_time)
