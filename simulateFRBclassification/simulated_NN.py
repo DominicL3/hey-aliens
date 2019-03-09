@@ -103,7 +103,10 @@ def construct_conv2d(features_only=False, fit=False,
 
     # model.add(Dense(1024, activation='relu')) # added back in
     model.add(Dropout(0.5))
-    model.add(Dense(2, activation='softmax'))
+
+    # TODO: test out adding a sigmoid layer instead of softmax
+    # model.add(Dense(2, activation='softmax'))
+    model.add(Dense(1, activation='sigmoid'))
 
     # sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     # tried and failed with adam
