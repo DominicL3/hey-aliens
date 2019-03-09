@@ -12,9 +12,6 @@ import h5py
 from tqdm import tqdm, trange # progress bar
 
 try:
-    import matplotlib
-    matplotlib.use('Agg')
-
     import matplotlib.pyplot as plt
     from matplotlib import gridspec
     print("Successfully imported matplotlib")
@@ -35,7 +32,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import merge as Merger
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras.models import load_model
 
 def construct_conv2d(features_only=False, fit=False,
@@ -80,10 +77,11 @@ def construct_conv2d(features_only=False, fit=False,
     """
 
     if train_data is not None:
-        nfreq=train_data.shape[1]
-        ntime=train_data.shape[2]
+        nfreq = train_data.shape[1]
+        ntime = train_data.shape[2]
     
-    print(nfreq,ntime)
+    print(f"nfreq, ntime: {nfreq, ntime}")
+    
     model = Sequential()
     # this applies 32 convolution filters of size 5x5 each.
     model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
@@ -103,26 +101,26 @@ def construct_conv2d(features_only=False, fit=False,
 
     model.add(Dense(256, activation='relu')) # should be 1024 hack
 
-#    model.add(Dense(1024, activation='relu')) # remove for now hack
+    # model.add(Dense(1024, activation='relu')) # added back in
     model.add(Dropout(0.5))
     model.add(Dense(2, activation='softmax'))
 
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    # sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    # tried and failed with adam
+    adam = Adam(lr=0.01, decay=1e-6)
+    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
 
+    print(f"Using batch_size: {batch_size}")
+    print(f"Using {epochs} epochs")
+    cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
+                                    batch_size=batch_size, write_graph=True, write_grads=False,
+                                    write_images=True, embeddings_freq=0, embeddings_layer_names=None,
+                                    embeddings_metadata=None)
 
-    if fit:
-        print(f"Using batch_size: {batch_size}")
-        print(f"Using {epochs} epochs")
-        cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
-                                         batch_size=batch_size, write_graph=True, write_grads=False,
-                                         write_images=True, embeddings_freq=0, embeddings_layer_names=None,
-                                         embeddings_metadata=None)
-
-        model.fit(train_data, train_labels, batch_size=batch_size, epochs=epochs, callbacks=[cb])
-        score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
-        print("Conv2d only")
-        print(score)
+    model.fit(train_data, train_labels, batch_size=batch_size, epochs=epochs, callbacks=[cb])
+    score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
+    print("Conv2d only")
+    print(score)
 
     return model, score
 
@@ -254,6 +252,43 @@ def injectFRB(data):
 
     return data'''
 
+def make_labels(num_data):
+    '''Simulates the background for num_data number of points and appends to ftdata.
+    Each iteration will have just noise and an injected FRB, so the label list should
+    be populated with just 0 and 1, which will then be shuffled later.'''
+    
+    ftdata = []
+    labels = []
+
+    for fl in trange(num_data):
+        # previously, ar file with FRB
+        # now, filled with simulated data
+        fake_noise = simulate_background()
+        
+        # put simulated data into ftdata and label it RFI
+        ftdata.append(fake_noise)
+        labels.append(0)
+        
+        # inject FRB into data and label it true
+        frb_array = injectFRB(fake_noise)
+        ftdata.append(frb_array)
+        labels.append(1)
+
+    return np.array(ftdata), np.array(labels)
+
+def permute(ftdata_array, label_array, num_permutations=1):
+    '''Takes in ftdata and label arrays and shuffles them in-place
+    num_permutations times by shuffling an array of indices and then
+    picking out values from data and labels in that same shuffled order.'''
+    
+    shuffled_ind = np.arange(ftdata_array.shape[0])
+    while num_permutations > 0:
+        np.random.shuffle(shuffled_ind)
+        num_permutations -= 1
+    
+    # summon data and labels in the same order as shuffled order of indices
+    ftdata_array[:] = ftdata_array[shuffled_ind]
+    label_array[:] = label_array[shuffled_ind]
 
 if __name__ == "__main__":
 
@@ -272,30 +307,14 @@ if __name__ == "__main__":
         #files = glob.glob("1stCand*.ar")
         files = glob.glob("*.ar")'''
    
-    ftdata = []
-    label = []
-
-    for fl in trange(num_sims):
-        # previously, ar file with FRB
-        # now, filled with simulated data
-        fake_noise = simulate_background()
-        
-        # put simulated data into ftdata and label it RFI
-        ftdata.append(fake_noise)
-        label.append(0)
-        
-        # inject FRB into data and label it true
-        frb_array = injectFRB(fake_noise)
-        ftdata.append(frb_array)
-        label.append(1)
-
+    ftdata, label = make_labels(num_sims)
     print("Finished simulating backgrounds and FRBs")
     
     ftdata = np.array(ftdata)
     num_arrays, nfreq, ntime = ftdata.shape
 
     print (f"num_arrays: {num_arrays}")
-    print (f"nfreq; {nfreq}")
+    print (f"nfreq: {nfreq}")
     print (f"ntime: {ntime}")
     print (f"label array: {label}")
 
@@ -323,25 +342,9 @@ if __name__ == "__main__":
     ind_train = ind[:NTRAIN]
     ind_eval = ind[NTRAIN:]
 
-    #print(ind_train)
-    #print(ind_eval)
-
-    #train_labels, eval_labels = label[ind_train], label[ind_eval]
-    #train_labels = [1,0,1]
-    #eval_labels = [1,0]
-
-    '''
-    Just a short cut because no internet 
-    print(ind_train,ind_eval)
-    train_labels = label[ind_train]
-    eval_labels = label[ind_eval]
-    '''
-
+    # create training and evaluation labels for each value in ind
     train_labels = [label[i] for i in ind_train]
     eval_labels = [label[j] for j in ind_eval]
-
-    #print(train_labels,ind_train)
-    #print(eval_labels,ind_eval)
     eval_label1 = np.array(eval_labels)
 
     train_labels = keras.utils.to_categorical(train_labels)
