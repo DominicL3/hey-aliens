@@ -86,29 +86,35 @@ def construct_conv2d(features_only=False, fit=False,
     # this applies 32 convolution filters of size 5x5 each.
     model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
 
-    # model.add(Conv2D(nfilt2, (3, 3), activation='relu'))
+    # model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    
     # Randomly drop some fraction of nodes (set weights to 0)
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.2))
+    
+    # second convolutional layer
     model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.4))
+    
     model.add(Flatten())
 
     if features_only is True:
         model.add(BatchNormalization()) # hack
         return model, []
 
-    model.add(Dense(256, activation='relu')) # should be 1024 hack
+    model.add(Dense(512, activation='relu')) # should be 1024 hack
 
     # model.add(Dense(1024, activation='relu')) # added back in
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.4))
     model.add(Dense(2, activation='softmax'))
 
-    # sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    # attempt with sigmoids
+
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
     # tried and failed with adam
-    adam = Adam(lr=0.01, decay=1e-6)
-    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+    #adam = Adam(lr=0.01, decay=1e-6)
+    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
     print(f"Using batch_size: {batch_size}")
     print(f"Using {epochs} epochs")
