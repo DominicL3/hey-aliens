@@ -86,7 +86,7 @@ def construct_conv2d(features_only=False, fit=False,
     # this applies 32 convolution filters of size 5x5 each.
     model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
 
-    #model.add(Conv2D(32, (3, 3), activation='relu'))
+    # model.add(Conv2D(nfilt2, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     # Randomly drop some fraction of nodes (set weights to 0)
     model.add(Dropout(0.4))
