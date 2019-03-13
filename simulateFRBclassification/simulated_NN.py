@@ -193,7 +193,7 @@ def simulate_background(shape=(256, 512)):
     to the .ar files. These backgrounds will be injected with FRBs to 
     be used in classification later on.'''
 
-    return np.random.uniform(low=10, high=100, size=shape)
+    return np.random.randn(*shape)
 
 def injectFRB(data):
     '''
@@ -211,8 +211,8 @@ def injectFRB(data):
     # randomize max width of injected burst in num_bins
     # originally wid = 2
     wid = np.random.randint(2, 10)
-    SNRmin = 10 # Minimum SNR limit
-    SNRmax = 20 # Maximum SNR limit
+    SNRmin = 20000 # Minimum SNR limit
+    SNRmax = 30000 # Maximum SNR limit
 
     # Random point to inject FRB
     st = np.random.randint(0, nbins - np.random.randint(0, wid))
@@ -222,7 +222,8 @@ def injectFRB(data):
     
     # Partial inject
     stch = np.random.randint(0, nchan - nchan*frac)
-    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + np.random.randint(SNRmin, SNRmax) * np.std(prof)
+    # TODO: put the std(prof) part back in
+    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + np.random.randint(SNRmin, SNRmax) #* np.std(prof)
 
     return data
 
@@ -328,7 +329,7 @@ if __name__ == "__main__":
     ftdata = ftdata.reshape(len(ftdata), -1)
     ftdata -= np.median(ftdata, axis=-1)[:, None]
     ftdata /= np.std(ftdata, axis=-1)[:, None]
-
+    
     # zero out nans
     ftdata[ftdata != ftdata] = 0.0
     ftdata = ftdata.reshape(dshape)
