@@ -211,13 +211,13 @@ def injectFRB(data):
     # randomize max width of injected burst in num_bins
     # originally wid = 2
     wid = np.random.randint(2, 10)
-    SNRmin = 6 # Minimum SNR limit
+    SNRmin = 10 # Minimum SNR limit
     SNRmax = 20 # Maximum SNR limit
 
     # Random point to inject FRB
     st = np.random.randint(0, nbins - np.random.randint(0, wid))
 
-    # get the mean noise in each row?
+    # get the mean noise in each column?
     prof = np.mean(data, axis=0)
     
     # Partial inject
@@ -333,7 +333,7 @@ if __name__ == "__main__":
     ftdata[ftdata != ftdata] = 0.0
     ftdata = ftdata.reshape(dshape)
 
-    #Get 4D vector for Keras
+    # Get 4D vector for Keras
     ftdata = ftdata[..., None]
 
     # 80-20 split for training and testing
