@@ -218,12 +218,12 @@ def injectFRB(data):
     st = np.random.randint(0, nbins - np.random.randint(0, wid))
 
     # get the mean noise in each column?
-    prof = np.mean(data, axis=0)
+    mean_noise = np.mean(data)
     
     # Partial inject
     stch = np.random.randint(0, nchan - nchan*frac)
-    # TODO: put the std(prof) part back in
-    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + np.random.randint(SNRmin, SNRmax) #* np.std(prof)
+
+    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + (np.random.randint(SNRmin, SNRmax) * mean_noise)
 
     return data
 
