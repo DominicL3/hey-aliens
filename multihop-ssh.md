@@ -1,16 +1,16 @@
 # Setting up (pretty sweet) Multi-Hop SSH
-For my research, I have to constantly SSH into the Colo facility data center. When I first began, getting access to the online compute server was insanely tedious. I originally had to chain these three commands every single time:
+For my research, I often have to SSH into the data center at the Colo facility. When I first began, getting access to the online compute server was insanely tedious because I  had to chain these three commands every single time:
 
 ```
-ssh -Y myusername@digilab.astro.berkeley.edu
-ssh -Y myusername@blph0.ssl.berkeley.edu
+ssh -Y MYUSERNAME@digilab.astro.berkeley.edu
+ssh -Y MYUSERNAME@blph0.ssl.berkeley.edu
 ssh -Y blpc0
 ```
 Fortunately, the good folks at Breakthrough Listen (shoutout to Dave Macmahon and Matt Lebofsky) have helped me set this up so I only have to input one command from my local machine.
 
 Now it's my turn to pass on their wisdom to you, gentle reader.
 
-**NOTE**: I worked on a 2017 Macbook Pro at the time I wrote this, so I can't be sure that it's the exact same process in Linux or Windows, but I hope it'll lead you on the right track.
+**NOTE**: I worked on a 2017 Macbook Pro at the time I wrote this, so I can't be sure that it's the exact same process in Linux or Windows, but I hope it'll at least get you on the right track.
 
 ## Edit  ~/.ssh/config file
 First, open up your ~/.ssh/config file. If it's not there, just make a plain text file. You can do this in terminal via `touch ~/.ssh/config` or with whatever text editor you like. Next, you'll want to paste in this code:
@@ -18,17 +18,17 @@ First, open up your ~/.ssh/config file. If it's not there, just make a plain tex
 ```
 Host blpc0
   ProxyCommand ssh blph0 -W %h:%p
-  user YourUsername
-  forwardX11trusted yes
+  User MYUSERNAME
+  ForwardX11Trusted yes
 Host blph0
   HostName blph0.ssl.berkeley.edu
-  user YourUsername
+  User MYUSERNAME
   ProxyCommand ssh digilab -W %h:%p
-  forwardX11trusted yes
+  ForwardX11Trusted yes
 Host digilab
   HostName digilab.astro.berkeley.edu
-  user YourUsername
-  forwardX11trusted yes
+  User MYUSERNAME
+  ForwardX11Trusted yes
 ```
 This allows me to tunnel through `digilab -> blph0 -> blpc0`, which is amazing.
 My SSHing abilities aren't too hot, so I'll try to break down what I can.
@@ -46,11 +46,11 @@ If you already have a SSH private key and public key pair that you want to use, 
 
 ```
 Generating public/private rsa key pair.
-Enter file in which to save the key (/home/ylo/.ssh/id_rsa): mykey
+Enter file in which to save the key (/home/ylo/.ssh/id_rsa):
 Enter passphrase (empty for no passphrase): 
 Enter same passphrase again: 
-Your identification has been saved in mykey.
-Your public key has been saved in mykey.pub.
+Your identification has been saved in id_rsa.
+Your public key has been saved in id_rsa.pub.
 The key fingerprint is:
 SHA256:GKW7yzA1J1qkr1Cr9MhUwAbHbF2NrIPEgZXeOUOz3Us ylo@klar
 The key's randomart image is:
@@ -70,9 +70,10 @@ Passwords are optional, though I recommend it for your personal security.
 
 Now, you can use the `ssh-copy-id` command like so to copy your RSA key to the server. Since I first SSH to the digilab server, the public key on my machine gets copied there.
 
+The default public key is saved to `id-rsa.pub`, but if you've decided to name it something else, copy with that file instead.
+
 ```
-# default mykey is id_rsa.pub
-ssh-copy-id -i ~/.ssh/mykey myusername@digilab.astro.berkeley.edu
+ssh-copy-id -i ~/.ssh/id_rsa.pub myusername@digilab.astro.berkeley.edu
 ```
 where you can replace `myusername@digilab.astro.berkeley.edu` with your own username and host.
 
