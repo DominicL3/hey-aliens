@@ -90,7 +90,7 @@ def construct_conv2d(features_only=False, fit=False,
     model.add(MaxPooling2D(pool_size=(2, 2)))
     
     # Randomly drop some fraction of nodes (set weights to 0)
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.4))
     
     # second convolutional layer
     model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
@@ -103,10 +103,10 @@ def construct_conv2d(features_only=False, fit=False,
         model.add(BatchNormalization()) # hack
         return model, []
 
-    model.add(Dense(256, activation='relu')) # should be 1024 hack
+    model.add(Dense(512, activation='relu')) # should be 1024 hack
 
     # model.add(Dense(1024, activation='relu')) # added back in
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.5))
     model.add(Dense(2, activation='softmax'))
 
     #sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
@@ -121,7 +121,9 @@ def construct_conv2d(features_only=False, fit=False,
                                     write_images=True, embeddings_freq=0, embeddings_layer_names=None,
                                     embeddings_metadata=None)
 
-    model.fit(train_data, train_labels, batch_size=batch_size, epochs=epochs, callbacks=[cb])
+    model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels), 
+                batch_size=batch_size, epochs=epochs, callbacks=[cb])
+    
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print("Conv2d only")
     print(score)
