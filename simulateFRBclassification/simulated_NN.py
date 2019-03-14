@@ -32,6 +32,7 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import merge as Merger
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
+from keras.layers.advanced_activations import LeakyReLU # TODO: trying this out
 from keras.optimizers import SGD, Adam
 from keras.models import load_model
 
@@ -83,19 +84,25 @@ def construct_conv2d(features_only=False, fit=False,
     print(f"nfreq, ntime: {nfreq, ntime}")
     
     model = Sequential()
+
     # this applies 32 convolution filters of size 5x5 each.
     model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
+    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
 
     # model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     
     # Randomly drop some fraction of nodes (set weights to 0)
     model.add(Dropout(0.4))
+
+    # add leaky relu layer
+    model.add(Dense(512, activation='relu')) # TODO: remove leaky relu when done
     
     # second convolutional layer
     model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
+    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.4))
+    model.add(Dropout(0.3))
     
     model.add(Flatten())
 
@@ -105,14 +112,13 @@ def construct_conv2d(features_only=False, fit=False,
 
     model.add(Dense(512, activation='relu')) # should be 1024 hack
 
+
     # model.add(Dense(1024, activation='relu')) # added back in
-    model.add(Dropout(0.5))
+    model.add(Dropout(0.4))
     model.add(Dense(2, activation='softmax'))
 
-    #sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    # try with Adam optimizer
-    adam = Adam(lr=0.01, decay=1e-6)
-    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
     print(f"Using batch_size: {batch_size}")
     print(f"Using {epochs} epochs")
@@ -315,6 +321,7 @@ if __name__ == "__main__":
         #files = glob.glob("1stCand*.ar")
         files = glob.glob("*.ar")'''
    
+    print ("Simulating noise and FRBs. . . . .")
     ftdata, label = make_labels(num_sims)
     print("Finished simulating backgrounds and FRBs")
     
