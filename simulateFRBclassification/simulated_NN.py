@@ -103,18 +103,16 @@ def construct_conv2d(features_only=False, fit=False,
         model.add(BatchNormalization()) # hack
         return model, []
 
-    model.add(Dense(512, activation='relu')) # should be 1024 hack
+    model.add(Dense(256, activation='relu')) # should be 1024 hack
 
     # model.add(Dense(1024, activation='relu')) # added back in
     model.add(Dropout(0.4))
     model.add(Dense(2, activation='softmax'))
 
-    # attempt with sigmoids
-
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    # tried and failed with adam
-    #adam = Adam(lr=0.01, decay=1e-6)
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    #sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    # try with Adam optimizer
+    adam = Adam(lr=0.01, decay=1e-6)
+    model.compile(loss='binary_crossentropy', optimizer=adam, metrics=['accuracy'])
 
     print(f"Using batch_size: {batch_size}")
     print(f"Using {epochs} epochs")
@@ -211,13 +209,14 @@ def injectFRB(data):
     # randomize max width of injected burst in num_bins
     # originally wid = 2
     wid = np.random.randint(2, 10)
-    SNRmin = 20000 # Minimum SNR limit
+    SNRmin = 20000 # Minimum SNR limit TODO: make this NOT huge SNR
     SNRmax = 30000 # Maximum SNR limit
 
     # Random point to inject FRB
     st = np.random.randint(0, nbins - np.random.randint(0, wid))
 
-    # get the mean noise in each column?
+    # get the mean noise
+    # TODO: ask Vishal about using np.mean(data, axis=0) and multiplying stddev * SNR
     abs_mean_noise = np.abs(np.mean(data))
     
     # Partial inject

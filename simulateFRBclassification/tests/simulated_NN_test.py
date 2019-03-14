@@ -10,7 +10,7 @@ class TestSimulateFRB(object):
     def test_basic(self):
         background = s.simulate_background()
         assert background.shape == (256, 512), "Shape doesn't match"
-        assert 10 < np.mean(background) < 100
+        assert -1 < np.mean(background) < 1
 
     def test_injectFRB(self):
         background = s.simulate_background()

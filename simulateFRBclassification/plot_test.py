@@ -9,5 +9,7 @@ frb = s.injectFRB(background)
 
 plt.figure()
 plt.imshow(background)
+plt.colorbar()
 plt.figure()
 plt.imshow(frb)
+plt.colorbar()
