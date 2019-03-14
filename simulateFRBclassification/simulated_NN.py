@@ -96,7 +96,7 @@ def construct_conv2d(features_only=False, fit=False,
     model.add(Dropout(0.4))
 
     # add leaky relu layer
-    model.add(Dense(512, activation='relu')) # TODO: remove leaky relu when done
+    model.add(LeakyReLU(alpha=0.01)) # TODO: remove leaky relu when done
     
     # second convolutional layer
     model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
