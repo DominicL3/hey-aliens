@@ -40,7 +40,7 @@ def construct_conv2d(features_only=False, fit=False,
                      train_data=None, train_labels=None,
                      eval_data=None, eval_labels=None,
                      nfreq=16, ntime=250, epochs=5,
-                     nfilt1=32, nfilt2=64, batch_size=32):
+                     nfilt1=32, nfilt2=64, batch_size=64):
     """ Build a two-dimensional convolutional neural network
     with a binary classifier. Can be used for, e.g.,
     freq-time dynamic spectra of pulsars, dm-time intensity array.
@@ -87,22 +87,19 @@ def construct_conv2d(features_only=False, fit=False,
 
     # this applies 32 convolution filters of size 5x5 each.
     model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
-    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
-
+    
     # model.add(Conv2D(32, (3, 3), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    
-    # Randomly drop some fraction of nodes (set weights to 0)
-    model.add(Dropout(0.4))
+    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
 
-    # add leaky relu layer
-    model.add(LeakyReLU(alpha=0.01)) # TODO: remove leaky relu when done
+    # Randomly drop some fraction of nodes (set weights to 0)
+    model.add(Dropout(0.3))
     
     # second convolutional layer
     model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
-    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.3))
+    model.add(BatchNormalization()) # TODO: remove BatchNormalization when done testing
+    model.add(Dropout(0.4))
     
     model.add(Flatten())
 
@@ -111,13 +108,14 @@ def construct_conv2d(features_only=False, fit=False,
         return model, []
 
     model.add(Dense(512, activation='relu')) # should be 1024 hack
-
+    model.add(Dense(512, activation='relu')) # should be 1024 hack
 
     # model.add(Dense(1024, activation='relu')) # added back in
     model.add(Dropout(0.4))
     model.add(Dense(2, activation='softmax'))
 
     sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    #adam = Adam(lr=0.01, decay=1e-6)
     model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
     print(f"Using batch_size: {batch_size}")

@@ -37,7 +37,7 @@ from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, Bat
 from keras.optimizers import SGD
 from keras.models import load_model
 
-def construct_conv2d(features_only=False, fit=False,
+'''def construct_conv2d(features_only=False, fit=False,
                      train_data=None, train_labels=None,
                      eval_data=None, eval_labels=None,
                      nfreq=16, ntime=250, epochs=5,
@@ -125,10 +125,10 @@ def construct_conv2d(features_only=False, fit=False,
         print("Conv2d only")
         print(score)
 
-    return model, score
+    return model, score'''
 
 # NEW VERSION
-'''def construct_conv2d(features_only=False, fit=False,
+def construct_conv2d(features_only=False, fit=False,
                      train_data=None, train_labels=None,
                      eval_data=None, eval_labels=None,
                      nfreq=16, ntime=250, epochs=5,
@@ -221,11 +221,9 @@ def construct_conv2d(features_only=False, fit=False,
     
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print("Conv2d only")
-    print(score)
+    print(f"Score: {score}")
 
-    return model, score'''
-
-
+    return model, score
 
 def get_classification_results(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted 
@@ -303,8 +301,8 @@ def injectFRB(data):
     frac = 0.5 # Fraction of band signal is strong
 
     wid = 2 # Maximum width of the injected burst in number of bins
-    SNRmin = 50 # Minimum SNR limit
-    SNRmax = 100 # Maximum SNR limit
+    SNRmin = 6 # Minimum SNR limit
+    SNRmax = 10 # Maximum SNR limit
 
     st = random.randint(0, nbins-random.randint(0,wid)) # Random point to inject FRB
 
