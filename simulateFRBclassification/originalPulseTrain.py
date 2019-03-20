@@ -9,6 +9,8 @@ import numpy as np
 import time
 #import h5py
 import random
+from tqdm import tqdm # progress bar
+import argparse # to parse arguments in command line
 
 try:
     import matplotlib
@@ -34,10 +36,10 @@ from keras.layers import Dense, Dropout, Flatten
 from keras.layers import merge as Merger
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
-from keras.optimizers import SGD
+from keras.optimizers import SGD, Adam
 from keras.models import load_model
 
-'''def construct_conv2d(features_only=False, fit=False,
+def construct_conv2d(model_name, features_only=False, fit=False,
                      train_data=None, train_labels=None,
                      eval_data=None, eval_labels=None,
                      nfreq=16, ntime=250, epochs=5,
@@ -120,15 +122,21 @@ from keras.models import load_model
                                          write_images=True, embeddings_freq=0, embeddings_layer_names=None,
                                          embeddings_metadata=None)
 
-        model.fit(train_data, train_labels, batch_size=batch_size, epochs=epochs, callbacks=[cb])
+        # save best model
+        best_model_cb = keras.callbacks.ModelCheckpoint(f"{model_name}", monitor='val_acc', verbose=1, save_best_only=True)
+        model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels), 
+                    batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
+        
         score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
         print("Conv2d only")
         print(score)
 
-    return model, score'''
+        
 
-# NEW VERSION
-def construct_conv2d(features_only=False, fit=False,
+    return model, score
+
+'''# NEW VERSION
+def construct_conv2d(model_name, features_only=False, fit=False,
                      train_data=None, train_labels=None,
                      eval_data=None, eval_labels=None,
                      nfreq=16, ntime=250, epochs=5,
@@ -216,14 +224,16 @@ def construct_conv2d(features_only=False, fit=False,
                                     write_images=True, embeddings_freq=0, embeddings_layer_names=None,
                                     embeddings_metadata=None)
 
+    # save best model
+    best_model_cb = keras.callbacks.ModelCheckpoint(f". {model_name}", monitor='val_acc', verbose=1, save_best_only=True)
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels), 
-                batch_size=batch_size, epochs=epochs, callbacks=[cb])
+                batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
     
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print("Conv2d only")
     print(f"Score: {score}")
 
-    return model, score
+    return model, score'''
 
 def get_classification_results(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted 
@@ -301,8 +311,6 @@ def injectFRB(data):
     frac = 0.5 # Fraction of band signal is strong
 
     wid = 2 # Maximum width of the injected burst in number of bins
-    SNRmin = 6 # Minimum SNR limit
-    SNRmax = 10 # Maximum SNR limit
 
     st = random.randint(0, nbins-random.randint(0,wid)) # Random point to inject FRB
 
@@ -377,10 +385,21 @@ def make_labels(num_data):
 
 
 if __name__ == "__main__":
+    # Read command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('num_samples', metavar='num_samples', type=int, 
+                        help='Number of samples to train neural network on')
+    parser.add_argument('--snr', nargs='+', type=float, 
+                        default=[10, 20], help='Tuple of SNR range for FRB signal')
+    parser.add_argument('--save', dest='best_model_file', type=str, default='best_model.h5',
+                        help='Filename to save best model in')
+    
+    args = parser.parse_args()
 
     # Read archive files and extract data arrays
+    best_model_name = args.best_model_file # Path and Pattern to find all the .ar files to read and train on
+    SNRmin, SNRmax = args.snr
 
-    #path = sys.argv[1] # Path and Pattern to find all the .ar files to read and train on
     NFREQ = 64
     NTINT = 256
     DM = 102.4
@@ -456,7 +475,7 @@ if __name__ == "__main__":
     eval_labels = []
 
     for i in ind_train: train_labels.append(label[i])
-    for j in ind_eval: eval_labels.append(label[j])
+    for j in tqdm(ind_eval): eval_labels.append(label[j])
 
     #print(train_labels,ind_train)
     #print(eval_labels,ind_eval)
@@ -471,7 +490,7 @@ if __name__ == "__main__":
 
     # Fit convolution neural network to the training data
     if fit is True:
-        model_freq_time, score_freq_time = construct_conv2d(
+        model_freq_time, score_freq_time = construct_conv2d(best_model_name,
                                 features_only=False, fit=True,
                                 train_data=train_data_freq, eval_data=eval_data_freq,
                                 train_labels=train_labels, eval_labels=eval_labels,
