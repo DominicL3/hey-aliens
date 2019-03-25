@@ -143,21 +143,27 @@ def construct_conv2d(model_name, features_only=False, fit=False,
     return model, score
 
 
-def get_classification_results(y_true, y_pred):
+def get_classification_results(y_true, y_pred, test_SNR=None):
     """ Take true labels (y_true) and model-predicted 
     label (y_pred) for a binary classifier, and return 
     true_positives, false_positives, true_negatives, false_negatives
     """
+    if test_SNR is not None:
+        TP_ind = np.argwhere((y_true == 1) & (y_pred == 1))
+        FP_ind = np.argwhere((y_true == 0) & (y_pred == 1))
+        TN_ind = np.argwhere((y_true == 0) & (y_pred == 0))
+        FN_ind = np.argwhere((y_true == 1) & (y_pred == 0))
+        SNR_TP, SNR_FP, SNR_TN, SNR_FN = test_SNR[TP_ind], test_SNR[FP_ind], test_SNR[TN_ind], test_SNR[FN_ind]
+        return SNR_TP.flatten(), SNR_FP.flatten(), SNR_TN.flatten(), SNR_FN.flatten()
+    else:
+        true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
+        false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
+        true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
+        false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
+        return true_positives, false_positives, true_negatives, false_negatives
 
-    true_positives = np.argwhere((y_true == 1) & (y_pred == 1))[0]
-    false_positives = np.argwhere((y_true == 0) & (y_pred == 1))[0]
-    true_negatives = np.argwhere((y_true == 0) & (y_pred == 0))[0]
-    false_negatives = np.argwhere((y_true == 1) & (y_pred == 0))[0]
 
-    return true_positives, false_positives, true_negatives, false_negatives
-
-
-def confusion_mat(y_true, y_pred, reportSNR=False):
+def confusion_mat(y_true, y_pred):
     """ Generate a confusion matrix for a
     binary classifier based on true labels (
     y_true) and model-predicted label (y_pred)
@@ -172,24 +178,16 @@ def confusion_mat(y_true, y_pred, reportSNR=False):
     NFN = len(FN)
 
     conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
-
-    if reportSNR:
-        TP_SNR, FP_SNR, TN_SNR, FN_SNR = SNRs[TP], SNRs[FP], SNRs[TN], SNRs[FN]
-        return conf_mat, np.array([TP_SNR, FP_SNR, TN_SNR, FN_SNR])
-
     return conf_mat
 
 
-def print_metric(y_true, y_pred, reportSNR=False):
+def print_metric(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted 
     label (y_pred) for a binary classifier
     and print a confusion matrix, metrics, 
     return accuracy, precision, recall, fscore
     """
-    if reportSNR:
-        conf_mat, SNR_stats = confusion_mat(y_true, y_pred, True)
-    else:
-        conf_mat = confusion_mat(y_true, y_pred, False)
+    conf_mat = confusion_mat(y_true, y_pred)
 
     NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
 
@@ -207,9 +205,6 @@ def print_metric(y_true, y_pred, reportSNR=False):
     print("precision: %f" % precision)
     print("recall: %f" % recall)
     print("fscore: %f" % fscore)
-
-    if reportSNR:
-        return accuracy, precision, recall, fscore, SNR_stats
 
     return accuracy, precision, recall, fscore
 
@@ -261,7 +256,8 @@ def gaussianFRB(data, SNRmin=8, SNRmax=80, returnSNR=False):
     prof = np.mean(data, axis=0)
 
     # get peak SNR and create Gaussian signal based on that peak
-    peak_value = random.randint(SNRmin, SNRmax) * np.std(prof)
+    randomSNR = random.randint(SNRmin, SNRmax)
+    peak_value = randomSNR * np.std(prof)
     signal = peak_value * gaussian(wid, wid // 3)
 
     # Partial inject
@@ -269,7 +265,7 @@ def gaussianFRB(data, SNRmin=8, SNRmax=80, returnSNR=False):
     data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + signal
 
     if returnSNR:
-        return data, peak_value
+        return data, randomSNR
     return data
 
 
@@ -341,6 +337,8 @@ if __name__ == "__main__":
                         help='Number of samples to train neural network on')
     parser.add_argument('--snr', nargs='+', type=float,
                         default=[10, 20], help='Tuple of SNR range for FRB signal')
+    parser.add_argument('--epochs', type=int, default=32,
+                        help='Number of epochs to train with')
     parser.add_argument('--save', dest='best_model_file', type=str, default='best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
@@ -427,13 +425,11 @@ if __name__ == "__main__":
     train_data_freq, eval_data_freq = ftdata[ind_train], ftdata[ind_eval]
 
     train_labels, eval_labels = label[ind_train], label[ind_eval]
-    train_labels = keras.utils.to_categorical(train_labels)
-    eval_labels = keras.utils.to_categorical(eval_labels)
-
-    # avoids using the keras labels I guess/
+    # avoids using the keras labels I guess?
     eval_label1 = np.array(eval_labels)
 
-    train_SNR, eval_SNR = SNRs[ind_train], SNRs[ind_eval]
+    train_labels = keras.utils.to_categorical(train_labels)
+    eval_labels = keras.utils.to_categorical(eval_labels)
 
     os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
     # Fit convolution neural network to the training data
@@ -441,15 +437,19 @@ if __name__ == "__main__":
                                                         features_only=False, fit=True,
                                                         train_data=train_data_freq, eval_data=eval_data_freq,
                                                         train_labels=train_labels, eval_labels=eval_labels,
-                                                        epochs=32, nfilt1=32, nfilt2=64,
+                                                        epochs=args.epochs, nfilt1=32, nfilt2=64,
                                                         nfreq=NFREQ, ntime=NTINT)
 
     y_pred_prob1 = model_freq_time.predict(eval_data_freq)
     y_pred_prob = y_pred_prob1[:, 1]
     y_pred_freq_time = np.array(list(np.round(y_pred_prob)))
-    metrics, SNR_stats = print_metric(eval_label1, y_pred_freq_time, reportSNR=True)
+    metrics = print_metric(eval_label1, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_label1, y_pred_freq_time)
+
+    # Get SNRs for images in each of the confusion matrix areas
+    eval_SNR = SNRs[ind_eval]
+    SNR_TP, SNR_FP, SNR_TN, SNR_FN = get_classification_results(eval_label1, y_pred_freq_time, test_SNR=eval_SNR)
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
