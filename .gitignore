@@ -5,4 +5,4 @@ psr
 *.local
 *.pytest*
 *.vscode
-agarwal_model.h5s
+agarwal_model.h5
