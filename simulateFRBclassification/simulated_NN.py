@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import sys, os
 import numpy as np
-from scipy.signal import gaussian
+from scipy.signal import gaussian, fftconvolve
 import time
 import h5py
 import random
@@ -143,21 +143,27 @@ def construct_conv2d(model_name, features_only=False, fit=False,
     return model, score
 
 
-def get_classification_results(y_true, y_pred):
+def get_classification_results(y_true, y_pred, test_SNR=None):
     """ Take true labels (y_true) and model-predicted 
     label (y_pred) for a binary classifier, and return 
     true_positives, false_positives, true_negatives, false_negatives
     """
+    if test_SNR is not None:
+        TP_ind = np.argwhere((y_true == 1) & (y_pred == 1))
+        FP_ind = np.argwhere((y_true == 0) & (y_pred == 1))
+        TN_ind = np.argwhere((y_true == 0) & (y_pred == 0))
+        FN_ind = np.argwhere((y_true == 1) & (y_pred == 0))
+        SNR_TP, SNR_FP, SNR_TN, SNR_FN = test_SNR[TP_ind], test_SNR[FP_ind], test_SNR[TN_ind], test_SNR[FN_ind]
+        return SNR_TP.flatten(), SNR_FP.flatten(), SNR_TN.flatten(), SNR_FN.flatten()
+    else:
+        true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
+        false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
+        true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
+        false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
+        return true_positives, false_positives, true_negatives, false_negatives
 
-    true_positives = np.argwhere((y_true == 1) & (y_pred == 1))[0]
-    false_positives = np.argwhere((y_true == 0) & (y_pred == 1))[0]
-    true_negatives = np.argwhere((y_true == 0) & (y_pred == 0))[0]
-    false_negatives = np.argwhere((y_true == 1) & (y_pred == 0))[0]
 
-    return true_positives, false_positives, true_negatives, false_negatives
-
-
-def confusion_mat(y_true, y_pred, reportSNR=False):
+def confusion_mat(y_true, y_pred):
     """ Generate a confusion matrix for a
     binary classifier based on true labels (
     y_true) and model-predicted label (y_pred)
@@ -172,24 +178,16 @@ def confusion_mat(y_true, y_pred, reportSNR=False):
     NFN = len(FN)
 
     conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
-
-    if reportSNR:
-        TP_SNR, FP_SNR, TN_SNR, FN_SNR = SNRs[TP], SNRs[FP], SNRs[TN], SNRs[FN]
-        return conf_mat, np.array([TP_SNR, FP_SNR, TN_SNR, FN_SNR])
-
     return conf_mat
 
 
-def print_metric(y_true, y_pred, reportSNR=False):
+def print_metric(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted 
     label (y_pred) for a binary classifier
     and print a confusion matrix, metrics, 
     return accuracy, precision, recall, fscore
     """
-    if reportSNR:
-        conf_mat, SNR_stats = confusion_mat(y_true, y_pred, True)
-    else:
-        conf_mat = confusion_mat(y_true, y_pred, False)
+    conf_mat = confusion_mat(y_true, y_pred)
 
     NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
 
@@ -208,69 +206,121 @@ def print_metric(y_true, y_pred, reportSNR=False):
     print("recall: %f" % recall)
     print("fscore: %f" % fscore)
 
-    if reportSNR:
-        return accuracy, precision, recall, fscore, SNR_stats
-
     return accuracy, precision, recall, fscore
 
+class SimulatedFRB(object):
+    """ Class to generate a realistic fast radio burst and 
+    add the event to data, including scintillation and 
+    temporal scattering. @source liamconnor
+    """
+    def __init__(self, shape=(64, 256), f_ref=1350, bandwidth=1500, max_width=4, tau=0.1):
+        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"
+        # assert type(tau_range) == tuple and len(tau_range) == 2, "tau_range needs to be a tuple of 2 integers"
+        
+        self.shape = shape
 
-def simulate_background(shape=(64, 256)):
-    '''Returns 3D numpy array that simulates background noise similar 
-    to the .ar files. These backgrounds will be injected with FRBs to 
-    be used in classification later on.'''
+        # reference frequency (MHz) of observations
+        self.f_ref = f_ref
+        
+        # maximum width of pulse, high point of uniform distribution for pulse width
+        self.max_width = max_width 
+        
+        # number of bins/data points on the time (x) axis
+        self.nt = shape[1] 
+        
+        # frequency range for the pulse, given the number of channels
+        self.frequencies = np.linspace(f_ref - bandwidth // 2, f_ref + bandwidth // 2, shape[0])
 
-    return np.random.randn(*shape)
+        # where the pulse will be centered on the time (x) axis
+        self.t0 = np.random.randint(-shape[1] + max_width, shape[1] - max_width) 
 
+        # scattering timescale (milliseconds)
+        self.tau = tau
 
-def injectFRB(data, SNRmin=8, SNRmax=80):
-    '''
-    inject FRB in input numpy array
-    '''
-    data = np.array(data)
-    nchan = data.shape[0]
-    nbins = data.shape[1]
+        '''Simulates background noise similar to the .ar 
+        files. Backgrounds will be injected with FRBs to 
+        be used in classification later on.'''
+        self.background = np.random.randn(*self.shape)
 
-    frac = 0.5  # Fraction of band signal is strong
+    def gaussian_profile(self):
+        """Model pulse as a normalized Gaussian."""
+        t = np.linspace(-self.nt // 2, self.nt // 2, self.nt)
+        g = np.exp(-(t / np.random.randint(1, self.max_width))**2)
+        
+        if not np.all(g > 0):
+            g += 1e-18
 
-    wid = 5  # Maximum width of the injected burst in number of bins
+        # clone Gaussian into 2D array with NFREQ rows
+        return np.tile(g, (self.shape[0], 1))
+    
+    def scatter_profile(self):
+        """ Include exponential scattering profile."""
+        tau_nu = self.tau * (self.frequencies / self.f_ref) ** -4
+        t = np.linspace(0, self.nt//2, self.nt)
 
-    st = random.randint(0, nbins - random.randint(0, wid))  # Random point to inject FRB
+        prof = np.exp(-t / tau_nu.reshape(-1, 1)) / tau_nu.reshape(-1, 1)
+        return prof / np.max(prof, axis=1).reshape(-1, 1)
 
-    prof = np.mean(data, axis=0)
+    def pulse_profile(self):
+        """ Convolve the gaussian and scattering profiles
+        for final pulse shape at each frequency channel.
+        """
+        gaus_prof = self.gaussian_profile()
+        scat_prof = self.scatter_profile()
+        
+        # convolve the two profiles for each frequency
+        pulse_prof = np.array([fftconvolve(gaus_prof[i], scat_prof[i])[:self.nt] for i in np.arange(self.shape[0])])
 
-    # Partial inject
-    stch = random.randint(0, nchan - (nchan) * frac)
-    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + random.randint(SNRmin, SNRmax) * np.std(prof)
+        # normalize! high frequencies should have narrower pulses
+        pulse_prof /= np.trapz(pulse_prof, axis=1).reshape(-1, 1)
+        return pulse_prof
 
-    return data
+    def scintillation(self):
+        """ Include spectral scintillation across the band.
+        Approximate effect as a sinusoid, with a random phase
+        and a random decorrelation bandwidth.
+        """
+        # Make location of peaks / troughs random
+        scint_phi = np.random.rand()
 
+        # Make number of scintils between 0 and 10 (ish)
+        nscint = np.exp(np.random.uniform(np.log(1e-3), np.log(7)))
 
-def gaussianFRB(data, SNRmin=8, SNRmax=80, returnSNR=False):
-    """Try to inject an FRB modeling a Gaussian waveform"""
-    data = np.array(data)
-    nchan = data.shape[0]
-    nbins = data.shape[1]
+        if nscint < 1:
+            nscint = 0
 
-    # Fraction of frequency axis for the signal
-    frac = np.random.uniform(0.5, 0.9)
+        envelope = np.cos(2 * np.pi * nscint * (self.frequencies / self.f_ref)**-2 + scint_phi)
+        envelope[envelope < 0] = 0
+        return envelope
 
-    wid = 5  # Maximum width of the injected burst in number of bins
+    def injectFRB(self, SNRmin=8, SNR_sigma=1.0, returnSNR=False):
+        """Inject an FRB modeling a Gaussian waveform input 2D data array"""
+        data = np.array(self.background)
+        nchan, nbins = self.shape
 
-    st = random.randint(0, nbins - wid)  # Random point to inject FRB
+        # Fraction of frequency axis for the signal
+        frac = np.random.uniform(0.5, 0.9)
 
-    prof = np.mean(data, axis=0)
+        wid = np.random.randint(1, self.max_width)  # Width range of the injected burst in number of bins
 
-    # get peak SNR and create Gaussian signal based on that peak
-    peak_value = random.randint(SNRmin, SNRmax) * np.std(prof)
-    signal = peak_value * gaussian(wid, wid // 3)
+        st = random.randint(0, nbins - wid)  # Random point to inject FRB
 
-    # Partial inject
-    stch = np.random.randint(0, nchan - (nchan) * frac)
-    data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + signal
+        prof = np.mean(data, axis=0)
 
-    if returnSNR:
-        return data, peak_value
-    return data
+        # sample peak SNR from log-normal distribution to create Gaussian signal
+        randomSNR = int(SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma))
+        peak_value = randomSNR * np.std(prof)
+
+        # make a signal that follows scattering profile given above
+        signal = peak_value * self.pulse_profile()
+
+        # Partial inject
+        stch = np.random.randint(0, nchan - (nchan) * frac)
+        data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + signal
+
+        if returnSNR:
+            return data, randomSNR
+        return data
 
 
 def psr2np(fname, NCHAN, dm):
@@ -307,7 +357,7 @@ def psr2np(fname, NCHAN, dm):
     return data
 
 
-def make_labels(num_data, SNRmin, SNRmax):
+def make_labels(num_data, SNRmin):
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
     be populated with just 0 and 1, which will then be shuffled later.'''
@@ -326,7 +376,7 @@ def make_labels(num_data, SNRmin, SNRmax):
         labels.append(0)
 
         # inject FRB into data and label it true
-        frb_array, SNR = gaussianFRB(fake_noise, SNRmin, SNRmax, returnSNR=True)
+        frb_array, SNR = gaussianFRB(data=fake_noise, SNRmin=SNRmin, returnSNR=True)
         ftdata.append(frb_array)
         labels.append(1)
         SNR_values.extend([SNR, SNR])
@@ -337,10 +387,12 @@ def make_labels(num_data, SNRmin, SNRmax):
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('num_samples', metavar='num_samples', type=int,
+    parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
-    parser.add_argument('--snr', nargs='+', type=float,
-                        default=[10, 20], help='Tuple of SNR range for FRB signal')
+    parser.add_argument('--snr', type=float, default=10.0, 
+                        help='Minimum SNR for FRB signal')
+    parser.add_argument('--epochs', type=int, default=32,
+                        help='Number of epochs to train with')
     parser.add_argument('--save', dest='best_model_file', type=str, default='best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
@@ -351,7 +403,7 @@ if __name__ == "__main__":
 
     # Read archive files and extract data arrays
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
-    SNRmin, SNRmax = args.snr
+    SNRmin = args.snr
     confusion_matrix_name = args.confmatname
 
     NFREQ = 64
@@ -391,7 +443,7 @@ if __name__ == "__main__":
     ftdata = np.array(ftdata)'''
 
     # n_sims passed into the interpreter
-    ftdata, label, SNRs = make_labels(args.num_samples, SNRmin, SNRmax)
+    ftdata, label, SNRs = make_labels(args.num_samples, SNRmin)
 
     if ftdata is not None:
         Nfl = ftdata.shape[0]
@@ -427,13 +479,11 @@ if __name__ == "__main__":
     train_data_freq, eval_data_freq = ftdata[ind_train], ftdata[ind_eval]
 
     train_labels, eval_labels = label[ind_train], label[ind_eval]
-    train_labels = keras.utils.to_categorical(train_labels)
-    eval_labels = keras.utils.to_categorical(eval_labels)
-
-    # avoids using the keras labels I guess/
+    # avoids using the keras labels I guess?
     eval_label1 = np.array(eval_labels)
 
-    train_SNR, eval_SNR = SNRs[ind_train], SNRs[ind_eval]
+    train_labels = keras.utils.to_categorical(train_labels)
+    eval_labels = keras.utils.to_categorical(eval_labels)
 
     os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
     # Fit convolution neural network to the training data
@@ -441,15 +491,19 @@ if __name__ == "__main__":
                                                         features_only=False, fit=True,
                                                         train_data=train_data_freq, eval_data=eval_data_freq,
                                                         train_labels=train_labels, eval_labels=eval_labels,
-                                                        epochs=32, nfilt1=32, nfilt2=64,
+                                                        epochs=args.epochs, nfilt1=32, nfilt2=64,
                                                         nfreq=NFREQ, ntime=NTINT)
 
     y_pred_prob1 = model_freq_time.predict(eval_data_freq)
     y_pred_prob = y_pred_prob1[:, 1]
     y_pred_freq_time = np.array(list(np.round(y_pred_prob)))
-    metrics, SNR_stats = print_metric(eval_label1, y_pred_freq_time, reportSNR=True)
+    metrics = print_metric(eval_label1, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_label1, y_pred_freq_time)
+
+    # Get SNRs for images in each of the confusion matrix areas
+    eval_SNR = SNRs[ind_eval]
+    SNR_TP, SNR_FP, SNR_TN, SNR_FN = get_classification_results(eval_label1, y_pred_freq_time, test_SNR=eval_SNR)
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate

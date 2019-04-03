@@ -1,40 +1,75 @@
 import numpy as np
-from .. import simulated_NN as s
+from simulated_NN import SimulatedFRB
 import warnings
 
 # suppress deprecation warnings
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore", category=DeprecationWarning)
 
+# make a SimulatedFRB object for testing
+event = SimulatedFRB()
 class TestSimulateFRB(object):
-    def test_basic(self):
-        background = s.simulate_background()
-        assert background.shape == (256, 512), "Shape doesn't match"
+    def test_background(self):
+        background = event.background
+        assert background.shape == (64, 256), "Shape doesn't match"
         assert -1 < np.mean(background) < 1
 
+    def test_gaussian_profile(self):
+        g = event.gaussian_profile()
+        assert g.shape == (64, 256), "Gaussian profile doesn't have correct shape (64, 256)"
+        assert not np.all(g == 1e-18), "No elements changed/are different"
+
+    def test_scattering_profile(self):
+        g = event.gaussian_profile() # used to match shapes
+        scatter = event.scatter_profile()
+        assert scatter.shape == g.shape, f"Needs shape {g.shape} to match Gaussian profile"
+        assert not np.all(scatter == scatter[0][0]), "No elements changed/are different"
+    
+    def test_pulse(self):
+        g = event.gaussian_profile() # used to match shapes
+        pulse = event.pulse_profile()
+        assert pulse.shape == g.shape, f"Needs shape {g.shape} to match Gaussian profile"
+        assert not np.all(pulse == pulse[0][0]), "No elements changed/are different"
+
+        assert np.allclose(pulse[:, :pulse.shape[1] // 4], 0), "First 1/4 of array is non-zero"
+        assert np.allclose(pulse[:, -pulse.shape[1] // 4:], 0, atol=1e-6), "Last 1/4 of array is non-zero"
+    
+    def test_pulse_normalization(self):
+        """Test whether the pulse profile is narrow/high at high frequencies
+        and wide/low for lower frequencies and have approximately the same area."""
+        pulse = event.pulse_profile()
+        # randomly select some 1D slices to compare
+        seed = np.random.seed(128)
+        indices = np.random.randint(low=0, high=pulse.shape[0], size=5)
+        pulse_1D = pulse[indices]
+        
+        # calculate area under curve assuming dx = 1
+        pulse_areas = np.trapz(pulse_1D, axis=1)
+        assert np.allclose(pulse_areas, pulse_areas[0]), "Not properly normalized curves"
+
     def test_injectFRB(self):
-        background = s.simulate_background()
+        background = event.background
 
         # inject FRB and ensure that there's something there
-        background_injected = s.injectFRB(background)
+        background_injected = event.injectFRB(background)
         assert not np.array_equal(background, background_injected)
         
         # create another background to make sure it's random, not the same as background
-        background2 = s.simulate_background()
-        assert not np.array_equal(background, background2)
+        second_event = SimulatedFRB()
+        assert not np.array_equal(background, second_event.background)
         
-        background2_injected = s.injectFRB(background2)
-        assert not np.array_equal(background2, background2_injected)
+        event.injectFRB()
+        assert not np.array_equal(event.background, event.frb)
 
         for i in range(50):
             # iterate over range to make a ton of background noise arrays
-            i_background = s.simulate_background()
-            assert not np.array_equal(i_background, background)
-            assert not np.array_equal(i_background, background2)
+            event_i = SimulatedFRB()
+            assert not np.array_equal(event_i.background, event.background)
+            assert not np.array_equal(event_i.background, second_event.background)
 
             # make copies of background noise arrays
-            inject_i = s.injectFRB(i_background)
-            assert not np.array_equal(i_background, inject_i)
+            event_i.injectFRB()
+            assert not np.array_equal(event_i.background, event.frb)
 
     def test_labelArray(self):
         fake_data, fake_labels = s.make_labels(20)
