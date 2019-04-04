@@ -10,9 +10,10 @@ event = SimulatedFRB(tau=0.1)
 def plot_pulse():
     profiles = {'gaussian': event.gaussian_profile(),
                 'scatter': event.scatter_profile(),
-                'pulse': event.pulse_profile()}
+                'pulse (no scintillation)': event.pulse_profile(),
+                'pulse (with scintillation)': event.scintillate()}
     
-    fig, axes = plt.subplots(nrows=3, ncols=2)
+    fig, axes = plt.subplots(nrows=4, ncols=2)
     for ax, profile in zip(axes[:, 0].flatten(), profiles.keys()):
         ax.imshow(profiles[profile])
         ax.set_title(profile)

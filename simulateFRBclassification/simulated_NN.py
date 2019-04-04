@@ -275,7 +275,7 @@ class SimulatedFRB(object):
         pulse_prof /= np.trapz(pulse_prof, axis=1).reshape(-1, 1)
         return pulse_prof
 
-    def scintillation(self):
+    def scintillate(self):
         """ Include spectral scintillation across the band.
         Approximate effect as a sinusoid, with a random phase
         and a random decorrelation bandwidth.
@@ -290,8 +290,15 @@ class SimulatedFRB(object):
             nscint = 0
 
         envelope = np.cos(2 * np.pi * nscint * (self.frequencies / self.f_ref)**-2 + scint_phi)
+        
+        # set all negative elements to zero and add small factor
         envelope[envelope < 0] = 0
-        return envelope
+        envelope += 0.1
+
+        # add scintillation to pulse profile
+        pulse = self.pulse_profile()
+        pulse *= envelope.reshape(-1, 1)
+        return pulse
 
     def injectFRB(self, SNRmin=8, SNR_sigma=1.0, returnSNR=False):
         """Inject an FRB modeling a Gaussian waveform input 2D data array"""
