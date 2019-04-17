@@ -47,6 +47,15 @@ class TestSimulateFRB(object):
         pulse_areas = np.trapz(pulse_1D, axis=1)
         assert np.allclose(pulse_areas, pulse_areas[0]), "Not properly normalized curves"
 
+    def test_rolling(self):
+        """Makes sure the FRB gets shifted around the time axis."""
+        event.scintillate() # add .FRB attribute to event
+        assert event.FRB is not None, "FRB not added to event object"
+        FRBcopy = np.copy(event.FRB)
+        # move FRB around and check if it actually does
+        event.roll()
+        assert not np.all(FRBcopy == event.FRB), "FRB didn't change!"
+
     def test_injectFRB(self):
         background = event.background
 

@@ -30,6 +30,22 @@ def plot_pulse():
 
 plot_pulse()
 
+def roll_plot():
+    event.scintillate()
+    original_FRB = np.copy(event.FRB)
+    event.roll()
+    rolled_FRB = event.FRB
+    
+    fig, ax = plt.subplots(nrows=2, ncols=1)
+    ax[0].imshow(original_FRB)
+    ax[0].set_title("Original FRB")
+    ax[1].imshow(rolled_FRB)
+    ax[1].set_title("Rolled FRB")
+
+    fig.tight_layout()
+
+roll_plot()
+
 def connor_pulse(datafile='data_nt250_nf32_dm0_snr8-100_test.hdf5'):
     import h5py
     connor_directory = '/Users/dominicleduc/Desktop/alien_search/single_pulse_ml/single_pulse_ml/data/'

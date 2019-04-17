@@ -237,6 +237,10 @@ class SimulatedFRB(object):
         # scattering timescale (milliseconds)
         self.tau = tau
 
+        # randomly generated SNR and FRB generated after calling injectFRB()
+        self.SNR = None
+        self.FRB = None
+
         '''Simulates background noise similar to the .ar 
         files. Backgrounds will be injected with FRBs to 
         be used in classification later on.'''
@@ -298,7 +302,19 @@ class SimulatedFRB(object):
         # add scintillation to pulse profile
         pulse = self.pulse_profile()
         pulse *= envelope.reshape(-1, 1)
+        self.FRB = pulse
         return pulse
+
+    def roll(self):
+        """Move FRB to random location of the time axis (in-place),
+        ensuring that the shift does not cause one end of the FRB
+        to end up on the other side of the array."""
+        if self.FRB is None:
+            self.scintillate()
+
+        bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
+                                      high = self.shape[1] // 2 - self.max_width)
+        self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def injectFRB(self, SNRmin=8, SNR_sigma=1.0, returnSNR=False):
         """Inject an FRB modeling a Gaussian waveform input 2D data array"""
@@ -315,7 +331,7 @@ class SimulatedFRB(object):
         prof = np.mean(data, axis=0)
 
         # sample peak SNR from log-normal distribution to create Gaussian signal
-        randomSNR = int(SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma))
+        randomSNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
         peak_value = randomSNR * np.std(prof)
 
         # make a signal that follows scattering profile given above
