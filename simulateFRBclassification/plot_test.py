@@ -28,7 +28,7 @@ def plot_pulse():
     fig.tight_layout()
     return profiles
 
-plot_pulse()
+# plot_pulse()
 
 def roll_plot():
     event.scintillate()
@@ -44,7 +44,29 @@ def roll_plot():
 
     fig.tight_layout()
 
-roll_plot()
+def fractional_plots(nrows=4, ncols=2):
+    fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
+    example_number = 1
+    flat_axes = ax.flatten()
+
+    while example_number < len(flat_axes):
+        event.scintillate()
+        original_FRB = np.copy(event.FRB)
+        event.roll()
+        event.fractional_bandwidth()
+        cut_FRB = event.FRB
+        
+        # plot results for every 2 axes
+        flat_axes[example_number - 1].imshow(original_FRB)
+        flat_axes[example_number - 1].set_title("Original FRB")
+        flat_axes[example_number].imshow(cut_FRB)
+        flat_axes[example_number].set_title("Sliced + Shifted")
+        example_number += 2
+
+    fig.tight_layout()
+    return fig
+
+fractional_plots()
 
 def connor_pulse(datafile='data_nt250_nf32_dm0_snr8-100_test.hdf5'):
     import h5py

@@ -214,9 +214,7 @@ class SimulatedFRB(object):
     temporal scattering. @source liamconnor
     """
     def __init__(self, shape=(64, 256), f_ref=1350, bandwidth=1500, max_width=4, tau=0.1):
-        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"
-        # assert type(tau_range) == tuple and len(tau_range) == 2, "tau_range needs to be a tuple of 2 integers"
-        
+        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"        
         self.shape = shape
 
         # reference frequency (MHz) of observations
@@ -309,12 +307,22 @@ class SimulatedFRB(object):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        if self.FRB is None:
-            self.scintillate()
-
         bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
                                       high = self.shape[1] // 2 - self.max_width)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
+
+    def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
+        """Cut some fraction of the full pulse out."""
+        # Fraction of frequency (y) axis for the signal
+        frac = np.random.uniform(frac_low, frac_high)
+        nchan = self.shape[0]
+
+        # collect random fraction of FRB and add to background
+        stch = np.random.randint(0, nchan * (1 - frac))
+        slice_freq = slice(stch, int(stch + (nchan * frac)))
+        slice_FRB = np.copy(self.FRB[slice_freq])
+        self.FRB[:, :] = 1e-18
+        self.FRB[slice_freq] = slice_FRB
 
     def injectFRB(self, SNRmin=8, SNR_sigma=1.0, returnSNR=False):
         """Inject an FRB modeling a Gaussian waveform input 2D data array"""
