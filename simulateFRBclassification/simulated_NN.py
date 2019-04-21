@@ -301,7 +301,6 @@ class SimulatedFRB(object):
         pulse = self.pulse_profile()
         pulse *= envelope.reshape(-1, 1)
         self.FRB = pulse
-        return pulse
 
     def roll(self):
         """Move FRB to random location of the time axis (in-place),
@@ -324,34 +323,20 @@ class SimulatedFRB(object):
         self.FRB[:, :] = 1e-18
         self.FRB[slice_freq] = slice_FRB
 
-    def injectFRB(self, SNRmin=8, SNR_sigma=1.0, returnSNR=False):
-        """Inject an FRB modeling a Gaussian waveform input 2D data array"""
-        data = np.array(self.background)
-        nchan, nbins = self.shape
+    def sample_SNR(self, SNRmin=8, SNR_sigma=1.0):
+        """Sample peak SNR from log-normal distribution"""
+        random_SNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
+        self.SNR = random_SNR
+        return random_SNR
 
-        # Fraction of frequency axis for the signal
-        frac = np.random.uniform(0.5, 0.9)
-
-        wid = np.random.randint(1, self.max_width)  # Width range of the injected burst in number of bins
-
-        st = random.randint(0, nbins - wid)  # Random point to inject FRB
-
-        prof = np.mean(data, axis=0)
-
-        # sample peak SNR from log-normal distribution to create Gaussian signal
-        randomSNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
-        peak_value = randomSNR * np.std(prof)
+    def injectFRB(self, SNR):
+        """Inject the FRB into freq-time array of Gaussian noise"""
+        prof_1D = np.mean(self.background, axis=0)
+        peak_value = SNR * np.std(prof_1D)
 
         # make a signal that follows scattering profile given above
-        signal = peak_value * self.pulse_profile()
-
-        # Partial inject
-        stch = np.random.randint(0, nchan - (nchan) * frac)
-        data[stch:int(stch + (nchan * frac)), st:st + wid] = data[stch:int(stch + (nchan * frac)), st:st + wid] + signal
-
-        if returnSNR:
-            return data, randomSNR
-        return data
+        signal = SNR * self.FRB
+        return signal
 
 
 def psr2np(fname, NCHAN, dm):

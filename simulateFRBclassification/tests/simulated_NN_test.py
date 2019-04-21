@@ -56,6 +56,23 @@ class TestSimulateFRB(object):
         event.roll()
         assert not np.all(FRBcopy == event.FRB), "FRB didn't change!"
 
+    def test_SNR(self):
+        """Correctly multiplying the signal by the SNR"""
+        event = SimulatedFRB()
+        event.scintillate() # add .FRB attribute to event
+        event.roll()
+        event.fractional_bandwidth()
+
+        # keep track of the of the original FRB
+        original_FRB = np.copy(event.FRB)
+
+        # get random SNR and multiply by signal
+        event.sample_SNR() 
+        injectedFRB = event.injectFRB(event.SNR)
+
+        assert not np.all(original_FRB == injectedFRB), "FRB didn't change!"
+        assert np.max(injectedFRB) > np.max(original_FRB), "Not multiplied correctly"
+
     def test_injectFRB(self):
         background = event.background
 
