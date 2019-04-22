@@ -107,7 +107,6 @@ class TestSimulateFRB(object):
         fig.tight_layout()
         plt.show(fig)
 
-
     def test_labelArray(self):
         fake_data, fake_labels = s.make_labels(20)
         assert fake_data.shape == (40, 256, 512)

@@ -10,7 +10,7 @@ from scipy.signal import gaussian, fftconvolve
 import time
 import h5py
 import random
-from tqdm import tqdm  # progress bar
+from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
 import glob
@@ -137,7 +137,6 @@ def construct_conv2d(model_name, features_only=False, fit=False,
                   batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
 
         score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
-        print("Conv2d only")
         print(score)
 
     return model, score
@@ -196,9 +195,9 @@ def print_metric(y_true, y_pred):
     print('\n'.join([''.join(['{:8}'.format(item) for item in row])
                      for row in conf_mat]))
 
-    accuracy = float(NTP + NTN) / conf_mat.sum()
-    precision = float(NTP) / (NTP + NFP + 1e-19)
-    recall = float(NTP) / (NTP + NFN + 1e-19)
+    accuracy = (NTP + NTN) / conf_mat.sum()
+    precision = NTP / (NTP + NFP + 1e-19) # prevent division by zero
+    recall = NTP / (NTP + NFN + 1e-19)
     fscore = 2 * precision * recall / (precision + recall)
 
     print("accuracy: %f" % accuracy)
@@ -406,20 +405,19 @@ def make_labels(num_data, SNRmin):
     labels = []
     SNR_values = []
 
-    for sim in np.arange(num_data):
-        # previously, ar file with FRB
-        # now, filled with simulated data
-        fake_noise = simulate_background()
-
+    for sim in trange(num_data):
+        # create simulation object and add FRB to it
+        event = SimulatedFRB()
+        event.add_to_background(background=None, SNRmin=SNRmin, SNR_sigma=1.0)
+        
         # put simulated data into ftdata and label it RFI
-        ftdata.append(fake_noise)
+        ftdata.append(event.background)
         labels.append(0)
 
-        # inject FRB into data and label it true
-        frb_array, SNR = gaussianFRB(data=fake_noise, SNRmin=SNRmin, returnSNR=True)
-        ftdata.append(frb_array)
+        # inject FRB into data and label it true sighting
+        ftdata.append(event.simulatedFRB)
         labels.append(1)
-        SNR_values.extend([SNR, SNR])
+        SNR_values.extend([event.SNR, event.SNR])
 
     return np.array(ftdata), np.array(labels), np.array(SNR_values)
 
