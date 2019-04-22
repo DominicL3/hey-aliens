@@ -325,19 +325,43 @@ class SimulatedFRB(object):
 
     def sample_SNR(self, SNRmin=8, SNR_sigma=1.0):
         """Sample peak SNR from log-normal distribution"""
+        if SNRmin < 0:
+            raise ValueError('Minimum SNR cannot be negative')
+
         random_SNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
         self.SNR = random_SNR
         return random_SNR
 
-    def injectFRB(self, SNR):
+    def injectFRB(self, SNR, background=None):
         """Inject the FRB into freq-time array of Gaussian noise"""
-        prof_1D = np.mean(self.background, axis=0)
-        peak_value = SNR * np.std(prof_1D)
+        if background is None:
+            background = self.background
 
-        # make a signal that follows scattering profile given above
-        signal = SNR * self.FRB
+        # get 1D noise and multiply signal by given SNR
+        noise_profile = np.mean(background, axis=0)
+        peak_value = SNR * np.std(noise_profile) # originally np.std(noise_profile)
+        profile_FRB = np.mean(self.FRB, axis=0)
+        
+        # make a signal with given SNR
+        signal = self.FRB * (peak_value / np.max(profile_FRB))
         return signal
 
+    def add_to_background(self, background=None, SNRmin=8, SNR_sigma=1.0):
+        """Combine everything together and inject the FRB into a
+        background array of Gaussian noise for the simulation. After
+        this method works and is detected by the neural network, proceed
+        to inject the FRB into the actual noise files given by psrchive."""
+        if background is None:
+            background = self.background
+
+        # Create the FRB
+        self.scintillate() # make the pulse profile with scintillation
+        self.roll() # move the FRB around freq-time array
+        self.fractional_bandwidth() # cut out some of the bandwidth
+        self.sample_SNR(SNRmin, SNR_sigma) # get random SNR
+
+        # add to the Gaussian noise
+        self.simulatedFRB = background + self.injectFRB(background=background, SNR=self.SNR)
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array

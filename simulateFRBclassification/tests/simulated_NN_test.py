@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 from simulated_NN import SimulatedFRB
 import warnings
 
@@ -74,28 +75,38 @@ class TestSimulateFRB(object):
         assert np.max(injectedFRB) > np.max(original_FRB), "Not multiplied correctly"
 
     def test_injectFRB(self):
-        background = event.background
+        event = SimulatedFRB()
+        event.scintillate() # add .FRB attribute to event
+        event.roll()
+        event.fractional_bandwidth()
+        signal = event.injectFRB(SNR=10, background=None)
 
-        # inject FRB and ensure that there's something there
-        background_injected = event.injectFRB(background)
-        assert not np.array_equal(background, background_injected)
+        assert not np.array_equal(event.background, signal)
+        assert np.mean(np.mean(signal, axis=0)) / np.abs(np.mean(np.mean(event.background, axis=0))) > 9, \
+               "Signal power not increased properly"
+
+    def test_plot_injectedFRB(self, SNR=5):
+        fig, ax = plt.subplots(nrows=3, ncols=1)
+        event = SimulatedFRB()
+        event.scintillate() # add .FRB attribute to event
+        event.roll()
+        event.fractional_bandwidth()
+        signal = event.background + event.injectFRB(SNR=SNR, background=None)
+
+        # collapse all frequencies by taking mean for each column
+        profile_1D = np.mean(signal, axis=0)
         
-        # create another background to make sure it's random, not the same as background
-        second_event = SimulatedFRB()
-        assert not np.array_equal(background, second_event.background)
-        
-        event.injectFRB()
-        assert not np.array_equal(event.background, event.frb)
+        # plot results for every 3 axes
+        ax[0].imshow(event.background)
+        ax[0].set_title("Background")
+        ax[1].imshow(signal)
+        ax[1].set_title(f"Noise and FRB (SNR: {SNR})")
+        ax[2].plot(profile_1D)
+        ax[2].set_title(f"Profile")
 
-        for i in range(50):
-            # iterate over range to make a ton of background noise arrays
-            event_i = SimulatedFRB()
-            assert not np.array_equal(event_i.background, event.background)
-            assert not np.array_equal(event_i.background, second_event.background)
+        fig.tight_layout()
+        plt.show(fig)
 
-            # make copies of background noise arrays
-            event_i.injectFRB()
-            assert not np.array_equal(event_i.background, event.frb)
 
     def test_labelArray(self):
         fake_data, fake_labels = s.make_labels(20)
