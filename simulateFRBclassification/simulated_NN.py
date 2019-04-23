@@ -403,7 +403,7 @@ def make_labels(num_data, SNRmin):
 
     ftdata = []
     labels = []
-    SNR_values = []
+    values_SNR = []
 
     for sim in trange(num_data):
         # create simulation object and add FRB to it
@@ -417,9 +417,9 @@ def make_labels(num_data, SNRmin):
         # inject FRB into data and label it true sighting
         ftdata.append(event.simulatedFRB)
         labels.append(1)
-        SNR_values.extend([event.SNR, event.SNR])
+        values_SNR.extend([event.SNR, event.SNR])
 
-    return np.array(ftdata), np.array(labels), np.array(SNR_values)
+    return np.array(ftdata), np.array(labels), np.array(values_SNR)
 
 
 if __name__ == "__main__":
