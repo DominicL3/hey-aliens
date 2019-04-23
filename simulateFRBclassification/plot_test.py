@@ -1,7 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from time import time
 
-from simulated_NN import SimulatedFRB
+from simulated_NN import SimulatedFRB, make_labels
 plt.ion()
 
 # create SimulatedFRB object for testing
@@ -174,3 +175,11 @@ def gaussianFRB_plots(n_sims=6, SNRmin=8):
 
     fig.tight_layout()
     return fig
+
+def test_timing(num_iterations=10): 
+    start = time()
+    # make_labels(num_iterations, 8)
+    for n in np.arange(num_iterations):
+        event = SimulatedFRB()
+        event.add_to_background(background=None, SNRmin=8, SNR_sigma=1.0)
+    print(f"{time() - start} seconds for {num_iterations} iterations")

@@ -40,172 +40,10 @@ tf.logging.set_verbosity(tf.logging.INFO)
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import merge as Merger
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
 from keras.optimizers import SGD, Adam
 from keras.models import load_model
-
-
-def construct_conv2d(model_name, features_only=False, fit=False,
-                     train_data=None, train_labels=None,
-                     eval_data=None, eval_labels=None,
-                     nfreq=16, ntime=250, epochs=5,
-                     nfilt1=32, nfilt2=64, batch_size=32):
-    """ Build a two-dimensional convolutional neural network
-    with a binary classifier. Can be used for, e.g.,
-    freq-time dynamic spectra of pulsars, dm-time intensity array.
-
-    Parameters:
-    ----------
-    features_only : bool 
-        Don't construct full model, only features layers 
-    fit : bool 
-        Fit model 
-    train_data : ndarray
-        (ntrain, ntime, 1) float64 array with training data
-    train_labels :  ndarray
-        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0]=RFI 
-    eval_data : ndarray
-        (neval, ntime, 1) float64 array with evaluation data
-    eval_labels : 
-        (neval, 2) binary labels of eval data 
-    epochs : int 
-        Number of training epochs 
-    nfilt1 : int
-        Number of neurons in first hidden layer 
-    nfilt2 : int 
-        Number of neurons in second hidden layer 
-    batch_size : int 
-        Number of batches for training   
-       
-    Returns
-    -------
-    model : XX
-
-    score : np.float 
-        accuracy, i.e. fraction of predictions that are correct 
-
-    """
-
-    if train_data is not None:
-        nfreq = train_data.shape[1]
-        ntime = train_data.shape[2]
-
-    print(nfreq, ntime)
-    model = Sequential()
-    # this applies 32 convolution filters of size 5x5 each.
-    model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
-
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    # Randomly drop some fraction of nodes (set weights to 0)
-    model.add(Dropout(0.4))
-    model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.4))
-    model.add(Flatten())
-
-    if features_only is True:
-        model.add(BatchNormalization())  # hack
-        return model, []
-
-    model.add(Dense(256, activation='relu'))  # should be 1024 hack
-
-    #    model.add(Dense(1024, activation='relu')) # remove for now hack
-    model.add(Dropout(0.5))
-    model.add(Dense(2, activation='softmax'))
-
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
-
-    # train_labels = keras.utils.to_categorical(train_labels)
-    # eval_labels = keras.utils.to_categorical(eval_labels)
-
-    if fit is True:
-        print("Using batch_size: %d" % batch_size)
-        print("Using %d epochs" % epochs)
-        cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
-                                         batch_size=32, write_graph=True, write_grads=False,
-                                         write_images=True, embeddings_freq=0, embeddings_layer_names=None,
-                                         embeddings_metadata=None)
-
-        # save best model
-        best_model_cb = keras.callbacks.ModelCheckpoint(f"{model_name}", monitor='val_acc', verbose=1,
-                                                        save_best_only=True)
-        model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
-                  batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
-
-        score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
-        print(score)
-
-    return model, score
-
-
-def get_classification_results(y_true, y_pred, test_SNR=None):
-    """ Take true labels (y_true) and model-predicted 
-    label (y_pred) for a binary classifier, and return 
-    true_positives, false_positives, true_negatives, false_negatives
-    """
-    if test_SNR is not None:
-        TP_ind = np.argwhere((y_true == 1) & (y_pred == 1))
-        FP_ind = np.argwhere((y_true == 0) & (y_pred == 1))
-        TN_ind = np.argwhere((y_true == 0) & (y_pred == 0))
-        FN_ind = np.argwhere((y_true == 1) & (y_pred == 0))
-        SNR_TP, SNR_FP, SNR_TN, SNR_FN = test_SNR[TP_ind], test_SNR[FP_ind], test_SNR[TN_ind], test_SNR[FN_ind]
-        return SNR_TP.flatten(), SNR_FP.flatten(), SNR_TN.flatten(), SNR_FN.flatten()
-    else:
-        true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
-        false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
-        true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
-        false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
-        return true_positives, false_positives, true_negatives, false_negatives
-
-
-def confusion_mat(y_true, y_pred):
-    """ Generate a confusion matrix for a
-    binary classifier based on true labels (
-    y_true) and model-predicted label (y_pred)
-
-    returns np.array([[TP, FP],[FN, TN]])
-    """
-    TP, FP, TN, FN = get_classification_results(y_true, y_pred)
-
-    NTP = len(TP)
-    NFP = len(FP)
-    NTN = len(TN)
-    NFN = len(FN)
-
-    conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
-    return conf_mat
-
-
-def print_metric(y_true, y_pred):
-    """ Take true labels (y_true) and model-predicted 
-    label (y_pred) for a binary classifier
-    and print a confusion matrix, metrics, 
-    return accuracy, precision, recall, fscore
-    """
-    conf_mat = confusion_mat(y_true, y_pred)
-
-    NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
-
-    print("Confusion matrix:")
-
-    print('\n'.join([''.join(['{:8}'.format(item) for item in row])
-                     for row in conf_mat]))
-
-    accuracy = (NTP + NTN) / conf_mat.sum()
-    precision = NTP / (NTP + NFP + 1e-19) # prevent division by zero
-    recall = NTP / (NTP + NFN + 1e-19)
-    fscore = 2 * precision * recall / (precision + recall)
-
-    print("accuracy: %f" % accuracy)
-    print("precision: %f" % precision)
-    print("recall: %f" % recall)
-    print("fscore: %f" % fscore)
-
-    return accuracy, precision, recall, fscore
 
 class SimulatedFRB(object):
     """ Class to generate a realistic fast radio burst and 
@@ -322,14 +160,20 @@ class SimulatedFRB(object):
         self.FRB[:, :] = 1e-18
         self.FRB[slice_freq] = slice_FRB
 
-    def sample_SNR(self, SNRmin=8, SNR_sigma=1.0):
-        """Sample peak SNR from log-normal distribution"""
+    def sample_SNR(self, SNRmin=8, SNR_sigma=1.0, SNRmax=30):
+        """Sample peak SNR from log-normal distribution and throw
+        out any value greater than SNRmax."""
         if SNRmin < 0:
             raise ValueError('Minimum SNR cannot be negative')
+        if SNRmin > SNRmax:
+            raise ValueError('SNRmin cannot be greater than SNRmax')
 
         random_SNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
-        self.SNR = random_SNR
-        return random_SNR
+        if random_SNR < SNRmax:     
+            self.SNR = random_SNR
+            return random_SNR
+        else:
+            return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
     def injectFRB(self, SNR, background=None):
         """Inject the FRB into freq-time array of Gaussian noise"""
@@ -361,6 +205,161 @@ class SimulatedFRB(object):
 
         # add to the Gaussian noise
         self.simulatedFRB = background + self.injectFRB(background=background, SNR=self.SNR)
+
+
+def construct_conv2d(model_name, features_only=False, fit=False,
+                     train_data=None, train_labels=None,
+                     eval_data=None, eval_labels=None,
+                     nfreq=16, ntime=250, epochs=5,
+                     nfilt1=32, nfilt2=64, batch_size=32):
+    """ Build a two-dimensional convolutional neural network
+    with a binary classifier. Can be used for, e.g.,
+    freq-time dynamic spectra of pulsars, dm-time intensity array.
+
+    Parameters:
+    ----------
+    features_only : bool 
+        Don't construct full model, only features layers 
+    fit : bool 
+        Fit model 
+    train_data : ndarray
+        (ntrain, ntime, 1) float64 array with training data
+    train_labels :  ndarray
+        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0]=RFI 
+    eval_data : ndarray
+        (neval, ntime, 1) float64 array with evaluation data
+    eval_labels : 
+        (neval, 2) binary labels of eval data 
+    epochs : int 
+        Number of training epochs 
+    nfilt1 : int
+        Number of neurons in first hidden layer 
+    nfilt2 : int 
+        Number of neurons in second hidden layer 
+    batch_size : int 
+        Number of batches for training   
+       
+    Returns
+    -------
+    model : XX
+
+    score : np.float 
+        accuracy, i.e. fraction of predictions that are correct 
+
+    """
+
+    if train_data is not None:
+        nfreq = train_data.shape[1]
+        ntime = train_data.shape[2]
+
+    print(nfreq, ntime)
+    model = Sequential()
+    # this applies 32 convolution filters of size 5x5 each.
+    model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
+
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    # Randomly drop some fraction of nodes (set weights to 0)
+    model.add(Dropout(0.4))
+    model.add(Conv2D(nfilt2, (5, 5), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.4))
+    model.add(Flatten())
+
+    if features_only is True:
+        model.add(BatchNormalization())  # hack
+        return model, []
+
+    model.add(Dense(256, activation='relu'))  # should be 1024 hack
+
+    #    model.add(Dense(1024, activation='relu')) # remove for now hack
+    model.add(Dropout(0.5))
+    model.add(Dense(2, activation='softmax'))
+
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+
+    # train_labels = keras.utils.to_categorical(train_labels)
+    # eval_labels = keras.utils.to_categorical(eval_labels)
+
+    if fit is True:
+        print("Using batch_size: %d" % batch_size)
+        print("Using %d epochs" % epochs)
+        cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
+                                         batch_size=32, write_graph=True, write_grads=False,
+                                         write_images=True, embeddings_freq=0, embeddings_layer_names=None,
+                                         embeddings_metadata=None)
+
+        # save best model
+        best_model_cb = keras.callbacks.ModelCheckpoint(f"{model_name}", monitor='val_acc', verbose=1,
+                                                        save_best_only=True)
+        model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
+                  batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
+
+        score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
+        print(score)
+
+    return model, score
+
+
+def get_classification_results(y_true, y_pred, test_SNR=None):
+    """ Take true labels (y_true) and model-predicted 
+    label (y_pred) for a binary classifier, and return 
+    true_positives, false_positives, true_negatives, false_negatives
+    """
+    true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
+    false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
+    true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
+    false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
+    
+    return true_positives, false_positives, true_negatives, false_negatives
+
+
+def confusion_mat(y_true, y_pred):
+    """ Generate a confusion matrix for a
+    binary classifier based on true labels (
+    y_true) and model-predicted label (y_pred)
+
+    returns np.array([[TP, FP],[FN, TN]])
+    """
+    TP, FP, TN, FN = get_classification_results(y_true, y_pred)
+
+    NTP = len(TP)
+    NFP = len(FP)
+    NTN = len(TN)
+    NFN = len(FN)
+
+    conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
+    return conf_mat
+
+
+def print_metric(y_true, y_pred):
+    """ Take true labels (y_true) and model-predicted 
+    label (y_pred) for a binary classifier
+    and print a confusion matrix, metrics, 
+    return accuracy, precision, recall, fscore
+    """
+    conf_mat = confusion_mat(y_true, y_pred)
+
+    NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
+
+    print("Confusion matrix:")
+
+    print('\n'.join([''.join(['{:8}'.format(item) for item in row])
+                     for row in conf_mat]))
+
+    accuracy = (NTP + NTN) / conf_mat.sum()
+    precision = NTP / (NTP + NFP + 1e-19) # prevent division by zero
+    recall = NTP / (NTP + NFN + 1e-19)
+    fscore = 2 * precision * recall / (precision + recall)
+
+    print("accuracy: %f" % accuracy)
+    print("precision: %f" % precision)
+    print("recall: %f" % recall)
+    print("fscore: %f" % fscore)
+
+    return accuracy, precision, recall, fscore
+
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
@@ -396,7 +395,7 @@ def psr2np(fname, NCHAN, dm):
     return data
 
 
-def make_labels(num_data, SNRmin):
+def make_labels(num_data, SNRmin, SNRmax=15):
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
     be populated with just 0 and 1, which will then be shuffled later.'''
@@ -408,7 +407,7 @@ def make_labels(num_data, SNRmin):
     for sim in trange(num_data):
         # create simulation object and add FRB to it
         event = SimulatedFRB()
-        event.add_to_background(background=None, SNRmin=SNRmin, SNR_sigma=1.0)
+        event.add_to_background(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
         
         # put simulated data into ftdata and label it RFI
         ftdata.append(event.background)
@@ -421,6 +420,35 @@ def make_labels(num_data, SNRmin):
 
     return np.array(ftdata), np.array(labels), np.array(values_SNR)
 
+
+def predict_from_model(model_path, test_set):
+    """
+    Loads in a model and uses it to predict whether 
+    a given set of FRBs are real or RFI.
+
+    Parameters:
+    ----------
+    model_path : str 
+        File path to model
+    test_set : ndarray
+        3-D array (num_test, freq, time) consisting of test set
+        that will be transformed and predicted by the model
+       
+    Returns
+    -------
+    predictions : ndarray
+        A 1-D array of 0s and 1s, where 0 --> RFI and 1 --> FRB 
+    """
+    model = load_model(model_path)
+    
+    # compile model
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    
+    # predict from test set
+    predictions = model.predict_classes(test_set[..., None])
+    return predictions
+    
 
 if __name__ == "__main__":
     # Read command line arguments

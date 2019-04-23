@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from simulated_NN import SimulatedFRB
+from time import time
+from simulated_NN import SimulatedFRB, make_labels
 import warnings
 
 # suppress deprecation warnings
