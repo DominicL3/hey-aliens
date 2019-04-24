@@ -243,13 +243,13 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     """
     # number of elements for each axis
-    nfreq, ntime = train_data.shape
+    nfreq, ntime = train_data.shape[1:3]
 
     model = Sequential()
 
     # create nfilt1 convolution filters, each of size 5x5
     # max pool and randomly drop some fraction of nodes to limit overfitting
-    model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime)))
+    model.add(Conv2D(nfilt1, (5, 5), activation='relu', input_shape=(nfreq, ntime, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.4))
 
@@ -513,10 +513,9 @@ if __name__ == "__main__":
     # n_sims passed into the interpreter
     ftdata, label, SNRs = make_labels(args.num_samples, args.SNRmin, args.SNRmax)
 
-    if ftdata is not None:
-        Nfl = ftdata.shape[0]
-        nfreq = ftdata.shape[1]
-        ntime = ftdata.shape[2]
+    Nfl = ftdata.shape[0]
+    nfreq = ftdata.shape[1]
+    ntime = ftdata.shape[2]
 
     print(Nfl, nfreq, ntime)
     print(label)
@@ -533,7 +532,7 @@ if __name__ == "__main__":
     ftdata = ftdata.reshape(dshape)
 
     # Get 4D vector for Keras
-    # ftdata = ftdata[..., None]
+    ftdata = ftdata[..., None]
 
     NTRAIN = int(len(label) * 0.5)
 

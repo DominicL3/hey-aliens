@@ -127,7 +127,7 @@ def noise_and_FRB(nrows=4, ncols=2):
 
     while example_number < len(flat_axes):
         event = SimulatedFRB()
-        event.add_to_background()
+        event.simulateFRB()
         frb = event.simulatedFRB
 
         # collapse all frequencies by taking mean for each column
@@ -152,7 +152,7 @@ def connor_pulse(datafile='data_nt250_nf32_dm0_snr8-100_test.hdf5'):
 
 def plot_simulated(SNRmin=8):
     """Test whether injecting an FRB works"""
-    frb = event.injectFRB()
+    frb = event.injectFRB(10)
 
     plt.figure()
     plt.imshow(event.background)
@@ -169,7 +169,7 @@ def gaussianFRB_plots(n_sims=6, SNRmin=8):
     
     for ax in axes.flatten():
         background = event.background
-        frb, SNR = event.injectFRB(background, SNRmin, returnSNR=True)
+        frb = event.injectFRB(background, SNRmin)
         ax.imshow(frb)
         ax.set_title(f"SNR: {SNR}")
 
@@ -181,5 +181,5 @@ def test_timing(num_iterations=10):
     # make_labels(num_iterations, 8)
     for n in np.arange(num_iterations):
         event = SimulatedFRB()
-        event.add_to_background(background=None, SNRmin=8, SNR_sigma=1.0)
+        event.simulateFRB(background=None, SNRmin=8, SNR_sigma=1.0)
     print(f"{time() - start} seconds for {num_iterations} iterations")
