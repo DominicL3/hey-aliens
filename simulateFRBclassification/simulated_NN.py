@@ -380,8 +380,10 @@ def psr2np(fname, NCHAN, dm):
     taxis = np.arange(0, fpsr.integration_length(), tbin)
     # Convert to time to msec
     taxis = taxis * 1000
-
+    
     return data
+    # test this after verifying returning only the data
+    # return np.array([data, freq, taxis])
 
 
 def make_labels(num_data, SNRmin, SNRmax=15):
