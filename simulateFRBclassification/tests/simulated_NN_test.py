@@ -1,12 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+from tqdm import trange
 from simulated_NN import SimulatedFRB, make_labels
-import warnings
-
-# suppress deprecation warnings
-with warnings.catch_warnings():
-    warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 # make a SimulatedFRB object for testing
 event = SimulatedFRB()
@@ -41,7 +37,7 @@ class TestSimulateFRB(object):
         and wide/low for lower frequencies and have approximately the same area."""
         pulse = event.pulse_profile()
         # randomly select some 1D slices to compare
-        seed = np.random.seed(128)
+        np.random.seed(128)
         indices = np.random.randint(low=0, high=pulse.shape[0], size=5)
         pulse_1D = pulse[indices]
         
@@ -86,6 +82,14 @@ class TestSimulateFRB(object):
         assert np.mean(np.mean(signal, axis=0)) / np.abs(np.mean(np.mean(event.background, axis=0))) > 9, \
                "Signal power not increased properly"
 
+    def test_simulation_time(self, num_simulations=100):
+        start_time = time()
+        for i in trange(num_simulations):
+            event = SimulatedFRB()
+            event.pulse_profile()
+        end_time = time()
+        print(f"{num_simulations} sims completed in {end_time - start_time} seconds")
+
     def test_plot_injectedFRB(self, SNR=5):
         fig, ax = plt.subplots(nrows=3, ncols=1)
         event = SimulatedFRB()
@@ -107,20 +111,3 @@ class TestSimulateFRB(object):
 
         fig.tight_layout()
         plt.show(fig)
-
-    def test_labelArray(self):
-        fake_data, fake_labels = s.make_labels(20)
-        assert fake_data.shape == (40, 256, 512)
-        assert len(fake_data) == 40
-        assert len(fake_labels) == 40
-        assert fake_labels.shape == (40,)
-
-        for data in fake_data:
-            assert type(data) == np.ndarray
-            assert data.shape == (256, 512)
-
-        # test whether data arrays are different from each other, but should have mostly similar data
-        common = fake_data[6] == fake_data[7]
-        assert not common.all(), "Arrays should be different"
-        print (common.shape[0] * common.shape[1])
-        assert np.sum(common) / (common.shape[0] * common.shape[1]) >= 0.8, "Should mostly be the same except for FRB"

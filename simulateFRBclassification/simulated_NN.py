@@ -45,6 +45,7 @@ from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, Bat
 from keras.optimizers import SGD, Adam
 from keras.models import load_model
 
+
 class SimulatedFRB(object):
     """ Class to generate a realistic fast radio burst and 
     add the event to data, including scintillation and 
@@ -386,7 +387,7 @@ def psr2np(fname, NCHAN, dm):
     # return np.array([data, freq, taxis])
 
 
-def make_labels(num_data, SNRmin, SNRmax=15):
+def make_labels(num_samples, SNRmin, SNRmax=15):
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
     be populated with just 0 and 1, which will then be shuffled later.'''
@@ -395,7 +396,7 @@ def make_labels(num_data, SNRmin, SNRmax=15):
     labels = []
     values_SNR = []
 
-    for sim in trange(num_data):
+    for sim in trange(num_samples):
         # create simulation object and add FRB to it
         event = SimulatedFRB()
         event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
@@ -411,34 +412,6 @@ def make_labels(num_data, SNRmin, SNRmax=15):
 
     return np.array(ftdata), np.array(labels), np.array(values_SNR)
 
-
-def predict_from_model(model_path, test_set):
-    """
-    Loads in a model and uses it to predict whether 
-    a given set of FRBs are real or RFI.
-
-    Parameters:
-    ----------
-    model_path : str 
-        File path to model
-    test_set : ndarray
-        3-D array (num_test, freq, time) consisting of test set
-        that will be transformed and predicted by the model
-       
-    Returns
-    -------
-    predictions : ndarray
-        A 1-D array of 0s and 1s, where 0 --> RFI and 1 --> FRB 
-    """
-    model = load_model(model_path)
-    
-    # compile model
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
-    
-    # predict from test set
-    predictions = model.predict_classes(test_set)
-    return predictions
     
 def normalize_data(ftdata):
     ftdata = ftdata.reshape(len(ftdata), -1)
