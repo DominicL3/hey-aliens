@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
+from tqdm import trange
 
 from simulated_NN import SimulatedFRB, make_labels
 plt.ion()
@@ -118,8 +119,6 @@ def plot_injectedFRB(SNR=10):
         fig.tight_layout()
         return fig
 
-plot_injectedFRB()
-
 def noise_and_FRB(nrows=4, ncols=2):
     fig, ax = plt.subplots(nrows=nrows, ncols=ncols)
     example_number = 1
@@ -171,15 +170,15 @@ def gaussianFRB_plots(n_sims=6, SNRmin=8):
         background = event.background
         frb = event.injectFRB(background, SNRmin)
         ax.imshow(frb)
-        ax.set_title(f"SNR: {SNR}")
+        ax.set_title(f"SNR: {event.SNR}")
 
     fig.tight_layout()
     return fig
 
-def test_timing(num_iterations=10): 
-    start = time()
-    # make_labels(num_iterations, 8)
-    for n in np.arange(num_iterations):
+def test_simulation_time(num_simulations=100):
+    start_time = time()
+    for i in trange(num_simulations):
         event = SimulatedFRB()
-        event.simulateFRB(background=None, SNRmin=8, SNR_sigma=1.0)
-    print(f"{time() - start} seconds for {num_iterations} iterations")
+        event.simulateFRB()
+    end_time = time()
+    print(f"{num_simulations} sims completed in {end_time - start_time} seconds")

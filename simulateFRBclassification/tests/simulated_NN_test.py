@@ -82,14 +82,6 @@ class TestSimulateFRB(object):
         assert np.mean(np.mean(signal, axis=0)) / np.abs(np.mean(np.mean(event.background, axis=0))) > 9, \
                "Signal power not increased properly"
 
-    def test_simulation_time(self, num_simulations=100):
-        start_time = time()
-        for i in trange(num_simulations):
-            event = SimulatedFRB()
-            event.pulse_profile()
-        end_time = time()
-        print(f"{num_simulations} sims completed in {end_time - start_time} seconds")
-
     def test_plot_injectedFRB(self, SNR=5):
         fig, ax = plt.subplots(nrows=3, ncols=1)
         event = SimulatedFRB()

@@ -4,12 +4,11 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-import sys, os
 import numpy as np
+import matplotlib.pyplot as plt
 from scipy.signal import gaussian, fftconvolve
-import time
-import h5py
-import random
+from time import time
+import os
 from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
@@ -22,16 +21,6 @@ well as code wrapping done by Vishal Gajjar."""
 """Trains a convolutional neural network to recognize differences between fast
 radio bursts and RFI. Training is done by simulating a specified number of FRB
 examples and injecting them into noisy backgrounds."""
-
-try:
-    import matplotlib
-    import matplotlib.pyplot as plt
-    from matplotlib import gridspec
-
-    print("Worked")
-except:
-    "Didn't work"
-    pass
 
 # import psrchive as psr
 
@@ -96,7 +85,7 @@ class SimulatedFRB(object):
     def scatter_profile(self):
         """ Include exponential scattering profile."""
         tau_nu = self.tau * (self.frequencies / self.f_ref) ** -4
-        t = np.linspace(0, self.nt//2, self.nt)
+        t = np.linspace(0, self.nt // 2, self.nt)
 
         prof = np.exp(-t / tau_nu.reshape(-1, 1)) / tau_nu.reshape(-1, 1)
         return prof / np.max(prof, axis=1).reshape(-1, 1)
@@ -109,7 +98,9 @@ class SimulatedFRB(object):
         scat_prof = self.scatter_profile()
         
         # convolve the two profiles for each frequency
-        pulse_prof = np.array([fftconvolve(gaus_prof[i], scat_prof[i])[:self.nt] for i in np.arange(self.shape[0])])
+        # pulse_prof = np.array([fftconvolve(gaus_prof[i], scat_prof[i])[:self.nt] for i in np.arange(self.shape[0])])
+
+        pulse_prof = fftconvolve(gaus_prof, scat_prof, axes=1, mode='same')
 
         # normalize! high frequencies should have narrower pulses
         pulse_prof /= np.trapz(pulse_prof, axis=1).reshape(-1, 1)
@@ -139,13 +130,16 @@ class SimulatedFRB(object):
         pulse = self.pulse_profile()
         pulse *= envelope.reshape(-1, 1)
         self.FRB = pulse
+        return pulse
 
     def roll(self):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
-                                      high = self.shape[1] // 2 - self.max_width)
+        #bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
+        #                              high = self.shape[1] // 2 - self.max_width)
+
+        bin_shift = np.random.randint(low=0, high = self.shape[1] - self.max_width)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
