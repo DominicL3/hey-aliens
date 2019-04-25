@@ -1,10 +1,17 @@
 import numpy as np
+import matplotlib as mpl
 import matplotlib.pyplot as plt
 from time import time
 from tqdm import trange
 
 from simulated_NN import SimulatedFRB, make_labels
+
+# setting matplotlib defaults
 plt.ion()
+font_info = {'family': 'sans-serif', 'sans-serif': 'Myriad Pro', 'size': 16}
+mpl.rc('font', **font_info)
+mpl.rcParams['pdf.fonttype'] = 42
+# mpl_params = {'axes.labelsize': 16, 'xtick.labelsize': 8, 'ytick.labelsize': 8, 'pdf.fonttype': 42}
 
 # create SimulatedFRB object for testing
 event = SimulatedFRB(tau=0.1)
@@ -182,3 +189,23 @@ def test_simulation_time(num_simulations=100):
         event.simulateFRB()
     end_time = time()
     print(f"{num_simulations} sims completed in {end_time - start_time} seconds")
+
+def jupyter_simulatedFRBs(nrows=3, ncols=3, seed=256):
+    np.random.seed(seed)
+
+    # plot the simulated events
+    fig_simulated, ax_simulated = plt.subplots(nrows=nrows, ncols=ncols, figsize=(16, 12))
+
+    # create simulation objects and simulate an FRB for each of them
+    simulated_events = [SimulatedFRB() for i in np.arange(nrows * ncols)]
+    for event in simulated_events:
+        event.simulateFRB(SNRmin=6, SNRmax=20)
+
+    for axis, event in zip(ax_simulated.flatten(), simulated_events):
+        axis.imshow(event.simulatedFRB, extent=[0, event.nt, event.frequencies[0], event.frequencies[-1]],
+                    origin='lower', aspect='auto')
+        axis.set(title=f"SNR: {np.round(event.SNR, 2)}", xlabel='time (ms)', ylabel='frequency (MHz)')
+        axis.set_yticks(np.arange(event.frequencies[0], event.frequencies[-1], 350))
+    fig_simulated.tight_layout()
+    
+    return fig_simulated
