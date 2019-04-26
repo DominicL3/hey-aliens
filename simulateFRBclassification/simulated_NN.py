@@ -12,7 +12,6 @@ import os
 from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
-import glob
 
 """Adapted from the code published from the paper 'Applying Deep Learning 
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
@@ -20,9 +19,9 @@ well as code wrapping done by Vishal Gajjar."""
 
 """Trains a convolutional neural network to recognize differences between fast
 radio bursts and RFI. Training is done by simulating a specified number of FRB
-examples and injecting them into noisy backgrounds."""
-
-# import psrchive as psr
+examples and injecting them into noisy Gaussian backgrounds. To include actual
+RFI data, psrchive will be used in another file (psr2np.py) to export real data
+into numpy formats that this program can inject FRBs into."""
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -344,43 +343,6 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
-
-def psr2np(fname, NCHAN, dm):
-    # Get psrchive file as input and outputs numpy array
-    fpsr = psr.Archive_load(fname)
-    fpsr.dededisperse()
-    fpsr.set_dispersion_measure(dm)
-    fpsr.dedisperse()
-
-    fpsr.fscrunch_to_nchan(NCHAN)
-    fpsr.remove_baseline()
-
-    # -- apply weights for RFI lines --#
-    ds = fpsr.get_data().squeeze()
-    w = fpsr.get_weights().flatten()
-    w = w / np.max(w)
-    idx = np.where(w == 0)[0]
-    ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
-    ds[:, idx, :] = np.nan
-
-    # -- Get total intensity data (I) from the full stokes --#
-    data = ds[0, :, :]
-
-    # -- Get frequency axis values --#
-    freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
-                       fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
-
-    # -- Get time axis --#
-    tbin = float(fpsr.integration_length() / fpsr.get_nbin())
-    taxis = np.arange(0, fpsr.integration_length(), tbin)
-    # Convert to time to msec
-    taxis = taxis * 1000
-    
-    return data
-    # test this after verifying returning only the data
-    # return np.array([data, freq, taxis])
-
-
 def make_labels(num_samples, SNRmin, SNRmax=15):
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
@@ -446,38 +408,6 @@ if __name__ == "__main__":
     NFREQ = 64
     NTINT = 256
     DM = 102.4
-
-    '''if path is not None:
-        #files = glob.glob(path+"1stCand*.ar")
-        files = glob.glob(path+"*.ar")
-    else:    
-        #files = glob.glob("1stCand*.ar")
-        files = glob.glob("*.ar")
-   
-    ftdata = [] 
-    label = []
-
-    for fl in files:
-        
-        cmd = "pdv -t " + fl + " | awk '{print$4}' >  test.text"
-        print(cmd)
-        os.system(cmd)
-        data = np.loadtxt("test.text",skiprows=1) 
-        data = np.reshape(data,(NFREQ,NTINT)) 
-        ftdata.append(data)
-        
-        #ar file with FRB
-        data = []
-        #data = psr2np(fl,NFREQ,30)
-        ftdata.append(psr2np(fl,NFREQ,DM))
-        label.append(0)
-        #ar file with injected FRB
-        data1 = []
-        data1 = injectFRB(psr2np(fl,NFREQ,30))
-        ftdata.append(data1)
-        label.append(1)
-
-    ftdata = np.array(ftdata)'''
 
     # n_sims passed into the interpreter
     ftdata, label, SNRs = make_labels(args.num_samples, args.SNRmin, args.SNRmax)
