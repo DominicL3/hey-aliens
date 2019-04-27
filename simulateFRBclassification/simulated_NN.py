@@ -243,23 +243,26 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # create nfilt1 convolution filters, each of size 5x5
     # max pool and randomly drop some fraction of nodes to limit overfitting
-    # TODO: change kernel size to 2 or 3model = Sequential()
-
-    # create nfilt1 convolution filters, each of size 5x5
-    # max pool and randomly drop some fraction of nodes to limit overfitting
-    model.add(Conv2D(nfilt1, (3, 3), activation='relu', input_shape=(nfreq, ntime, 1)))
+    model.add(Conv2D(32, (2, 2), activation='relu', input_shape=(64, 256, 1)))
+    model.add(Conv2D(32, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # second convolutional layer
-    model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
+    model.add(Conv2D(64, (2, 2), activation='relu'))
+    model.add(Conv2D(64, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    # third convolutional layer
+    model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(Conv2D(128, (3, 3), activation='relu'))
+    model.add(MaxPooling2D(pool_size=(3, 3)))
 
     # flatten all neurons and run through fully connected layers
     model.add(Flatten())
-    model.add(Dense(32, activation='relu'))
+    model.add(Dense(64, activation='relu'))
     model.add(Dropout(0.4))
 
-    model.add(Dense(16, activation='relu'))
+    model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.4))
 
     # output probabilities of predictions and choose the maximum
