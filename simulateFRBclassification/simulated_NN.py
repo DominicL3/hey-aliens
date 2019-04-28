@@ -402,11 +402,15 @@ if __name__ == "__main__":
     parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
                         default='confusion matrix.png', help='Filename to store final confusion matrix in')
 
+    parser.add_argument('--val_results', type=str, default='classification_results.npy', 
+                        help='Filename to store array of classified objects in validation set')
+
     args = parser.parse_args()
 
     # Read archive files and extract data arrays
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.confmatname
+    val_results_file = args.val_results
 
     NFREQ = 64
     NTINT = 256
@@ -503,6 +507,8 @@ if __name__ == "__main__":
     plt.gca().set_title('TN')
     plt.imshow(TNdata, aspect='auto', interpolation='none')
 
+    # save data
     plt.savefig(confusion_matrix_name)
+    np.save(val_results_file, np.array([TPdata, FPdata, FNdata, TNdata]))
 
     plt.show()
