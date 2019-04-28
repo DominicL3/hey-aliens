@@ -270,10 +270,9 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     print("Using batch_size: %d" % batch_size)
     print("Using %d epochs" % epochs)
 
-    cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0,
-                                        batch_size=32, write_graph=True, write_grads=False,
-                                        write_images=True, embeddings_freq=0, embeddings_layer_names=None,
-                                        embeddings_metadata=None)
+    cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32, write_graph=True, 
+                                    write_grads=False, write_images=True, embeddings_freq=0, 
+                                    embeddings_layer_names=None, embeddings_metadata=None)
 
     # save best model according to validation accuracy
     best_model_cb = keras.callbacks.ModelCheckpoint(f"{saved_model_name}", monitor='val_acc', verbose=1,
