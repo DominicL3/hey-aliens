@@ -2,6 +2,7 @@
 
 import psrchive as psr
 import numpy as np
+from tqdm import tqdm
 import argparse
 import glob
 
@@ -67,7 +68,7 @@ if __name__ == "__main__":
     psrchive_data = [] 
     # label = []
 
-    for filename in files:
+    for filename in tqdm(files):
         # transform ar file into numpy array and append to list
         psrchive_data.append(psr2np(filename, NCHAN, DM))
         # label.append(0)

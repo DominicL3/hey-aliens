@@ -254,10 +254,10 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # flatten all neurons and run through fully connected layers
     model.add(Flatten())
-    model.add(Dense(64, activation='relu'))
+    model.add(Dense(72, activation='relu'))
     model.add(Dropout(0.3))
 
-    model.add(Dense(48, activation='relu'))
+    model.add(Dense(32, activation='relu'))
     model.add(Dropout(0.2))
 
     # output probabilities of predictions and choose the maximum
@@ -369,7 +369,7 @@ def make_labels(num_samples, SNRmin, SNRmax=15):
         labels.append(1)
         values_SNR.extend([event.SNR, event.SNR])
 
-    return np.array(ftdata), np.array(labels), np.array(values_SNR)
+    return np.array(ftdata), np.array(labels)
 
     
 def normalize_data(ftdata):
@@ -417,7 +417,7 @@ if __name__ == "__main__":
     DM = 102.4
 
     # n_sims passed into the interpreter
-    ftdata, label, SNRs = make_labels(args.num_samples, args.SNRmin, args.SNRmax)
+    ftdata, label = make_labels(args.num_samples, args.SNRmin, args.SNRmax)
 
     Nfl = ftdata.shape[0]
     nfreq = ftdata.shape[1]
