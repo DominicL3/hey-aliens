@@ -243,13 +243,13 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # create nfilt1 convolution filters, each of size 5x5
     # max pool and randomly drop some fraction of nodes to limit overfitting
-    model.add(Conv2D(64, (2, 2), activation='relu', input_shape=(64, 256, 1)))
-    model.add(Conv2D(64, (2, 2), activation='relu'))
+    model.add(Conv2D(nfilt1, (2, 2), activation='relu', input_shape=(64, 256, 1)))
+    model.add(Conv2D(nfilt1, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # second convolutional layer with 64 filters
-    model.add(Conv2D(128, (2, 2), activation='relu'))
-    model.add(Conv2D(128, (2, 2), activation='relu'))
+    model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
+    model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(3, 3)))
 
     # flatten all neurons and run through fully connected layers
@@ -385,9 +385,9 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
-    parser.add_argument('--nfilt1', type=int, default=32, help='Number of filters in first convolutional layer')
+    parser.add_argument('--nfilt1', type=int, default=64, help='Number of filters in first convolutional layer')
     
-    parser.add_argument('--nfilt2', type=int, default=64, help='Number of filters in second convolutional layer')
+    parser.add_argument('--nfilt2', type=int, default=128, help='Number of filters in second convolutional layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
