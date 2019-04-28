@@ -254,10 +254,12 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # flatten all neurons and run through fully connected layers
     model.add(Flatten())
-    model.add(Dense(128, activation='relu'))
     model.add(Dense(64, activation='relu'))
+    model.add(Dropout(0.3))
+    
     model.add(Dense(32, activation='relu'))
-    model.add(Dropout(0.2))
+    model.add(Dense(16, activation='relu'))
+    
 
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
