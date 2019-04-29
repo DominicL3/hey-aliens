@@ -466,7 +466,7 @@ if __name__ == "__main__":
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
                                                         epochs=args.epochs, nfilt1=args.nfilt1, nfilt2=args.nfilt2,
-                                                        n_dense=args.n_dense1, n_dense2=args.n_dense2, 
+                                                        n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
                                                         nfreq=NFREQ, ntime=NTINT, saved_model_name=best_model_name)
 
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
