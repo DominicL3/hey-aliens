@@ -476,7 +476,7 @@ if __name__ == "__main__":
     metrics = print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
-    np.save(val_results_file, np.array([TP, FP, TN, FN]))
+    np.savez(val_results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
