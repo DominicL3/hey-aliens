@@ -203,8 +203,7 @@ class SimulatedFRB(object):
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, nfilt1=32, nfilt2=64,
-                     n_dense1=100, n_dense2=50, batch_size=32, 
-                     saved_model_name='best_model.h5'):
+                     n_dense=128, batch_size=32, saved_model_name='best_model.h5'):
     """ Build a two-dimensional convolutional neural network
     with a binary classifier. Can be used for, e.g.,
     freq-time dynamic spectra of pulsars, dm-time intensity array.
@@ -257,7 +256,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     model.add(Flatten())
     
     # run through fully connected layers
-    model.add(Dense(n_dense1, activation='relu'))
+    model.add(Dense(n_dense, activation='relu'))
     model.add(Dropout(0.2))
 
     # output probabilities of predictions and choose the maximum
@@ -388,8 +387,8 @@ if __name__ == "__main__":
     parser.add_argument('--nfilt1', type=int, default=64, help='Number of filters in first convolutional layer')
     
     parser.add_argument('--nfilt2', type=int, default=128, help='Number of filters in second convolutional layer')
-    parser.add_argument('--n_dense1', type=int, default=100, help='Number of neurons in first dense layer')
-    parser.add_argument('--n_dense2', type=int, default=50, help='Number of neurons in second dense layer')
+    
+    parser.add_argument('--n_dense', type=int, default=100, help='Number of neurons in dense layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
@@ -463,8 +462,8 @@ if __name__ == "__main__":
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
                                                         epochs=args.epochs, nfilt1=args.nfilt1, nfilt2=args.nfilt2,
-                                                        n_dense1=args.n_dense1, n_dense2=args.n_dense2, nfreq=NFREQ, 
-                                                        ntime=NTINT, saved_model_name=best_model_name)
+                                                        n_dense=args.n_dense, nfreq=NFREQ, ntime=NTINT, 
+                                                        saved_model_name=best_model_name)
 
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
