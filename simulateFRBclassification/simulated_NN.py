@@ -476,6 +476,7 @@ if __name__ == "__main__":
     metrics = print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
+    np.save(val_results_file, np.array([TP, FP, TN, FN]))
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
@@ -514,8 +515,6 @@ if __name__ == "__main__":
     plt.gca().set_title('TN')
     plt.imshow(TNdata, aspect='auto', interpolation='none')
 
-    # save data
+    # save data, show plot
     plt.savefig(confusion_matrix_name)
-    np.save(val_results_file, np.array([TPdata, FPdata, FNdata, TNdata]))
-
     plt.show()
