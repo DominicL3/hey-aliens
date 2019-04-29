@@ -244,11 +244,9 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # create nfilt1 convolution filters, each of size 5x5
     # max pool and randomly drop some fraction of nodes to limit overfitting
     model.add(Conv2D(nfilt1, (2, 2), activation='relu', input_shape=(64, 256, 1)))
-    model.add(Conv2D(nfilt1, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # second convolutional layer with 64 filters
-    model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
