@@ -246,17 +246,19 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # max pool and randomly drop some fraction of nodes to limit overfitting
     model.add(Conv2D(nfilt1, (2, 2), activation='relu', input_shape=(64, 256, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
 
     # second convolutional layer with 64 filters
     model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
 
     # flatten all neurons
     model.add(Flatten())
     
     # run through fully connected layers
     model.add(Dense(n_dense1, activation='relu'))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.4))
 
     model.add(Dense(n_dense2, activation='relu'))
     model.add(Dropout(0.2))
