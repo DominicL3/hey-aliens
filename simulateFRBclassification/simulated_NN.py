@@ -246,20 +246,25 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     model.add(Conv2D(nfilt1, (2, 2), activation='relu', input_shape=(64, 256, 1)))
     model.add(Conv2D(nfilt1, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.2))
 
     # second convolutional layer with 64 filters
     model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(3, 3)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.3))
 
     # flatten all neurons
     model.add(Flatten())
     
     # run through fully connected layers
-    model.add(Dense(128, activation='relu'))
+    model.add(Dense(50, activation='relu'))
     model.add(Dropout(0.25))
 
-    model.add(Dense(32, activation='relu'))
+    model.add(Dense(25, activation='relu'))
+    model.add(Dropout(0.2))
+
+    model.add(Dense(10, activation='relu'))
     model.add(Dropout(0.2))
 
     # output probabilities of predictions and choose the maximum
