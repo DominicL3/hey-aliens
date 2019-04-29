@@ -251,7 +251,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # second convolutional layer with 64 filters
     model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
+    model.add(Dropout(0.1))
 
     # flatten all neurons
     model.add(Flatten())
@@ -392,9 +392,9 @@ if __name__ == "__main__":
     
     parser.add_argument('--nfilt2', type=int, default=128, help='Number of filters in second convolutional layer')
     
-    parser.add_argument('--n_dense1', type=int, default=100, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense1', type=int, default=64, help='Number of neurons in first dense layer')
     
-    parser.add_argument('--n_dense2', type=int, default=100, help='Number of neurons in second dense layer')
+    parser.add_argument('--n_dense2', type=int, default=16, help='Number of neurons in second dense layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
