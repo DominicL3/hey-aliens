@@ -261,7 +261,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     model.add(Dropout(0.4))
 
     model.add(Dense(n_dense2, activation='relu'))
-    model.add(Dropout(0.2))
+    model.add(Dropout(0.3))
 
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
