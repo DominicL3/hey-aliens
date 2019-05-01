@@ -209,3 +209,34 @@ def jupyter_simulatedFRBs(nrows=3, ncols=3, seed=256):
     fig_simulated.tight_layout()
     
     return fig_simulated
+
+def show_confusion_matrix(confmat_file='classification_results.npy', figsize=(16, 10)):
+    # load in the confusion matrix data (4, 64, 256)
+    least_probable = np.load(confmat_file)
+    
+    # plot each image of the confusion matrix
+    fig_confusion, ax_confusion = plt.subplots(nrows=2, ncols=2, figsize=figsize)
+    confmat_titles = ['True Positive', 'False Positive', 'True Negative', 'False Negative']
+
+    for image, ax, title in zip(least_probable, ax_confusion.flatten(), confmat_titles):
+        ax.imshow(image, extent=[0, 256, 600, 2100], origin='lower', aspect='auto')
+        ax.set(title=title, xlabel='time (ms)', ylabel='frequency (MHz)')
+        ax.set_yticks(np.arange(600, 2100, 350))
+
+    fig_confusion.tight_layout()
+    return fig_confusion
+
+def real_RFI_plot(RFI_array_file='psr_arrays.npy', seed=24, figsize=(12, 8)):
+    np.random.seed(seed)
+    real_RFI = np.load(RFI_array_file)
+    sample_RFI = real_RFI[np.random.randint(low=0, high=320, size=4)]
+
+    fig_RFI, ax_RFI = plt.subplots(nrows=2, ncols=2, figsize=figsize)
+
+    for RFI_image, ax in zip(sample_RFI, ax_RFI.flatten()):
+        ax.imshow(RFI_image, origin='lower', aspect='auto')
+        ax.set(xticks=[], yticks=[])
+
+    fig_RFI.tight_layout()
+    fig_RFI.subplots_adjust(wspace=0.1, hspace=0.2)
+    return fig_RFI

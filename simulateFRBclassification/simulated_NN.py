@@ -388,9 +388,9 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
-    parser.add_argument('--nfilt1', type=int, default=64, help='Number of filters in first convolutional layer')
+    parser.add_argument('--nfilt1', type=int, default=32, help='Number of filters in first convolutional layer')
     
-    parser.add_argument('--nfilt2', type=int, default=128, help='Number of filters in second convolutional layer')
+    parser.add_argument('--nfilt2', type=int, default=64, help='Number of filters in second convolutional layer')
     
     parser.add_argument('--n_dense1', type=int, default=64, help='Number of neurons in first dense layer')
     
@@ -408,7 +408,7 @@ if __name__ == "__main__":
     parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
                         default='confusion matrix.png', help='Filename to store final confusion matrix in')
 
-    parser.add_argument('--val_results', type=str, default='classification_results.npy', 
+    parser.add_argument('--val_results', type=str, default='classification_results.npz', 
                         help='Filename to store array of classified objects in validation set')
 
     args = parser.parse_args()

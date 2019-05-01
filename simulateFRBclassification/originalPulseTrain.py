@@ -404,7 +404,7 @@ if __name__ == "__main__":
     NTINT = 256
     DM = 102.4
 
-    '''if path is not None:
+    if path is not None:
         #files = glob.glob(path+"1stCand*.ar")
         files = glob.glob(path+"*.ar")
     else:    
@@ -434,7 +434,7 @@ if __name__ == "__main__":
         ftdata.append(data1)
         label.append(1)
 
-    ftdata = np.array(ftdata)'''
+    ftdata = np.array(ftdata)
 
     # n_sims passed into the interpreter
     ftdata, label = make_labels(int(sys.argv[1]))
