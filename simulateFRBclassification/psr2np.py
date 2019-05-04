@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import psrchive as psr
+from time import time
 import numpy as np
 import argparse
 import glob
@@ -70,18 +71,17 @@ if __name__ == "__main__":
    
     if len(files) == 0:
         raise ValueError("No files found in path " + path)
-    
-    psrchive_data = []
 
-    # choose DM from a uniform distribution
+    # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
+    random_files = np.random.choice(files, size=args.num_samples, replace=True)
 
-    for sample_number in np.arange(args.num_samples):
-        print "Working on sample {0} out of {1}".format(sample_number, args.num_samples)
-        random_filename = np.random.choice(files)
+    start = time()
+    # transform .ar files into numpy arrays and time how long it took
+    psrchive_data = [psr2np(filename, NCHAN, DM) for filename, DM in zip(random_files, random_DMs)]
+    end = time()
 
-        # transform ar file into numpy array and append to list
-        psrchive_data.append(psr2np(random_filename, NCHAN, random_DMs[sample_number]))
-
+    print("Converted {0} samples in {1} seconds".format(args.num_samples, end - start))
+    
     # save final array to disk
     np.save(save_name, np.array(psrchive_data))
