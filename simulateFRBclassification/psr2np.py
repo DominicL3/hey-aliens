@@ -83,7 +83,7 @@ if __name__ == "__main__":
         random_filename = np.random.choice(files)
 
         # transform ar file into numpy array and append to list
-        psrchive_data.append(psr2np(random_filename, NCHAN, 102.4))
+        psrchive_data.append(psr2np(random_filename, NCHAN, random_DM))
 
     # save final array to disk
     np.save(save_name, np.array(psrchive_data))
