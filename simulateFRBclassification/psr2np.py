@@ -72,7 +72,7 @@ if __name__ == "__main__":
    
     psrchive_data = [] 
 
-    for sample_number in args.num_samples:
+    for sample_number in np.arange(args.num_samples):
         print "Working on sample {0} out of {1}".format(sample_number, args.num_samples)
         
         # choose DM and filename from a uniform distribution
