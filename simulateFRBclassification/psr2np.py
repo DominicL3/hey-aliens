@@ -70,6 +70,9 @@ if __name__ == "__main__":
     else:    
         files = glob.glob("*.ar")
    
+    if len(files) == 0:
+        raise ValueError("No files found in path")
+    
     psrchive_data = [] 
 
     for sample_number in np.arange(args.num_samples):
