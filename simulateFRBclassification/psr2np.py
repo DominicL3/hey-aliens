@@ -5,7 +5,7 @@ import numpy as np
 import argparse
 import glob
 
-randomize_DM = lambda min_DM, max_DM: np.random.uniform(min_DM, max_DM)
+randomize_DM = lambda min_DM, max_DM: np.random.uniform(low=min_DM, high=max_DM)
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
