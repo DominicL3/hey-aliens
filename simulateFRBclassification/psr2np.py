@@ -71,7 +71,7 @@ if __name__ == "__main__":
         files = glob.glob("*.ar")
    
     if len(files) == 0:
-        raise ValueError("No files found in path")
+        raise ValueError("No files found in path " + path)
     
     psrchive_data = [] 
 
