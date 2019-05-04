@@ -97,8 +97,6 @@ class SimulatedFRB(object):
         scat_prof = self.scatter_profile()
         
         # convolve the two profiles for each frequency
-        # pulse_prof = np.array([fftconvolve(gaus_prof[i], scat_prof[i])[:self.nt] for i in np.arange(self.shape[0])])
-
         pulse_prof = fftconvolve(gaus_prof, scat_prof, axes=1, mode='same')
 
         # normalize! high frequencies should have narrower pulses
@@ -278,7 +276,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                                     embeddings_layer_names=None, embeddings_metadata=None)
 
     # save best model according to validation accuracy
-    best_model_cb = keras.callbacks.ModelCheckpoint(f"{saved_model_name}", monitor='val_acc', verbose=1,
+    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor='val_acc', verbose=1,
                                                     save_best_only=True)
 
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
@@ -355,7 +353,6 @@ def make_labels(num_samples, SNRmin, SNRmax=15):
 
     ftdata = []
     labels = []
-    values_SNR = []
 
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
@@ -369,7 +366,6 @@ def make_labels(num_samples, SNRmin, SNRmax=15):
         # inject FRB into data and label it true sighting
         ftdata.append(event.simulatedFRB)
         labels.append(1)
-        values_SNR.extend([event.SNR, event.SNR])
 
     return np.array(ftdata), np.array(labels)
 
@@ -392,9 +388,9 @@ if __name__ == "__main__":
     
     parser.add_argument('--nfilt2', type=int, default=64, help='Number of filters in second convolutional layer')
     
-    parser.add_argument('--n_dense1', type=int, default=64, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
     
-    parser.add_argument('--n_dense2', type=int, default=16, help='Number of neurons in second dense layer')
+    parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
