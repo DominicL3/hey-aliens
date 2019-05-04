@@ -5,8 +5,6 @@ import numpy as np
 import argparse
 import glob
 
-randomize_DM = lambda min_DM, max_DM: np.random.uniform(low=min_DM, high=max_DM)
-
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
     fpsr = psr.Archive_load(fname)
@@ -73,17 +71,17 @@ if __name__ == "__main__":
     if len(files) == 0:
         raise ValueError("No files found in path " + path)
     
-    psrchive_data = [] 
+    psrchive_data = []
+
+    # choose DM from a uniform distribution
+    random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
 
     for sample_number in np.arange(args.num_samples):
         print "Working on sample {0} out of {1}".format(sample_number, args.num_samples)
-        
-        # choose DM and filename from a uniform distribution
-        random_DM = randomize_DM(args.min_DM, args.max_DM)
         random_filename = np.random.choice(files)
 
         # transform ar file into numpy array and append to list
-        psrchive_data.append(psr2np(random_filename, NCHAN, random_DM))
+        psrchive_data.append(psr2np(random_filename, NCHAN, random_DMs[sample_number]))
 
     # save final array to disk
     np.save(save_name, np.array(psrchive_data))
