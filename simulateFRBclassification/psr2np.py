@@ -55,8 +55,8 @@ if __name__ == "__main__":
                         help='Number of frequency channels to resize psrchive files to')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins')
     
-    parser.add_argument('--minDM', type=int, default=0, help='Minimum DM to sample')
-    parser.add_argument('--maxDM', type=int, default=1000, help='Maximum DM to sample')
+    parser.add_argument('--min_DM', type=int, default=0, help='Minimum DM to sample')
+    parser.add_argument('--max_DM', type=int, default=1000, help='Maximum DM to sample')
     
     args = parser.parse_args()
 
