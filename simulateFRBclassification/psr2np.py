@@ -1,4 +1,4 @@
-# /usr/local/python2
+#!/usr/bin/python
 
 import psrchive as psr
 import numpy as np
