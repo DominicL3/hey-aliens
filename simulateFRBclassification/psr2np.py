@@ -79,7 +79,7 @@ if __name__ == "__main__":
     start = time()
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data = []
-    for i in len(random_files):
+    for i in np.arange(len(random_files)):
         filename, DM = random_files[i], random_DMs[i]
         data, freq, time = psr2np(filename, NCHAN, DM)
         
