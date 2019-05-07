@@ -81,12 +81,7 @@ if __name__ == "__main__":
     psrchive_data = []
     for i in np.arange(len(random_files)):
         filename, DM = random_files[i], random_DMs[i]
-        data, freq, time = psr2np(filename, NCHAN, DM)
-        
-        if i == 0:
-            frequencies = freq
-            taxis = time 
-        
+        data, freq, taxis = psr2np(filename, NCHAN, DM)
         psrchive_data.append(data)
 
     end = time()
@@ -94,4 +89,4 @@ if __name__ == "__main__":
     print("Converted {0} samples in {1} seconds".format(args.num_samples, end - start))
     
     # save final array to disk
-    np.savez(save_name, rfi_data=np.array(psrchive_data), freq=frequencies, time=taxis)
+    np.savez(save_name, rfi_data=np.array(psrchive_data), freq=freq, time=taxis)
