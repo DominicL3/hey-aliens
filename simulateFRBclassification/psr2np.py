@@ -38,9 +38,9 @@ def psr2np(fname, NCHAN, dm):
     tbin = float(fpsr.integration_length() / fpsr.get_nbin())
     taxis = np.arange(0, fpsr.integration_length(), tbin) * 1000
     
-    return data
+    # return data
     # test this after verifying returning only the data
-    # return np.array([data, freq, taxis])
+    return data, freq, taxis
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -54,8 +54,8 @@ if __name__ == "__main__":
                         help='Number of frequency channels to resize psrchive files to')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins')
     
-    parser.add_argument('--min_DM', type=int, default=0, help='Minimum DM to sample')
-    parser.add_argument('--max_DM', type=int, default=1000, help='Maximum DM to sample')
+    parser.add_argument('--min_DM', type=float, default=0.0, help='Minimum DM to sample')
+    parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
     
     args = parser.parse_args()
 
@@ -78,10 +78,20 @@ if __name__ == "__main__":
 
     start = time()
     # transform .ar files into numpy arrays and time how long it took
-    psrchive_data = [psr2np(filename, NCHAN, DM) for filename, DM in zip(random_files, random_DMs)]
+    psrchive_data = []
+    for i in len(random_files):
+        filename, DM = random_files[i], random_DMs[i]
+        data, freq, time = psr2np(filename, NCHAN, DM)
+        
+        if i == 0:
+            frequencies = freq
+            taxis = time 
+        
+        psrchive_data.append(data)
+
     end = time()
 
     print("Converted {0} samples in {1} seconds".format(args.num_samples, end - start))
     
     # save final array to disk
-    np.save(save_name, np.array(psrchive_data))
+    np.savez(save_name, rfi_data=np.array(psrchive_data), freq=frequencies, time=taxis)

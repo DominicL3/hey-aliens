@@ -37,8 +37,6 @@ def plot_pulse():
     fig.tight_layout()
     return profiles
 
-# plot_pulse()
-
 def roll_plot():
     event.scintillate()
     original_FRB = np.copy(event.FRB)
@@ -96,7 +94,7 @@ def full_FRB_plot(nrows=4, ncols=3):
         flat_axes[example_number - 1].imshow(original_FRB)
         flat_axes[example_number - 1].set_title("Original FRB")
         flat_axes[example_number].imshow(full_signal)
-        flat_axes[example_number].set_title(f"with SNR {event.SNR}")
+        flat_axes[example_number].set_title(f"with SNR {np.round(event.SNR, 2)}")
         flat_axes[example_number + 1].plot(profile_1D)
         flat_axes[example_number + 1].set_title(f"Profile")
         example_number += 3

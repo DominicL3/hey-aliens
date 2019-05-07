@@ -39,7 +39,8 @@ class SimulatedFRB(object):
     add the event to data, including scintillation and 
     temporal scattering. @source liamconnor
     """
-    def __init__(self, shape=(64, 256), f_ref=1350, bandwidth=1500, max_width=4, tau=0.1):
+    def __init__(self, shape=(64, 256), f_low=800, f_high=2000, f_ref=1350, 
+                bandwidth=1500, max_width=4, tau=0.1):
         assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"        
         self.shape = shape
 
@@ -54,6 +55,10 @@ class SimulatedFRB(object):
         
         # frequency range for the pulse, given the number of channels
         self.frequencies = np.linspace(f_ref - bandwidth // 2, f_ref + bandwidth // 2, shape[0])
+
+        # lowest and highest frequencies in which to inject the FRB (default is for GBT)
+        self.f_low = f_low
+        self.f_high = f_high
 
         # where the pulse will be centered on the time (x) axis
         self.t0 = np.random.randint(-shape[1] + max_width, shape[1] - max_width) 
@@ -86,8 +91,13 @@ class SimulatedFRB(object):
         tau_nu = self.tau * (self.frequencies / self.f_ref) ** -4
         t = np.linspace(0, self.nt // 2, self.nt)
 
-        prof = np.exp(-t / tau_nu.reshape(-1, 1)) / tau_nu.reshape(-1, 1)
-        return prof / np.max(prof, axis=1).reshape(-1, 1)
+        scatter = np.exp(-t / tau_nu.reshape(-1, 1)) / tau_nu.reshape(-1, 1)
+        
+        # normalize the scattering profile and move it to the middle of the array
+        scatter /= np.max(scatter, axis=1).reshape(-1, 1)
+        scatter = np.roll(scatter, self.shape[1] // 2, axis=1)
+
+        return scatter
 
     def pulse_profile(self):
         """ Convolve the gaussian and scattering profiles
@@ -133,10 +143,8 @@ class SimulatedFRB(object):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        #bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
-        #                              high = self.shape[1] // 2 - self.max_width)
-
-        bin_shift = np.random.randint(low=0, high = self.shape[1] - self.max_width)
+        bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
+                                      high = self.shape[1] // 2 - self.max_width)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
@@ -179,6 +187,9 @@ class SimulatedFRB(object):
         
         # make a signal with given SNR
         signal = self.FRB * (peak_value / np.max(profile_FRB))
+
+        # zero out the FRB channels that are low powered on the telescope
+        signal[(self.frequencies < self.f_low) | (self.frequencies > self.f_high), :] = 0
         return signal
 
     def simulateFRB(self, background=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
@@ -195,7 +206,7 @@ class SimulatedFRB(object):
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
 
-        # add to the Gaussian noise
+        # add to background
         self.simulatedFRB = background + self.injectFRB(background=background, SNR=self.SNR)
 
 
