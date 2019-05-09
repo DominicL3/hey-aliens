@@ -177,15 +177,27 @@ def jupyter_simulatedFRBs(nrows=3, ncols=3, seed=256):
 
     # create simulation objects and simulate an FRB for each of them
     simulated_events = [SimulatedFRB() for i in np.arange(nrows * ncols)]
+    lowest_vmin, greatest_vmax = 0, 1 # track vmin and vmax for colorbar normalization
+
     for event in simulated_events:
         event.simulateFRB(SNRmin=6, SNRmax=20)
 
+        if np.min(event.simulatedFRB) < lowest_vmin:
+            lowest_vmin = np.min(event.simulatedFRB)
+        if np.max(event.simulatedFRB) > greatest_vmax:
+            greatest_vmax = np.max(event.simulatedFRB)
+
     for axis, event in zip(ax_simulated.flatten(), simulated_events):
-        axis.imshow(event.simulatedFRB, extent=[0, event.nt, event.frequencies[0], event.frequencies[-1]],
-                    origin='lower', aspect='auto')
+        im = axis.imshow(event.simulatedFRB, extent=[0, event.nt, event.frequencies[0], event.frequencies[-1]],
+                        origin='lower', aspect='auto', vmin=lowest_vmin, vmax=greatest_vmax)
         axis.set(title=f"SNR: {np.round(event.SNR, 2)}", xlabel='time (ms)', ylabel='frequency (MHz)')
         axis.set_yticks(np.arange(event.frequencies[0], event.frequencies[-1], 350))
+    
     fig_simulated.tight_layout()
+    
+    fig_simulated.subplots_adjust(right=0.92)
+    cbar_ax = fig_simulated.add_axes([0.94, 0.09, 0.02, 0.85])
+    fig_simulated.colorbar(im, cax=cbar_ax)
     
     return fig_simulated
 
