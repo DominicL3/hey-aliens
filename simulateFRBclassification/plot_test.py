@@ -102,25 +102,32 @@ def full_FRB_plot(nrows=4, ncols=3):
     fig.tight_layout()
     return fig
 
-def plot_injectedFRB(SNR=10):
-        fig, ax = plt.subplots(nrows=3, ncols=1)
+def plot_injectedFRB(SNR=10, seed=np.random.randint(0, 5000)):
+        np.random.seed(seed)
+
+        fig, ax = plt.subplots(nrows=3, ncols=1, figsize=(10, 8))
         event = SimulatedFRB()
         event.scintillate() # add .FRB attribute to event
         event.roll()
         event.fractional_bandwidth()
-        signal = event.background + event.injectFRB(SNR=SNR, background=None)
+        signal = event.injectFRB(SNR=SNR, background=None)
 
         # collapse all frequencies by taking mean for each column
         profile_1D = np.mean(signal, axis=0)
         
-        # plot results for every 3 axes
+        # plot background
         ax[0].imshow(event.background)
         ax[0].set_title("Background")
-        ax[1].imshow(signal)
+        
+        # plot the signal
+        im = ax[1].imshow(signal)
         ax[1].set_title(f"Noise and FRB (SNR: {SNR})")
+        
+        # plot the 1D profile
         ax[2].plot(profile_1D)
         ax[2].set_title(f"Profile")
 
+        plt.colorbar(mappable=im)
         fig.tight_layout()
         return fig
 
@@ -153,32 +160,6 @@ def connor_pulse(datafile='data_nt250_nf32_dm0_snr8-100_test.hdf5'):
     connor_h5 = h5py.File(connor_directory + datafile, 'r')
     connor_data = np.array(connor_h5['data_freq_time'])
     return connor_data
-
-def plot_simulated(SNRmin=8):
-    """Test whether injecting an FRB works"""
-    frb = event.injectFRB(10)
-
-    plt.figure()
-    plt.imshow(event.background)
-    plt.title("Background")
-    plt.colorbar()
-
-    plt.figure()
-    plt.imshow(frb)
-    plt.title(f"FRB: SNRmin = {SNRmin}")
-    plt.colorbar()
-
-def gaussianFRB_plots(n_sims=6, SNRmin=8):
-    fig, axes = plt.subplots(nrows=3, ncols=n_sims//3, figsize=(12, 8))
-    
-    for ax in axes.flatten():
-        background = event.background
-        frb = event.injectFRB(background, SNRmin)
-        ax.imshow(frb)
-        ax.set_title(f"SNR: {event.SNR}")
-
-    fig.tight_layout()
-    return fig
 
 def test_simulation_time(num_simulations=100):
     start_time = time()

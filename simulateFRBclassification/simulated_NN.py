@@ -121,8 +121,8 @@ class SimulatedFRB(object):
         # Make location of peaks / troughs random
         scint_phi = np.random.rand()
 
-        # Make number of scintils between 0 and 10 (ish)
-        nscint = np.exp(np.random.uniform(np.log(1e-3), np.log(7)))
+        # Make number of scintils between 0 and 3 (ish)
+        nscint = np.exp(np.random.uniform(np.log(1e-3), np.log(3)))
 
         if nscint < 1:
             nscint = 0
@@ -176,13 +176,18 @@ class SimulatedFRB(object):
             return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
     def injectFRB(self, SNR, background=None):
-        """Inject the FRB into freq-time array of Gaussian noise"""
+        """Inject FRB into the background"""
         if background is None:
             background = self.background
 
+        # normalize the background so each row sums up to 1
+        background_row_sums = np.trapz(background, axis=1)[:, None]
+        normed_background = np.divide(background, background_row_sums, out=np.zeros_like(background),
+                                    where=background_row_sums > 0)
+
         # get 1D noise and multiply signal by given SNR
-        noise_profile = np.mean(background, axis=0)
-        peak_value = SNR * np.std(noise_profile) # originally np.std(noise_profile)
+        noise_profile = np.mean(normed_background, axis=0)
+        peak_value = SNR * np.std(noise_profile)
         profile_FRB = np.mean(self.FRB, axis=0)
         
         # make a signal with given SNR
@@ -190,7 +195,8 @@ class SimulatedFRB(object):
 
         # zero out the FRB channels that are low powered on the telescope
         signal[(self.frequencies < self.f_low) | (self.frequencies > self.f_high), :] = 0
-        return signal
+
+        return normed_background + signal
 
     def simulateFRB(self, background=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
@@ -207,7 +213,7 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
 
         # add to background
-        self.simulatedFRB = background + self.injectFRB(background=background, SNR=self.SNR)
+        self.simulatedFRB = self.injectFRB(background=background, SNR=self.SNR)
 
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
