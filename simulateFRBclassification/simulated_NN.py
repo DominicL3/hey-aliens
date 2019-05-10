@@ -474,14 +474,14 @@ if __name__ == "__main__":
 
     dshape = ftdata.shape
 
-    # normalize data
+    '''# normalize data
     ftdata = ftdata.reshape(len(ftdata), -1)
     ftdata -= np.median(ftdata, axis=-1)[:, None]
     ftdata /= np.std(ftdata, axis=-1)[:, None]
 
     # zero out nans
     ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
+    ftdata = ftdata.reshape(dshape)'''
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
