@@ -363,6 +363,7 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
+
 def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800, 
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}, background_file=None):
 
@@ -460,9 +461,9 @@ if __name__ == "__main__":
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'f_low': args.f_low, 'f_high': args.f_high, 'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNRmax': args.SNRmax,
-                    'backgrounds': args.RFI_array, 'FRB_parameters': frb_params}
+                    'background_file': args.RFI_array, 'FRB_parameters': frb_params}
 
-    ftdata, label = make_labels(*label_params)
+    ftdata, label = make_labels(**label_params)
 
     Nfl = ftdata.shape[0]
     nfreq = ftdata.shape[1]
