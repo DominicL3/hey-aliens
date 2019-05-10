@@ -416,10 +416,10 @@ if __name__ == "__main__":
 
     parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npy) that contains RFI data')
     
-    parser.add_argument('--f_low', type=str, default=800, help='Lowest frequency to allow FRB to show up')
-    parser.add_argument('--f_high', type=str, default=2000, help='Highest frequency to allow FRB to show up')
-    parser.add_argument('--f_ref', type=str, default=1350, help='Reference frequency (center of data)')
-    parser.add_argument('--bandwidth', type=str, default=1500, help='Frequency range for array')
+    parser.add_argument('--f_low', type=float, default=800, help='Lowest frequency to allow FRB to show up')
+    parser.add_argument('--f_high', type=float, default=2000, help='Highest frequency to allow FRB to show up')
+    parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (center of data)')
+    parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range for array')
 
     parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
@@ -474,14 +474,14 @@ if __name__ == "__main__":
 
     dshape = ftdata.shape
 
-    '''# normalize data
+    # normalize data
     ftdata = ftdata.reshape(len(ftdata), -1)
     ftdata -= np.median(ftdata, axis=-1)[:, None]
     ftdata /= np.std(ftdata, axis=-1)[:, None]
 
     # zero out nans
     ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)'''
+    ftdata = ftdata.reshape(dshape)
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
