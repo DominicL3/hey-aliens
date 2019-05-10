@@ -217,17 +217,21 @@ def show_confusion_matrix(confmat_file='classification_results.npy', figsize=(16
     fig_confusion.tight_layout()
     return fig_confusion
 
-def real_RFI_plot(RFI_array_file='psr_arrays.npy', seed=24, figsize=(12, 8)):
+def real_RFI_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15):
     np.random.seed(seed)
-    real_RFI = np.load(RFI_array_file)
-    sample_RFI = real_RFI[np.random.randint(low=0, high=320, size=4)]
+    npz_file = np.load(RFI_array_file)
 
-    fig_RFI, ax_RFI = plt.subplots(nrows=2, ncols=2, figsize=figsize)
+    real_RFI = npz_file['rfi_data']
+    sample_RFI = real_RFI[np.random.randint(low=0, high=len(real_RFI), size=8)]
+
+    fig_RFI, ax_RFI = plt.subplots(nrows=4, ncols=2, figsize=figsize)
 
     for RFI_image, ax in zip(sample_RFI, ax_RFI.flatten()):
-        ax.imshow(RFI_image, origin='lower', aspect='auto')
-        ax.set(xticks=[], yticks=[])
+        event = SimulatedFRB(f_low=1750, f_high=2700, f_ref=2500, bandwidth=1000)
+        event.simulateFRB(background=RFI_image, SNRmin=SNRmin, SNRmax=SNRmax)
+
+        ax.imshow(event.simulatedFRB, origin='lower', extent=[0, 256, 2000, 3000], aspect='auto')
+        ax.set_title(f'SNR: {np.round(event.SNR, 1)}')
 
     fig_RFI.tight_layout()
-    fig_RFI.subplots_adjust(wspace=0.1, hspace=0.2)
     return fig_RFI

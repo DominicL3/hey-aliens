@@ -363,21 +363,43 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
-def make_labels(num_samples, SNRmin, SNRmax=15):
+def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800, 
+                'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}, background_file=None):
+
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
     be populated with just 0 and 1, which will then be shuffled later.'''
 
     ftdata = []
     labels = []
+    
+    if background_file is not None:
+        # load in background file and extract data and frequencies
+        background_npz = np.load(background_file)
+        backgrounds = background_npz['rfi_data']
+        freq_RFI = background_npz['freq']
+
+        # change frequency range of simulated pulse based on incoming RFI files
+        FRB_parameters['f_ref'] = np.median(freq_RFI)
+        FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
 
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
-        event = SimulatedFRB()
-        event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+        event = SimulatedFRB(**FRB_parameters)
         
-        # put simulated data into ftdata and label it RFI
-        ftdata.append(event.background)
+        if background_file is None:
+            event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+            background = event.background
+        else:
+            # select a random background from the given arrays
+            random_index = np.random.choice(backgrounds.shape[0])
+            background = backgrounds[random_index]
+            
+            # inject FRB into real noise array and append label the noise as RFI
+            event.simulateFRB(background=background, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+        
+        # append noise to ftdata and label it RFI
+        ftdata.append(background)
         labels.append(0)
 
         # inject FRB into data and label it true sighting
@@ -386,18 +408,18 @@ def make_labels(num_samples, SNRmin, SNRmax=15):
 
     return np.array(ftdata), np.array(labels)
 
-    
-def normalize_data(ftdata):
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    return ftdata
-
 
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
+
+    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npy) that contains RFI data')
+    
+    parser.add_argument('--f_low', type=str, default=800, help='Lowest frequency to allow FRB to show up')
+    parser.add_argument('--f_high', type=str, default=2000, help='Highest frequency to allow FRB to show up')
+    parser.add_argument('--f_ref', type=str, default=1350, help='Reference frequency (center of data)')
+    parser.add_argument('--bandwidth', type=str, default=1500, help='Frequency range for array')
+
     parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
@@ -435,8 +457,12 @@ if __name__ == "__main__":
     NTINT = 256
     DM = 102.4
 
-    # n_sims passed into the interpreter
-    ftdata, label = make_labels(args.num_samples, args.SNRmin, args.SNRmax)
+    # make dictionaries to pass all the arguments into functions succintly
+    frb_params = {'f_low': args.f_low, 'f_high': args.f_high, 'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
+    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNRmax': args.SNRmax,
+                    'backgrounds': args.RFI_array, 'FRB_parameters': frb_params}
+
+    ftdata, label = make_labels(*label_params)
 
     Nfl = ftdata.shape[0]
     nfreq = ftdata.shape[1]
