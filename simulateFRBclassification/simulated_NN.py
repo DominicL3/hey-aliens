@@ -13,7 +13,7 @@ from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
 
-"""Adapted from the code published from the paper 'Applying Deep Learning 
+"""Adapted from the code published alongside the paper 'Applying Deep Learning 
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
 well as code wrapping done by Vishal Gajjar."""
 
@@ -175,18 +175,22 @@ class SimulatedFRB(object):
         else:
             return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
-    def injectFRB(self, SNR, background=None):
-        """Inject FRB into the background"""
-        if background is None:
-            background = self.background
-
-        # normalize the background so each row sums up to 1
+    def normalize_background(self, background):
+        """Normalize the background array so each row sums up to 1"""
         background_row_sums = np.trapz(background, axis=1)[:, None]
         normed_background = np.divide(background, background_row_sums, out=np.zeros_like(background),
                                     where=background_row_sums > 0)
 
+        self.background = normed_background
+        return normed_background
+
+    def injectFRB(self, SNR, background=None):
+        """Inject FRB into the background"""
+        if background is None:
+            background = self.normalize_background(self.background)
+
         # get 1D noise and multiply signal by given SNR
-        noise_profile = np.mean(normed_background, axis=0)
+        noise_profile = np.mean(background, axis=0)
         peak_value = SNR * np.std(noise_profile)
         profile_FRB = np.mean(self.FRB, axis=0)
         
@@ -196,7 +200,7 @@ class SimulatedFRB(object):
         # zero out the FRB channels that are low powered on the telescope
         signal[(self.frequencies < self.f_low) | (self.frequencies > self.f_high), :] = 0
 
-        return normed_background + signal
+        return background + signal
 
     def simulateFRB(self, background=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
@@ -212,8 +216,11 @@ class SimulatedFRB(object):
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
 
-        # add to background
-        self.simulatedFRB = self.injectFRB(background=background, SNR=self.SNR)
+        # normalize background array
+        normed_background = self.normalize_background(background)
+        
+        # add to normalized background
+        self.simulatedFRB = self.injectFRB(background=normed_background, SNR=self.SNR)
 
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
@@ -390,17 +397,16 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
         
         if background_file is None:
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
-            background = event.background
         else:
             # select a random background from the given arrays
             random_index = np.random.choice(backgrounds.shape[0])
-            background = backgrounds[random_index]
+            background_RFI = backgrounds[random_index]
             
             # inject FRB into real noise array and append label the noise as RFI
-            event.simulateFRB(background=background, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+            event.simulateFRB(background=background_RFI, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
         
         # append noise to ftdata and label it RFI
-        ftdata.append(background)
+        ftdata.append(event.background)
         labels.append(0)
 
         # inject FRB into data and label it true sighting

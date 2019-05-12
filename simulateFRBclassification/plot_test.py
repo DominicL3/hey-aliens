@@ -223,7 +223,7 @@ def real_RFI_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15)
 
     real_RFI = npz_file['rfi_data']
     frequencies = npz_file['freq']
-    print(frequencies)
+    print(f"Frequencies: {frequencies}")
 
     sample_RFI = real_RFI[np.random.randint(low=0, high=len(real_RFI), size=8)]
 
@@ -242,3 +242,29 @@ def real_RFI_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15)
 
     fig_RFI.tight_layout()
     return fig_RFI
+
+def make_labels_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15, 
+                    frb_parameters={'f_low': 1850, 'f_high': 2700, 'f_ref': 2500, 
+                    'bandwidth': 1000}):
+    """Plot both RFI and injected FRB after calling make_labels on true RFI arrays."""
+    
+    np.random.seed(seed) # for reproducibility
+    
+    # load in saved array and extract data
+    npz_file = np.load(RFI_array_file)
+    frequencies = npz_file['freq']
+    print(f"Frequencies: {frequencies}")
+
+    ftdata = make_labels(4, SNRmin=SNRmin, SNRmax=SNRmax, FRB_parameters=frb_parameters, 
+                        background_file=RFI_array_file)[0]
+
+    fig_MakeLabels, ax_MakeLabels = plt.subplots(nrows=4, ncols=2, figsize=figsize)
+
+    for image, ax in zip(ftdata, ax_MakeLabels.flatten()):
+        ax.imshow(image, origin='lower', aspect='auto', extent=[0, 256, np.min(frequencies), np.max(frequencies)])
+
+    ax_MakeLabels[0, 0].set_title("RFI")
+    ax_MakeLabels[0, 1].set_title("Injected FRB")
+    
+    fig_MakeLabels.tight_layout()
+    return fig_MakeLabels
