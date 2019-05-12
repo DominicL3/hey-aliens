@@ -11,3 +11,5 @@ agarwal_model.h5
 dominic-connor-FRB.py
 breakthrough
 *.h5
+simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
+*.np*
