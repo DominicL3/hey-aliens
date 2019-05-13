@@ -441,7 +441,9 @@ if __name__ == "__main__":
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
-    
+
+    parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
+
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
     
     parser.add_argument('--savemodel', dest='best_model_file', type=str, default='best_model.h5',
@@ -513,7 +515,8 @@ if __name__ == "__main__":
     # Fit convolution neural network to the training data
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
-                                                        epochs=args.epochs, nfilt1=args.nfilt1, nfilt2=args.nfilt2,
+                                                        epochs=args.epochs, batch_size=args.batch_size, 
+                                                        nfilt1=args.nfilt1, nfilt2=args.nfilt2,
                                                         n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
                                                         nfreq=NFREQ, ntime=NTINT, saved_model_name=best_model_name)
 
