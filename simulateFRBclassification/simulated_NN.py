@@ -294,6 +294,8 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     print("Using %d epochs" % epochs)
 
     class ValRecallCallback(keras.callbacks.Callback):
+        """Custom metric that will save the model with the highest validation recall as
+        training progresses. Will also print out validation precision for good measure."""
         def __init__(self, filepath):
             self.filepath = filepath
             self.best = -np.inf
@@ -312,11 +314,11 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             print (f" — val_recall {recall} — val_precision: {precision}")
             
             if recall > self.best:
-                print(f'val_recall improved from {np.round(self.best, 2)} to {np.round(recall, 2)}, saving model to {self.filepath}')
+                print(f'val_recall improved from {np.round(self.best, 4)} to {np.round(recall, 4)}, saving model to {self.filepath}')
                 self.best = recall
                 self.model.save(self.filepath, overwrite=True)
             else:
-                print(f"val_recall did not improve from {np.round(self.best, 2)}")
+                print(f"val_recall did not improve from {np.round(self.best, 4)}")
 
             return
 
