@@ -296,7 +296,6 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     class ValRecallCallback(keras.callbacks.Callback):
         def __init__(self, filepath):
             self.filepath = filepath
-            self.monitor_op = np.greater
             self.best = -np.inf
 
         # calculate recall and precision after every epoch
@@ -312,9 +311,10 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
             print (f" — val_recall {recall} — val_precision: {precision}")
             
-            if self.monitor_op(recall, self.best):
-                print(f"val_recall improved from {np.round(self.best, 2)} \
-                        to {np.round(recall, 2)}, saving model to {self.filepath}")
+            if recall > self.best:
+                print(f"""val_recall improved from {np.round(self.best, 2)} 
+                            to {np.round(recall, 2)}, 
+                            saving model to {self.filepath}""")
                 self.best = recall
                 self.model.save(self.filepath, overwrite=True)
             else:
