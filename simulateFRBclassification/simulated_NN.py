@@ -414,7 +414,20 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
         ftdata.append(event.simulatedFRB)
         labels.append(1)
 
-    return np.array(ftdata), np.array(labels)
+    ftdata, labels = np.array(ftdata), np.array(labels)
+    
+    # normalize data
+    dshape = ftdata.shape
+
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
+
+    return ftdata, labels
 
 
 if __name__ == "__main__":
@@ -480,17 +493,6 @@ if __name__ == "__main__":
 
     print(Nfl, nfreq, ntime)
     print(label)
-
-    dshape = ftdata.shape
-
-    # normalize data
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
