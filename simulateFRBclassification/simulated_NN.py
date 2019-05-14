@@ -475,7 +475,7 @@ if __name__ == "__main__":
                         help='Filename to save best model in')
     
     parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
-                        default='confusion matrix.png', help='Filename to store final confusion matrix in')
+                        default='confusion_matrix.png', help='Filename to store final confusion matrix in')
 
     parser.add_argument('--val_results', type=str, default='classification_results.npz', 
                         help='Filename to store array of classified objects in validation set')
