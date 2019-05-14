@@ -315,7 +315,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
-            fscore = fbeta_score(y_true, y_pred, beta=4) # favor recall over precision
+            fscore = fbeta_score(y_true, y_pred, beta=10) # favor recall over precision
 
             print (f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
             
