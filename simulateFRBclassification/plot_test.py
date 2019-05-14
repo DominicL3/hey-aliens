@@ -243,7 +243,7 @@ def real_RFI_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15)
     fig_RFI.tight_layout()
     return fig_RFI
 
-def make_labels_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15, 
+def plot_make_labels(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15, 
                     frb_parameters={'f_low': 1850, 'f_high': 2700, 'f_ref': 2500, 
                     'bandwidth': 1000}):
     """Plot both RFI and injected FRB after calling make_labels on true RFI arrays."""
@@ -265,6 +265,6 @@ def make_labels_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=
 
     ax_MakeLabels[0, 0].set_title("RFI")
     ax_MakeLabels[0, 1].set_title("Injected FRB")
-    
+
     fig_MakeLabels.tight_layout()
     return fig_MakeLabels
