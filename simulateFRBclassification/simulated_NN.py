@@ -30,7 +30,6 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
-from keras.optimizers import SGD, Adam, Nadam
 from keras.models import load_model
 
 
@@ -288,10 +287,8 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
 
-    # optimize using stochastic gradient descent
-    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
-
-    model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
+    # optimize using Adam
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     print("Using batch_size: %d" % batch_size)
     print("Using %d epochs" % epochs)
