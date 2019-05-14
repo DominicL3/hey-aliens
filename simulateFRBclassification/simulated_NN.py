@@ -224,8 +224,8 @@ class SimulatedFRB(object):
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, nfilt1=32, nfilt2=64,
-                     n_dense1=64, n_dense2=16, batch_size=32, 
-                     saved_model_name='best_model.h5'):
+                     n_dense1=64, n_dense2=16, batch_size=32,
+                     weight_FRB=2, saved_model_name='best_model.h5'):
     """ Build a two-dimensional convolutional neural network
     with a binary classifier. Can be used for, e.g.,
     freq-time dynamic spectra of pulsars, dm-time intensity array.
@@ -252,7 +252,10 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
         Number of neurons in second hidden layer 
     
     batch_size : int 
-        Number of batches for training   
+        Number of batches for training
+    weight_FRB : float
+        Class weight given to FRB during fitting. This means the loss function
+        will penalize missing an FRB more with larger weight_FRB.
        
     Returns
     -------
@@ -315,7 +318,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
-            fscore = fbeta_score(y_true, y_pred, beta=10) # favor recall over precision
+            fscore = fbeta_score(y_true, y_pred, beta=2) # favor recall over precision
 
             print (f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
             
@@ -331,8 +334,9 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     fscore_callback = FscoreCallback(saved_model_name)
 
     # save best model according to validation accuracy
-    model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
-              batch_size=batch_size, epochs=epochs, callbacks=[fscore_callback])
+    model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
+              class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs, 
+              callbacks=[fscore_callback])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
@@ -471,7 +475,7 @@ if __name__ == "__main__":
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range for array')
 
-    parser.add_argument('--num_samples', metavar='num_samples', type=int, default=1000,
+    parser.add_argument('--num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
     parser.add_argument('--nfilt1', type=int, default=32, help='Number of filters in first convolutional layer')
@@ -485,6 +489,9 @@ if __name__ == "__main__":
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
+
+    parser.add_argument('--weight_FRB', type=float, default=2.0, 
+                        help='Weight given to FRB (> 1) for to penalize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
 
@@ -544,20 +551,29 @@ if __name__ == "__main__":
     train_labels_keras = keras.utils.to_categorical(train_labels)
     eval_labels_keras = keras.utils.to_categorical(eval_labels)
 
+    # used to enable saving the model
     os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
-    # Fit convolution neural network to the training data
+
+    start_time = time()
+
+    # Fit convolutional neural network to the training data
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
                                                         epochs=args.epochs, batch_size=args.batch_size, 
-                                                        nfilt1=args.nfilt1, nfilt2=args.nfilt2,
+                                                        weight_FRB=args.weight_FRB, nfilt1=args.nfilt1, nfilt2=args.nfilt2,
                                                         n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
                                                         nfreq=NFREQ, ntime=NTINT, saved_model_name=best_model_name)
 
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
-    metrics = print_metric(eval_labels, y_pred_freq_time)
+    
+    print (f"Training on {args.num_samples} took {(time() - start_time) / 60} minutes")
+    
+    # print out scores of various metrics
+    print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
+    print(f"Saving classification results to {val_results_file}")
     np.savez(val_results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     if TP.size:
@@ -598,5 +614,6 @@ if __name__ == "__main__":
     plt.imshow(TNdata, aspect='auto', interpolation='none')
 
     # save data, show plot
+    print(f"Saving confusion matrix to {confusion_matrix_name}")
     plt.savefig(confusion_matrix_name)
     plt.show()
