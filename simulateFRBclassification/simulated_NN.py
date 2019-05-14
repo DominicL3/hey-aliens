@@ -222,19 +222,6 @@ class SimulatedFRB(object):
         # add to normalized background
         self.simulatedFRB = self.injectFRB(background=normed_background, SNR=self.SNR)
 
-# define custom metric to save highest recall model
-def recall(y_true, y_pred):
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-    recall = true_positives / (possible_positives + K.epsilon())
-    return recall
-
-# throw in precision for good measure
-def precision(y_true, y_pred):
-    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-    precision = true_positives / (predicted_positives + K.epsilon())
-    return precision
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, nfilt1=32, nfilt2=64,
@@ -301,6 +288,20 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
 
+    # define custom metric to save highest recall model
+    def recall(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + K.epsilon())
+        return recall
+
+    # throw in precision for good measure
+    def precision(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + K.epsilon())
+        return precision
+
     # optimize using Adam
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', recall, precision])
 
@@ -308,7 +309,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     print("Using %d epochs" % epochs)
 
     # save best model according to validation accuracy
-    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor=recall, mode='max',
+    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor='val_recall', mode='max',
                                                     verbose=1, save_best_only=True)
 
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
