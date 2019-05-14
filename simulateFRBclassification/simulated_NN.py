@@ -26,7 +26,7 @@ into numpy formats that this program can inject FRBs into."""
 tf.logging.set_verbosity(tf.logging.INFO)
 
 import keras
-from sklearn.metrics import recall_score, precision_score
+from sklearn.metrics import recall_score, precision_score, fbeta_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv1D, Conv2D
@@ -243,9 +243,14 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     epochs : int 
         Number of training epochs 
     nfilt1 : int
+        Number of filters in first convolutional layer
+    nfilt2 : int
+        Number of filters in second convolutional layer
+    n_dense1 : int
         Number of neurons in first hidden layer 
-    nfilt2 : int 
+    n_dense2 : int 
         Number of neurons in second hidden layer 
+    
     batch_size : int 
         Number of batches for training   
        
@@ -293,7 +298,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     print("Using batch_size: %d" % batch_size)
     print("Using %d epochs" % epochs)
 
-    class ValRecallCallback(keras.callbacks.Callback):
+    class FscoreCallback(keras.callbacks.Callback):
         """Custom metric that will save the model with the highest validation recall as
         training progresses. Will also print out validation precision for good measure."""
         def __init__(self, filepath):
@@ -310,11 +315,12 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
+            fscore = fbeta_score(y_true, y_pred, beta=2)
 
             print (f" — val_recall {recall} — val_precision: {precision}")
             
-            if recall > self.best:
-                print(f'val_recall improved from {np.round(self.best, 4)} to {np.round(recall, 4)}, saving model to {self.filepath}')
+            if fscore > self.best:
+                print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
                 self.best = recall
                 self.model.save(self.filepath, overwrite=True)
             else:
@@ -322,11 +328,11 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
             return
 
-    recall_callback = ValRecallCallback(saved_model_name)
+    fscore_callback = FscoreCallback(saved_model_name)
 
     # save best model according to validation accuracy
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
-              batch_size=batch_size, epochs=epochs, callbacks=[recall_callback])
+              batch_size=batch_size, epochs=epochs, callbacks=[fscore_callback])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
