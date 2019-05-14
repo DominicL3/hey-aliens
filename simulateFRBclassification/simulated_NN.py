@@ -29,8 +29,7 @@ import keras
 from sklearn.metrics import recall_score, precision_score, fbeta_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv1D, Conv2D
-from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
+from keras.layers import Conv2D, MaxPooling2D
 from keras.models import load_model
 
 
@@ -275,14 +274,12 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # create filter_size convolution filters, each of size 2x2
     # max pool to reduce the dimensionality
     model.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(64, 256, 1)))
-    model.add(Conv2D(filter_size, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
     for i in np.arange(num_conv_layers - 1):
         filter_size *= 2
 
-        model.add(Conv2D(filter_size, (2, 2), activation='relu'))
         model.add(Conv2D(filter_size, (2, 2), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -569,7 +566,7 @@ if __name__ == "__main__":
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
     
-    print (f"Training on {args.num_samples} took {(time() - start_time) / 60} minutes")
+    print (f"Training on {args.num_samples} samples took {(time() - start_time) / 60} minutes")
     
     # print out scores of various metrics
     print_metric(eval_labels, y_pred_freq_time)
