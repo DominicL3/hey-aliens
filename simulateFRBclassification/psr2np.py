@@ -21,6 +21,8 @@ def psr2np(fname, NCHAN, dm):
 
     # -- apply weights for RFI lines --#
     ds = fpsr.get_data().squeeze()
+    
+    # set channels marked as RFI (zero weight) to NaN
     w = fpsr.get_weights().flatten()
     w = w / np.max(w)
     idx = np.where(w == 0)[0]
@@ -38,9 +40,7 @@ def psr2np(fname, NCHAN, dm):
     tbin = float(fpsr.integration_length() / fpsr.get_nbin())
     taxis = np.arange(0, fpsr.integration_length(), tbin) * 1000
     
-    # return data
-    # test this after verifying returning only the data
-    return data, freq, taxis
+    return data, w, freq
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -78,15 +78,16 @@ if __name__ == "__main__":
 
     start = time()
     # transform .ar files into numpy arrays and time how long it took
-    psrchive_data = []
+    psrchive_data, weights = [], []
     for i in np.arange(len(random_files)):
         filename, DM = random_files[i], random_DMs[i]
-        data, freq, taxis = psr2np(filename, NCHAN, DM)
+        data, w, freq = psr2np(filename, NCHAN, DM)
+        
         psrchive_data.append(data)
-
+        weights.append(w)
+    
     end = time()
-
     print("Converted {0} samples in {1} seconds".format(args.num_samples, end - start))
     
     # save final array to disk
-    np.savez(save_name, rfi_data=np.array(psrchive_data), freq=freq, time=taxis)
+    np.savez(save_name, rfi_data=np.array(psrchive_data), weights=weights, freq=freq)
