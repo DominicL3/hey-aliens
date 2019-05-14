@@ -223,8 +223,8 @@ class SimulatedFRB(object):
         self.simulatedFRB = self.injectFRB(background=normed_background, SNR=self.SNR)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
-                     nfreq=64, ntime=256, epochs=32, nfilt1=32, nfilt2=64,
-                     n_dense1=64, n_dense2=16, batch_size=32,
+                     nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
+                     num_conv_layers=4, filter_size=32, batch_size=32,
                      weight_FRB=2, saved_model_name='best_model.h5'):
     """ Build a two-dimensional convolutional neural network
     with a binary classifier. Can be used for, e.g.,
@@ -242,10 +242,11 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
         (neval, 2) binary labels of eval data 
     epochs : int 
         Number of training epochs 
-    nfilt1 : int
-        Number of filters in first convolutional layer
-    nfilt2 : int
-        Number of filters in second convolutional layer
+    num_conv_layers : int
+        Number of convolutional layers to implement (MAX 4 due to max pooling layers,
+        otherwise Keras will throw an error)
+    filter_size : int
+        Number of filters in first convolutional layer, doubles after each convolutional block.
     n_dense1 : int
         Number of neurons in first hidden layer 
     n_dense2 : int 
@@ -271,28 +272,31 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     model = Sequential()
 
-    # create nfilt1 convolution filters, each of size 5x5
-    # max pool and randomly drop some fraction of nodes to limit overfitting
-    model.add(Conv2D(nfilt1, (2, 2), activation='relu', input_shape=(64, 256, 1)))
+    # create filter_size convolution filters, each of size 2x2
+    # max pool to reduce the dimensionality
+    model.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(64, 256, 1)))
+    model.add(Conv2D(filter_size, (2, 2), activation='relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.2))
 
-    # second convolutional layer with 64 filters
-    model.add(Conv2D(nfilt2, (2, 2), activation='relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.1))
+    # repeat and double the filter size for each convolutional block to make this DEEP
+    for i in np.arange(num_conv_layers - 1):
+        filter_size *= 2
+
+        model.add(Conv2D(filter_size, (2, 2), activation='relu'))
+        model.add(Conv2D(filter_size, (2, 2), activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # flatten all neurons
     model.add(Flatten())
     
-    # run through fully connected layers
+    # run through two fully connected layers
     model.add(Dense(n_dense1, activation='relu'))
     model.add(Dropout(0.4))
 
     model.add(Dense(n_dense2, activation='relu'))
     model.add(Dropout(0.3))
 
-    # output probabilities of predictions and choose the maximum
+    # output prediction probabilities and choose the class with higher probability
     model.add(Dense(2, activation='softmax'))
 
     # optimize using Adam
@@ -478,20 +482,18 @@ if __name__ == "__main__":
     parser.add_argument('--num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
-    parser.add_argument('--nfilt1', type=int, default=32, help='Number of filters in first convolutional layer')
-    
-    parser.add_argument('--nfilt2', type=int, default=64, help='Number of filters in second convolutional layer')
-    
-    parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
-    
-    parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
+    parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with (MAX 4)')
+    parser.add_argument('--filter_size', type=int, default=32, 
+                        help='Number of filters in starting convolutional layer, doubles with every convolutional block')
+
+    parser.add_argument('--n_dense1', type=int, default=256, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense2', type=int, default=128, help='Number of neurons in second dense layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
-    
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
 
     parser.add_argument('--weight_FRB', type=float, default=2.0, 
-                        help='Weight given to FRB (> 1) for to penalize false negatives')
+                        help='Weight (> 1) given to FRB to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
 
@@ -559,10 +561,10 @@ if __name__ == "__main__":
     # Fit convolutional neural network to the training data
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
-                                                        epochs=args.epochs, batch_size=args.batch_size, 
-                                                        weight_FRB=args.weight_FRB, nfilt1=args.nfilt1, nfilt2=args.nfilt2,
+                                                        nfreq=NFREQ, ntime=NTINT, epochs=args.epochs, batch_size=args.batch_size, 
+                                                        num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
                                                         n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
-                                                        nfreq=NFREQ, ntime=NTINT, saved_model_name=best_model_name)
+                                                        weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
 
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
