@@ -371,6 +371,20 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
+def normalize_data(ftdata):
+    """Pretty straightforward, normalizes the data
+    to zero median, unit variance"""
+    dshape = ftdata.shape
+
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
+    
+    return ftdata
 
 def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800, 
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}, background_file=None):
@@ -415,19 +429,8 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
         labels.append(1)
 
     ftdata, labels = np.array(ftdata), np.array(labels)
-    
-    # normalize data
-    dshape = ftdata.shape
 
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
-
-    return ftdata, labels
+    return normalize_data(ftdata), labels
 
 
 if __name__ == "__main__":
