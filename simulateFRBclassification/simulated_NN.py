@@ -26,11 +26,13 @@ into numpy formats that this program can inject FRBs into."""
 tf.logging.set_verbosity(tf.logging.INFO)
 
 import keras
+from keras import backend as K
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv1D, Conv2D
 from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, BatchNormalization
 from keras.models import load_model
+
 
 
 class SimulatedFRB(object):
@@ -287,22 +289,32 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
 
+    # define custom metric to save highest recall model
+    def recall(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+        recall = true_positives / (possible_positives + K.epsilon())
+        return recall
+
+    # throw in precision for good measure
+    def precision(y_true, y_pred):
+        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+        precision = true_positives / (predicted_positives + K.epsilon())
+        return precision
+
     # optimize using Adam
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', recall, precision])
 
     print("Using batch_size: %d" % batch_size)
     print("Using %d epochs" % epochs)
 
-    cb = keras.callbacks.TensorBoard(log_dir='./logs', histogram_freq=0, batch_size=32, write_graph=True, 
-                                    write_grads=False, write_images=True, embeddings_freq=0, 
-                                    embeddings_layer_names=None, embeddings_metadata=None)
-
     # save best model according to validation accuracy
-    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor='val_acc', verbose=1,
-                                                    save_best_only=True)
+    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor=recall, mode='max',
+                                                    verbose=1, save_best_only=True)
 
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
-              batch_size=batch_size, epochs=epochs, callbacks=[cb, best_model_cb])
+              batch_size=batch_size, epochs=epochs, callbacks=[best_model_cb])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
