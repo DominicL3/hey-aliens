@@ -26,7 +26,7 @@ into numpy formats that this program can inject FRBs into."""
 tf.logging.set_verbosity(tf.logging.INFO)
 
 import keras
-from keras import backend as K
+from sklearn.metrics import recall_score, precision_score
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv1D, Conv2D
@@ -222,7 +222,6 @@ class SimulatedFRB(object):
         # add to normalized background
         self.simulatedFRB = self.injectFRB(background=normed_background, SNR=self.SNR)
 
-
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, nfilt1=32, nfilt2=64,
                      n_dense1=64, n_dense2=16, batch_size=32, 
@@ -288,32 +287,46 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # output probabilities of predictions and choose the maximum
     model.add(Dense(2, activation='softmax'))
 
-    # define custom metric to save highest recall model
-    def recall(y_true, y_pred):
-        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-        possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
-        recall = true_positives / (possible_positives + K.epsilon())
-        return recall
-
-    # throw in precision for good measure
-    def precision(y_true, y_pred):
-        true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
-        predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
-        precision = true_positives / (predicted_positives + K.epsilon())
-        return precision
-
     # optimize using Adam
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', recall, precision])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
     print("Using batch_size: %d" % batch_size)
     print("Using %d epochs" % epochs)
 
-    # save best model according to validation accuracy
-    best_model_cb = keras.callbacks.ModelCheckpoint(saved_model_name, monitor='val_recall', mode='max',
-                                                    verbose=1, save_best_only=True)
+    class ValRecallCallback(keras.callbacks.Callback):
+        def __init__(self, filepath):
+            self.filepath = filepath
+            self.monitor_op = np.greater
+            self.best = -np.inf
 
+        # calculate recall and precision after every epoch
+        def on_epoch_end(self, batch, logs={}):
+            y_pred = np.asarray(self.model.predict(self.validation_data[0]))
+            y_pred = np.argmax(y_pred, axis=1)
+            
+            y_true = self.validation_data[1]
+            y_true = np.argmax(y_true, axis=1)
+            
+            recall = recall_score(y_true, y_pred)
+            precision = precision_score(y_true, y_pred)
+
+            print (f" — val_recall {recall} — val_precision: {precision}")
+            
+            if self.monitor_op(recall, self.best):
+                print(f"val_recall improved from {np.round(self.best, 2)} \
+                        to {np.round(recall, 2)}, saving model to {self.filepath}")
+                self.best = recall
+                self.model.save(self.filepath, overwrite=True)
+            else:
+                print(f"val_recall did not improve from {np.round(self.best, 2)}")
+
+            return
+
+    recall_callback = ValRecallCallback(saved_model_name)
+
+    # save best model according to validation accuracy
     model.fit(train_data, train_labels, validation_data=(eval_data, eval_labels),
-              batch_size=batch_size, epochs=epochs, callbacks=[best_model_cb])
+              batch_size=batch_size, epochs=epochs, callbacks=[recall_callback])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
