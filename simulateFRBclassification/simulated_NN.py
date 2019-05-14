@@ -34,7 +34,6 @@ from keras.layers import MaxPooling2D, MaxPooling1D, GlobalAveragePooling1D, Bat
 from keras.models import load_model
 
 
-
 class SimulatedFRB(object):
     """ Class to generate a realistic fast radio burst and 
     add the event to data, including scintillation and 
