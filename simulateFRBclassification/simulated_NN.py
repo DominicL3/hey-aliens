@@ -312,9 +312,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             print (f" — val_recall {recall} — val_precision: {precision}")
             
             if recall > self.best:
-                print(f"""val_recall improved from {np.round(self.best, 2)} 
-                            to {np.round(recall, 2)}, 
-                            saving model to {self.filepath}""")
+                print(f'val_recall improved from {np.round(self.best, 2)} to {np.round(recall, 2)}, saving model to {self.filepath}')
                 self.best = recall
                 self.model.save(self.filepath, overwrite=True)
             else:
