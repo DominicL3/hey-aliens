@@ -289,7 +289,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     model.add(Dense(2, activation='softmax'))
 
     # optimize using stochastic gradient descent
-    sgd = SGD(lr=0.1, decay=1e-6, momentum=0.9, nesterov=True)
+    sgd = SGD(lr=0.01, decay=1e-6, momentum=0.9, nesterov=True)
 
     model.compile(loss='binary_crossentropy', optimizer=sgd, metrics=['accuracy'])
 
