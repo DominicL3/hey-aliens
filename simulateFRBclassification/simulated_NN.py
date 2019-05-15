@@ -331,7 +331,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             precision = precision_score(y_true, y_pred)
             fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
-            print (f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
+            print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
             
             if fscore > self.best:
                 print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
