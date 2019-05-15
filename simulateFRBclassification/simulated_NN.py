@@ -183,10 +183,16 @@ class SimulatedFRB(object):
         self.background = normed_background
         return normed_background
 
-    def injectFRB(self, SNR, background=None):
+    def injectFRB(self, SNR, background=None, weights=None):
         """Inject FRB into the background"""
         if background is None:
             background = self.normalize_background(self.background)
+
+        # remove RFI channels in the background
+        if weights is not None:
+            if len(weights) != background.shape[0]:
+                raise ValueError("Number of input weights does not match number of channels")
+            background *= weights.reshape(-1, 1)
 
         # get 1D noise and multiply signal by given SNR
         noise_profile = np.mean(background, axis=0)
@@ -198,10 +204,14 @@ class SimulatedFRB(object):
 
         # zero out the FRB channels that are low powered on the telescope
         signal[(self.frequencies < self.f_low) | (self.frequencies > self.f_high), :] = 0
+        
+        # also remove channels from signal that have RFI flagged
+        if weights is not None:
+            signal *= weights.reshape(-1, 1)
 
         return background + signal
 
-    def simulateFRB(self, background=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
+    def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
         background array of Gaussian noise for the simulation. After
         this method works and is detected by the neural network, proceed
@@ -219,7 +229,7 @@ class SimulatedFRB(object):
         normed_background = self.normalize_background(background)
         
         # add to normalized background
-        self.simulatedFRB = self.injectFRB(background=normed_background, SNR=self.SNR)
+        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=normed_background, weights=weights)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
@@ -433,6 +443,7 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
         background_npz = np.load(background_file)
         backgrounds = background_npz['rfi_data']
         freq_RFI = background_npz['freq']
+        weights = background_npz['weights']
 
         # change frequency range of simulated pulse based on incoming RFI files
         FRB_parameters['f_ref'] = np.median(freq_RFI)
@@ -448,9 +459,11 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
             # select a random background from the given arrays
             random_index = np.random.choice(backgrounds.shape[0])
             background_RFI = backgrounds[random_index]
+            background_weight = weights[random_index]
             
             # inject FRB into real noise array and append label the noise as RFI
-            event.simulateFRB(background=background_RFI, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+            event.simulateFRB(background=background_RFI, weights=background_weight, 
+                              SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
         
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)

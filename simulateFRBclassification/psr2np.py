@@ -26,7 +26,7 @@ def psr2np(fname, NCHAN, dm):
     w = fpsr.get_weights().flatten()
     w = w / np.max(w)
     idx = np.where(w == 0)[0]
-    print np.where(w < 1)
+    print "Downweighted channels at ", np.where(w < 1)
     ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
     ds[:, idx, :] = np.nan
 

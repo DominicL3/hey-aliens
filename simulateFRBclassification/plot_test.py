@@ -223,17 +223,19 @@ def real_RFI_plot(RFI_array_file, seed=24, figsize=(12, 8), SNRmin=5, SNRmax=15)
 
     real_RFI = npz_file['rfi_data']
     frequencies = npz_file['freq']
+    weights = npz_file['weights']
     print(f"Frequencies: {frequencies}")
 
-    sample_RFI = real_RFI[np.random.randint(low=0, high=len(real_RFI), size=8)]
+    random_indexes = np.random.randint(low=0, high=len(real_RFI), size=8)
+    sample_RFI, sample_weights = real_RFI[random_indexes], weights[random_indexes]
 
     fig_RFI, ax_RFI = plt.subplots(nrows=4, ncols=2, figsize=figsize)
 
-    for RFI_image, ax in zip(sample_RFI, ax_RFI.flatten()):
+    for RFI_image, w, ax in zip(sample_RFI, sample_weights, ax_RFI.flatten()):
         event = SimulatedFRB(f_low=1850, f_high=2700, f_ref=np.median(frequencies), 
                             bandwidth=np.ptp(frequencies))
         
-        event.simulateFRB(background=RFI_image, SNRmin=SNRmin, SNRmax=SNRmax)
+        event.simulateFRB(background=RFI_image, weights=w, SNRmin=SNRmin, SNRmax=SNRmax)
 
         ax.imshow(event.simulatedFRB, origin='lower', aspect='auto',
                 extent=[0, 256, np.min(frequencies), np.max(frequencies)])
