@@ -287,7 +287,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
-    for i in np.arange(num_conv_layers - 1):
+    for layer_number in np.arange(num_conv_layers - 1):
         filter_size *= 2
 
         model.add(Conv2D(filter_size, (2, 2), activation='relu'))
@@ -329,7 +329,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
-            fscore = fbeta_score(y_true, y_pred, beta=2) # favor recall over precision
+            fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
             print (f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
             
@@ -496,13 +496,13 @@ if __name__ == "__main__":
     parser.add_argument('--filter_size', type=int, default=32, 
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
-    parser.add_argument('--n_dense1', type=int, default=256, help='Number of neurons in first dense layer')
-    parser.add_argument('--n_dense2', type=int, default=128, help='Number of neurons in second dense layer')
+    parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
     
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
 
-    parser.add_argument('--weight_FRB', type=float, default=2.0, 
+    parser.add_argument('--weight_FRB', type=float, default=10.0, 
                         help='Weight (> 1) given to FRB to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
