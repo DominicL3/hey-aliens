@@ -98,14 +98,17 @@ if __name__ == "__main__":
         print("Converting sample {0} of {1}".format(i + 1, len(random_files)))
         filename, DM = random_files[i], random_DMs[i]
         data, w, freq = psr2np(filename, NCHAN, DM)
-        normalized_data = normalize_background(data)
+        # normalized_data = normalize_background(data)
         
-        psrchive_data.append(normalized_data)
+        psrchive_data.append(data)
         weights.append(w)
+    
+    psrchive_data = np.array(psrchive_data)
+    normalized_RFI = np.apply_along_axis(normalize_background, 0, psrchive_data)
     
     end = time()
     print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
     
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
-    np.savez(save_name, rfi_data=np.array(psrchive_data), weights=weights, freq=freq)
+    np.savez(save_name, rfi_data=normalized_RFI, weights=weights, freq=freq)
