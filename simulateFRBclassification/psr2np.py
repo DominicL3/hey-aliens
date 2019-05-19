@@ -26,7 +26,6 @@ def psr2np(fname, NCHAN, dm):
     w = fpsr.get_weights().flatten()
     w = w / np.max(w)
     idx = np.where(w == 0)[0]
-    print "Downweighted channels at ", np.where(w < 1)
     ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
     ds[:, idx, :] = np.nan
 
@@ -43,12 +42,27 @@ def psr2np(fname, NCHAN, dm):
     
     return data, w, freq
 
+def normalize_background(background):
+    """Normalize the background array so each row sums up to 1"""
+    background_row_sums = np.trapz(background, axis=1)[:, None]
+
+    # only divide out areas where the row sums up past 0 and isn't nan
+    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
+                            where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
+
+    # normalize background
+    normed_background = np.divide(background, background_row_sums, 
+                                    out=np.zeros_like(background), 
+                                    where=div_cond)
+
+    return normed_background
+
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--path', type=str, default='/home/vgajjar/example_archive/')
     parser.add_argument('--num_samples', type=int, default=320, help='Number of RFI arrays to generate')
-    parser.add_argument('--save_name', type=str, default='psr_arrays.npy',
+    parser.add_argument('--save_name', type=str, default='psr_arrays.npz',
                         help='Filename to save frequency-time arrays')
     
     parser.add_argument('--NCHAN', type=int, default=64,
@@ -81,14 +95,17 @@ if __name__ == "__main__":
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
     for i in np.arange(len(random_files)):
+        print("Converting sample {0} of {1}".format(i + 1, len(random_files)))
         filename, DM = random_files[i], random_DMs[i]
         data, w, freq = psr2np(filename, NCHAN, DM)
+        normalized_data = normalize_background(data)
         
-        psrchive_data.append(data)
+        psrchive_data.append(normalized_data)
         weights.append(w)
     
     end = time()
-    print("Converted {0} samples in {1} seconds".format(args.num_samples, end - start))
+    print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
     
     # save final array to disk
+    print("Saving arrays to {0}".format(save_name))
     np.savez(save_name, rfi_data=np.array(psrchive_data), weights=weights, freq=freq)

@@ -231,9 +231,6 @@ class SimulatedFRB(object):
         self.roll() # move the FRB around freq-time array
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
-
-        # normalize background array
-        normed_background = self.normalize_background(background)
         
         # add to normalized background
         self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=normed_background, weights=weights)
@@ -290,7 +287,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # create filter_size convolution filters, each of size 2x2
     # max pool to reduce the dimensionality
-    model.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(64, 256, 1)))
+    model.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(nfreq, ntime, 1)))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
@@ -435,7 +432,7 @@ def normalize_data(ftdata):
     
     return ftdata
 
-def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800, 
+def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'shape': (64, 256), 'f_low': 800, 
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}, background_file=None):
 
     '''Simulates the background for num_data number of points and appends to ftdata.
@@ -456,6 +453,7 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'f_low': 800,
         FRB_parameters['f_ref'] = np.median(freq_RFI)
         FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
 
+    # TODO: inject FRB into each RFI file, not randomly sampling them
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
         event = SimulatedFRB(**FRB_parameters)
@@ -489,20 +487,26 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npy) that contains RFI data')
-    
+    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')    
+    # parser.add_argument('--NTIME', type=tuple, default=800, help='Number of time bins to create signal')
+
+    # parameters that will be used to simulate FRB
+    # TODO: make f_low and f_high not default to force user to set them
     parser.add_argument('--f_low', type=float, default=800, help='Lowest frequency to allow FRB to show up')
     parser.add_argument('--f_high', type=float, default=2000, help='Highest frequency to allow FRB to show up')
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range for array')
 
+    # TODO: inject FRB into each RFI file, not randomly sampling them
     parser.add_argument('--num_samples', type=int, default=1000,
                         help='Number of samples to train neural network on')
 
-    parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with (MAX 4)')
+    # parameters for convolutional layers
+    parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with (MAX 4)')
     parser.add_argument('--filter_size', type=int, default=32, 
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
+    # parameters for dense layers
     parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
     parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
     
@@ -513,31 +517,31 @@ if __name__ == "__main__":
                         help='Weight (> 1) given to FRB to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
-
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
     
-    parser.add_argument('--savemodel', dest='best_model_file', type=str, default='best_model.h5',
+    # save the model, confusion matrix for last epoch, and validation set
+    parser.add_argument('--save_model', dest='best_model_file', type=str, default='best_model.h5',
                         help='Filename to save best model in')
-    
-    parser.add_argument('--confmatname', metavar='confusion matrix name', type=str,
-                        default='confusion_matrix.png', help='Filename to store final confusion matrix in')
-
-    parser.add_argument('--val_results', type=str, default='classification_results.npz', 
-                        help='Filename to store array of classified objects in validation set')
+    parser.add_argument('--save_confusion_matrix', metavar='confusion matrix name', type=str,
+                        default='confusion_matrix.png', help='Filename to store final confusion matrix')
+    parser.add_argument('--save_classifications', type=str, default='classification_results.npz', 
+                        help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
     args = parser.parse_args()
 
     # Read archive files and extract data arrays
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.confmatname
-    val_results_file = args.val_results
+    results_file = args.save_classifications
 
-    NFREQ = 64
-    NTINT = 256
+    # TODO fix this invalid syntax
+    NFREQ = args.NFREQ 64
+    NTIME = args.NTIME 256
     DM = 102.4
 
     # make dictionaries to pass all the arguments into functions succintly
-    frb_params = {'f_low': args.f_low, 'f_high': args.f_high, 'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
+    frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
+                  'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNRmax': args.SNRmax,
                     'background_file': args.RFI_array, 'FRB_parameters': frb_params}
 
@@ -578,7 +582,7 @@ if __name__ == "__main__":
     # Fit convolutional neural network to the training data
     model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                                                         eval_data=eval_data_freq, eval_labels=eval_labels_keras,
-                                                        nfreq=NFREQ, ntime=NTINT, epochs=args.epochs, batch_size=args.batch_size, 
+                                                        nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size, 
                                                         num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
                                                         n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
                                                         weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
@@ -592,32 +596,32 @@ if __name__ == "__main__":
     print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
-    print(f"Saving classification results to {val_results_file}")
-    np.savez(val_results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
+    print(f"Saving classification results to {results_file}")
+    np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
         TPdata = eval_data_freq[..., 0][TPind]
     else:
-        TPdata = np.zeros((NFREQ, NTINT))
+        TPdata = np.zeros((NFREQ, NTIME))
 
     if FP.size:
         FPind = FP[np.argmax(y_pred_prob[FP])]  # Max probability False positive candidate
         FPdata = eval_data_freq[..., 0][FPind]
     else:
-        FPdata = np.zeros((NFREQ, NTINT))
+        FPdata = np.zeros((NFREQ, NTIME))
 
     if FN.size:
         FNind = FN[np.argmax(y_pred_prob[FN])]  # Max probability False negative candidate
         FNdata = eval_data_freq[..., 0][FNind]
     else:
-        FNdata = np.zeros((NFREQ, NTINT))
+        FNdata = np.zeros((NFREQ, NTIME))
 
     if TN.size:
         TNind = TN[np.argmin(y_pred_prob[TN])]  # Min probability True negative candidate
         TNdata = eval_data_freq[..., 0][TNind]
     else:
-        TNdata = np.zeros((NFREQ, NTINT))
+        TNdata = np.zeros((NFREQ, NTIME))
 
     plt.subplot(221)
     plt.gca().set_title('TP')
