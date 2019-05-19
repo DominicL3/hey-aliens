@@ -419,22 +419,7 @@ def print_metric(y_true, y_pred):
 
     return accuracy, precision, recall, fscore
 
-def normalize_data(ftdata):
-    """Pretty straightforward, normalizes the data
-    to zero median, unit variance"""
-    dshape = ftdata.shape
-
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
-    
-    return ftdata
-
-def make_labels(num_samples, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
+def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800, 
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
@@ -456,6 +441,9 @@ def make_labels(num_samples, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_file
         FRB_parameters['f_ref'] = np.median(freq_RFI)
         FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
 
+        # set number of samples to iterate over all backgrounds
+        num_samples = len(backgrounds)
+
     # TODO: inject FRB into each RFI file, not randomly sampling them
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
@@ -464,14 +452,13 @@ def make_labels(num_samples, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_file
         if background_files is None:
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
-            # select a random background from the given arrays
-            random_index = np.random.choice(backgrounds.shape[0])
-            background_RFI = backgrounds[random_index]
-            background_weight = weights[random_index]
+            # get background and weights from the given array
+            background_RFI = backgrounds[sim]
+            background_weight = weights[sim]
             
             # inject FRB into real noise array and append label the noise as RFI
             event.simulateFRB(background=background_RFI, weights=background_weight, 
-                              SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+                              SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)
@@ -548,12 +535,20 @@ if __name__ == "__main__":
 
     ftdata, label = make_labels(**label_params)
 
-    Nfl = ftdata.shape[0]
-    nfreq = ftdata.shape[1]
-    ntime = ftdata.shape[2]
+    dshape = ftdata.shape
+    Nfl, nfreq, ntime  = dshape
 
     print(Nfl, nfreq, ntime)
     print(label)
+
+    # normalizes the data to zero median, unit variance
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
