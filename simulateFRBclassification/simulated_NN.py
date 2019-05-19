@@ -187,7 +187,6 @@ class SimulatedFRB(object):
                                       out=np.zeros_like(background), 
                                       where=div_cond)
 
-        self.background = normed_background
         return normed_background
 
     def injectFRB(self, SNR, background=None, weights=None):
@@ -195,6 +194,9 @@ class SimulatedFRB(object):
         be multiplied by the given weights along the frequency axis."""
         if background is None:
             background = self.normalize_background(self.background)
+            
+        # update the background of the object
+        self.background = background
 
         # remove RFI channels in the background
         if weights is not None:
