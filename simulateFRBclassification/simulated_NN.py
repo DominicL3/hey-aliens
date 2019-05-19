@@ -191,7 +191,8 @@ class SimulatedFRB(object):
         return normed_background
 
     def injectFRB(self, SNR, background=None, weights=None):
-        """Inject FRB into the background"""
+        """Inject FRB into the background. If specified, signal will 
+        be multiplied by the given weights along the frequency axis."""
         if background is None:
             background = self.normalize_background(self.background)
 
@@ -220,10 +221,11 @@ class SimulatedFRB(object):
 
     def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
-        background array of Gaussian noise for the simulation. After
-        this method works and is detected by the neural network, proceed
-        to inject the FRB into the actual noise files given by psrchive."""
+        background array (Gaussian noise if background is not specified).
+        If given, the signal will be multiplied by the given weights 
+        along the frequency axis."""
         if background is None:
+            self.normalize_background(self.background)
             background = self.background
 
         # Create the FRB
@@ -233,7 +235,7 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
         # add to normalized background
-        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=normed_background, weights=weights)
+        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
@@ -432,8 +434,9 @@ def normalize_data(ftdata):
     
     return ftdata
 
-def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'shape': (64, 256), 'f_low': 800, 
-                'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}, background_file=None):
+def make_labels(num_samples, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
+                FRB_parameters={'shape': (64, 256), 'f_low': 800, 
+                'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
     '''Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will have just noise and an injected FRB, so the label list should
@@ -442,9 +445,9 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'shape': (64, 
     ftdata = []
     labels = []
     
-    if background_file is not None:
+    if background_files is not None:
         # load in background file and extract data and frequencies
-        background_npz = np.load(background_file)
+        background_npz = np.load(background_files)
         backgrounds = background_npz['rfi_data']
         freq_RFI = background_npz['freq']
         weights = background_npz['weights']
@@ -458,8 +461,8 @@ def make_labels(num_samples, SNRmin=5, SNRmax=15, FRB_parameters={'shape': (64, 
         # create simulation object and add FRB to it
         event = SimulatedFRB(**FRB_parameters)
         
-        if background_file is None:
-            event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=1.0, SNRmax=SNRmax)
+        if background_files is None:
+            event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
             # select a random background from the given arrays
             random_index = np.random.choice(backgrounds.shape[0])
@@ -488,7 +491,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')    
-    # parser.add_argument('--NTIME', type=tuple, default=800, help='Number of time bins to create signal')
 
     # parameters that will be used to simulate FRB
     # TODO: make f_low and f_high not default to force user to set them
@@ -534,16 +536,15 @@ if __name__ == "__main__":
     confusion_matrix_name = args.confmatname
     results_file = args.save_classifications
 
-    # TODO fix this invalid syntax
-    NFREQ = args.NFREQ 64
-    NTIME = args.NTIME 256
+    NFREQ = 64
+    NTIME = 256
     DM = 102.4
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNRmax': args.SNRmax,
-                    'background_file': args.RFI_array, 'FRB_parameters': frb_params}
+                    'background_files': args.RFI_array, 'FRB_parameters': frb_params}
 
     ftdata, label = make_labels(**label_params)
 
