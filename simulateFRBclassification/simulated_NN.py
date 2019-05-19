@@ -297,7 +297,6 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # repeat and double the filter size for each convolutional block to make this DEEP
     for layer_number in np.arange(num_conv_layers - 1):
         filter_size *= 2
-
         model.add(Conv2D(filter_size, (2, 2), activation='relu'))
         model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -446,7 +445,7 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         # set number of samples to iterate over all backgrounds
         num_samples = len(backgrounds)
 
-    # TODO: inject FRB into each RFI file, not randomly sampling them
+    # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
         event = SimulatedFRB(**FRB_parameters)
@@ -474,6 +473,18 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     return normalize_data(ftdata), labels
 
+def normalize_data(ftdata):
+    """Pretty straightforward, normalizes the data to 
+    zero median, unit variance."""
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
+
+    return ftdata
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -538,19 +549,10 @@ if __name__ == "__main__":
     ftdata, label = make_labels(**label_params)
 
     dshape = ftdata.shape
-    Nfl, nfreq, ntime  = dshape
+    Nfl, nfreq, ntime = dshape
 
     print(Nfl, nfreq, ntime)
     print(label)
-
-    # normalizes the data to zero median, unit variance
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
