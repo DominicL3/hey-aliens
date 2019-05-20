@@ -494,17 +494,17 @@ if __name__ == "__main__":
 
     # parameters that will be used to simulate FRB
     # TODO: make f_low and f_high not default to force user to set them
-    parser.add_argument('--f_low', type=float, default=800, help='Lowest frequency to allow FRB to show up')
-    parser.add_argument('--f_high', type=float, default=2000, help='Highest frequency to allow FRB to show up')
-    parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (center of data)')
-    parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range for array')
+    parser.add_argument('f_low', type=float, help='Minimum cutoff frequency (MHz) to inject FRB')
+    parser.add_argument('f_high', type=float, help='Maximum cutoff frequency (MHz) to allow inject FRB')
+    parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (MHz) (center of data)')
+    parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
 
     # TODO: inject FRB into each RFI file, not randomly sampling them
-    parser.add_argument('--num_samples', type=int, default=1000,
-                        help='Number of samples to train neural network on')
+    parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on')
 
     # parameters for convolutional layers
-    parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with (MAX 4)')
+    parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
+                        the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
     parser.add_argument('--filter_size', type=int, default=32, 
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
@@ -512,11 +512,12 @@ if __name__ == "__main__":
     parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
     parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
     
+    # parameters for signal-to-noise ratio of FRB
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
+    parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
 
-    parser.add_argument('--weight_FRB', type=float, default=10.0, 
-                        help='Weight (> 1) given to FRB to minimize false negatives')
+    parser.add_argument('--weight_FRB', type=float, default=10.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
@@ -543,21 +544,19 @@ if __name__ == "__main__":
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
-    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNRmax': args.SNRmax,
-                    'background_files': args.RFI_array, 'FRB_parameters': frb_params}
+    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma, 
+                    'SNRmax': args.SNRmax, 'background_files': args.RFI_array, 'FRB_parameters': frb_params}
 
-    ftdata, label = make_labels(**label_params)
-
-    dshape = ftdata.shape
-    Nfl, nfreq, ntime = dshape
-
+    ftdata, labels = make_labels(**label_params)
+    
+    Nfl, nfreq, ntime = ftdata.shape
     print(Nfl, nfreq, ntime)
-    print(label)
+    print(labels)
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
 
-    NTRAIN = int(len(label) * 0.5)
+    NTRAIN = int(len(labels) * 0.5)
 
     ind = np.arange(Nfl)
     np.random.shuffle(ind)
@@ -568,7 +567,7 @@ if __name__ == "__main__":
 
     train_data_freq, eval_data_freq = ftdata[ind_train], ftdata[ind_eval]
 
-    train_labels, eval_labels = label[ind_train], label[ind_eval]
+    train_labels, eval_labels = labels[ind_train], labels[ind_eval]
 
     # convert to binary matrix
     train_labels_keras = keras.utils.to_categorical(train_labels)
