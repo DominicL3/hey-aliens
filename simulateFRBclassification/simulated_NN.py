@@ -497,13 +497,11 @@ if __name__ == "__main__":
     parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')    
 
     # parameters that will be used to simulate FRB
-    # TODO: make f_low and f_high not default to force user to set them
     parser.add_argument('f_low', type=float, help='Minimum cutoff frequency (MHz) to inject FRB')
     parser.add_argument('f_high', type=float, help='Maximum cutoff frequency (MHz) to allow inject FRB')
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (MHz) (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
 
-    # TODO: inject FRB into each RFI file, not randomly sampling them
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on')
 
     # parameters for convolutional layers
@@ -541,9 +539,13 @@ if __name__ == "__main__":
     confusion_matrix_name = args.confmat
     results_file = args.save_classifications
 
-    NFREQ = 64
+    # set number of frequency channels to simulate
+    if args.RFI_array is not None:
+        NFREQ = args.RFI_array['rfi_data'].shape[1]
+    else:
+        NFREQ = 64
+    
     NTIME = 256
-    DM = 102.4
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
@@ -553,8 +555,8 @@ if __name__ == "__main__":
 
     ftdata, labels = make_labels(**label_params)
     
-    Nfl, nfreq, ntime = ftdata.shape
-    print(Nfl, nfreq, ntime)
+    num_data, nfreq, ntime = ftdata.shape
+    print(num_data, nfreq, ntime)
     print(labels)
 
     # Get 4D vector for Keras
@@ -562,7 +564,7 @@ if __name__ == "__main__":
 
     NTRAIN = int(len(labels) * 0.5)
 
-    ind = np.arange(Nfl)
+    ind = np.arange(num_data)
     np.random.shuffle(ind)
 
     # split indices into training and evaluation set
