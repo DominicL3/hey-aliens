@@ -525,7 +525,7 @@ if __name__ == "__main__":
     # save the model, confusion matrix for last epoch, and validation set
     parser.add_argument('--save_model', dest='best_model_file', type=str, default='best_model.h5',
                         help='Filename to save best model in')
-    parser.add_argument('--save_confusion_matrix', metavar='confusion matrix name', type=str,
+    parser.add_argument('--save_confusion_matrix', dest='confmat', metavar='confusion matrix name', type=str,
                         default='confusion_matrix.png', help='Filename to store final confusion matrix')
     parser.add_argument('--save_classifications', type=str, default='classification_results.npz', 
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
@@ -534,7 +534,7 @@ if __name__ == "__main__":
 
     # Read archive files and extract data arrays
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
-    confusion_matrix_name = args.confmatname
+    confusion_matrix_name = args.confmat
     results_file = args.save_classifications
 
     NFREQ = 64
