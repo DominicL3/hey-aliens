@@ -324,28 +324,30 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
         training progresses. Will also print out validation precision for good measure."""
         def __init__(self, filepath):
             self.filepath = filepath
+            self.epoch = 1
             self.best = -np.inf
 
         # calculate recall and precision after every epoch
-        def on_epoch_end(self, batch, logs={}):
-            y_pred = np.asarray(self.model.predict(self.validation_data[0]))
-            y_pred = np.argmax(y_pred, axis=1)
-            
-            y_true = self.validation_data[1]
-            y_true = np.argmax(y_true, axis=1)
-            
-            recall = recall_score(y_true, y_pred)
-            precision = precision_score(y_true, y_pred)
-            fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
+        def on_epoch_end(self, epoch, batch, logs={}):
+            if self.epoch > 8: # save active only after certain epoch
+                y_pred = np.asarray(self.model.predict(self.validation_data[0]))
+                y_pred = np.argmax(y_pred, axis=1)
+                
+                y_true = self.validation_data[1]
+                y_true = np.argmax(y_true, axis=1)
+                
+                recall = recall_score(y_true, y_pred)
+                precision = precision_score(y_true, y_pred)
+                fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
-            print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
-            
-            if fscore > self.best:
-                print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
-                self.best = recall
-                self.model.save(self.filepath, overwrite=True)
-            else:
-                print(f"fscore did not improve from {np.round(self.best, 4)}")
+                print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
+                
+                if fscore > self.best:
+                    print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
+                    self.best = recall
+                    self.model.save(self.filepath, overwrite=True)
+                else:
+                    print(f"fscore did not improve from {np.round(self.best, 4)}")
 
             return
 
