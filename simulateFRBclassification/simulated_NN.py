@@ -476,6 +476,8 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 def normalize_data(ftdata):
     """Pretty straightforward, normalizes the data to 
     zero median, unit variance."""
+    dshape = ftdata.shape
+    
     ftdata = ftdata.reshape(len(ftdata), -1)
     ftdata -= np.median(ftdata, axis=-1)[:, None]
     ftdata /= np.std(ftdata, axis=-1)[:, None]
