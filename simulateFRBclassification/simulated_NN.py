@@ -445,10 +445,7 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
 
         # set number of samples to iterate over all backgrounds
-        num_samples = len(backgrounds)
-
-        # TODO: break background arrays into time chunks of 256, discarding last chunk
-        
+        num_samples = len(backgrounds)        
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
