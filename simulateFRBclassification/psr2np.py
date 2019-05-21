@@ -7,6 +7,8 @@ import argparse
 import glob
 
 def psr2np(fname, NCHAN, dm):
+    """Transforms an .ar file into a numpy array, scrunching the number
+    of frequency channels to NCHAN and dedispersing it to the given DM."""
     # Get psrchive file as input and outputs numpy array
     fpsr = psr.Archive_load(fname)
 
@@ -57,6 +59,21 @@ def normalize_background(background):
 
     return normed_background
 
+def chop_off(array):
+    """Splits 3D array such that each 2D array has 256 time bins.
+    Drops the last chunk if it has fewer than 256 bins."""
+
+    # split array into multiples of 256
+    subsections = np.arange(256, array.shape[-1], 256)
+    split_array = np.split(array, subsections, axis=2)
+
+    if split_array[-1].shape[-1] < 256:
+        split_array.pop()
+
+    combined_chunks = np.concatenate(split_array, axis=0)
+    return combined_chunks
+
+
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
@@ -67,7 +84,6 @@ if __name__ == "__main__":
     
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize psrchive files to')
-    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins')
     
     parser.add_argument('--min_DM', type=float, default=0.0, help='Minimum DM to sample')
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
@@ -77,7 +93,6 @@ if __name__ == "__main__":
     path = args.path
     save_name = args.save_name
     NCHAN = args.NCHAN
-    NTIME = args.NTIME
 
     if path is not None:
         files = glob.glob(path + "*.ar")
@@ -103,9 +118,12 @@ if __name__ == "__main__":
         psrchive_data.append(normalized_data)
         weights.append(w)
     
+    # split array into multiples of 256 time bins
+    psrchive_data = chop_off(np.array(psrchive_data))
+    
     end = time()
     print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
     
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
-    np.savez(save_name, rfi_data=np.array(psrchive_data), weights=weights, freq=freq)
+    np.savez(save_name, rfi_data=psrchive_data, weights=weights, freq=freq)

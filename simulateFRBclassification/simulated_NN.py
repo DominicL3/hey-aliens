@@ -447,6 +447,9 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         # set number of samples to iterate over all backgrounds
         num_samples = len(backgrounds)
 
+        # TODO: break background arrays into time chunks of 256, discarding last chunk
+        
+
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
         # create simulation object and add FRB to it
