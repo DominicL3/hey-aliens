@@ -6,9 +6,12 @@ import numpy as np
 import argparse
 import glob
 
+"""Takes a directory of .ar files and converts them into one 
+large numpy array with dimensions (num_samples, NCHAN, 256). 
+The number of frequency channels will be scrunched to NCHAN, 
+and dispersion measure is randomized with every sample."""
+
 def psr2np(fname, NCHAN, dm):
-    """Transforms an .ar file into a numpy array, scrunching the number
-    of frequency channels to NCHAN and dedispersing it to the given DM."""
     # Get psrchive file as input and outputs numpy array
     fpsr = psr.Archive_load(fname)
 
