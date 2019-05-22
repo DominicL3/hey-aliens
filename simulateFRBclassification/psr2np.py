@@ -41,24 +41,24 @@ def psr2np(fname, NCHAN, dm):
     freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
                        fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
 
-    # -- Get time axis and convert to milliseconds --#
+    """ Get time axis and convert to milliseconds
     tbin = float(fpsr.integration_length() / fpsr.get_nbin())
     taxis = np.arange(0, fpsr.integration_length(), tbin) * 1000
-    
+    """
     return data, w, freq
 
 def normalize_background(background):
     """Normalize the background array so each row sums up to 1"""
-    background_row_sums = np.trapz(background, axis=1)[:, None]
+    background_row_sums = np.trapz(background, axis=1).reshape(-1, 1)
 
     # only divide out areas where the row sums up past 0 and isn't nan
     div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
-                            where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
+                          where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
 
     # normalize background
     normed_background = np.divide(background, background_row_sums, 
-                                    out=np.zeros_like(background), 
-                                    where=div_cond)
+                                  out=np.zeros_like(background),
+                                  where=div_cond)
 
     return normed_background
 
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
     for i in np.arange(len(random_files)):
-        print("Converting sample {0} of {1}".format(i + 1, len(random_files)))
+        print("Generating sample {0} of {1}".format(i + 1, len(random_files)))
         filename, DM = random_files[i], random_DMs[i]
         data, w, freq = psr2np(filename, NCHAN, DM)
         normalized_data = normalize_background(data)
