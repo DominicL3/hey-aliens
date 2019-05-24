@@ -434,11 +434,10 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
     labels = []
     
     if background_files is not None:
-        # load in background file and extract data and frequencies
-        background_npz = np.load(background_files)
-        backgrounds = background_npz['rfi_data']
-        freq_RFI = background_npz['freq']
-        weights = background_npz['weights']
+        # extract data from background files
+        backgrounds = background_files['rfi_data']
+        freq_RFI = background_files['freq']
+        weights = background_files['weights']
 
         # change frequency range of simulated pulse based on incoming RFI files
         FRB_parameters['f_ref'] = np.median(freq_RFI)
@@ -503,7 +502,8 @@ if __name__ == "__main__":
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
 
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on.\
-                                                                       ONLY VALID IF GENERATING GAUSSIAN NOISE!')
+                                                                       Only valid if generating Gaussian noise; overwritten\
+                                                                       if background files are provided')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -539,7 +539,7 @@ if __name__ == "__main__":
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.confmat
     results_file = args.save_classifications
-    RFI_array = args.RFI_array
+    RFI_array = np.load(args.RFI_array)
 
     # set number of frequency channels to simulate
     if RFI_array is not None:
