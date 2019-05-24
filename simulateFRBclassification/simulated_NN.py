@@ -329,26 +329,25 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
         # calculate recall and precision after every epoch
         def on_epoch_end(self, epoch, batch, logs={}):
-            if self.epoch > 8: # save active only after certain epoch
-                y_pred = np.asarray(self.model.predict(self.validation_data[0]))
-                y_pred = np.argmax(y_pred, axis=1)
-                
-                y_true = self.validation_data[1]
-                y_true = np.argmax(y_true, axis=1)
-                
-                recall = recall_score(y_true, y_pred)
-                precision = precision_score(y_true, y_pred)
-                fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
+            y_pred = np.asarray(self.model.predict(self.validation_data[0]))
+            y_pred = np.argmax(y_pred, axis=1)
+            
+            y_true = self.validation_data[1]
+            y_true = np.argmax(y_true, axis=1)
+            
+            recall = recall_score(y_true, y_pred)
+            precision = precision_score(y_true, y_pred)
+            fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
-                print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
-                
+            print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
+            
+            if self.epoch >= 5: # save active only after certain epoch
                 if fscore > self.best:
                     print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
                     self.best = recall
                     self.model.save(self.filepath, overwrite=True)
                 else:
                     print(f"fscore did not improve from {np.round(self.best, 4)}")
-
             return
 
     fscore_callback = FscoreCallback(saved_model_name)
