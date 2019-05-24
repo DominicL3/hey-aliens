@@ -502,7 +502,8 @@ if __name__ == "__main__":
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (MHz) (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
 
-    parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on')
+    parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on.\
+                                                                       ONLY VALID IF GENERATING GAUSSIAN NOISE!')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -538,20 +539,23 @@ if __name__ == "__main__":
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.confmat
     results_file = args.save_classifications
+    RFI_array = args.RFI_array
 
     # set number of frequency channels to simulate
-    if args.RFI_array is not None:
-        NFREQ = args.RFI_array['rfi_data'].shape[1]
+    if RFI_array is not None:
+        print('Getting number of channels from inputted RFI array')
+        NFREQ = RFI_array['rfi_data'].shape[1]
     else:
         NFREQ = 64
     
+    print(f'Number of frequency channels: {NFREQ}')
     NTIME = 256
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma, 
-                    'SNRmax': args.SNRmax, 'background_files': args.RFI_array, 'FRB_parameters': frb_params}
+                    'SNRmax': args.SNRmax, 'background_files': RFI_array, 'FRB_parameters': frb_params}
 
     ftdata, labels = make_labels(**label_params)
     
