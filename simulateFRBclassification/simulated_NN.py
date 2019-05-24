@@ -348,6 +348,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                     self.model.save(self.filepath, overwrite=True)
                 else:
                     print(f"fscore did not improve from {np.round(self.best, 4)}")
+            epoch += 1
             return
 
     fscore_callback = FscoreCallback(saved_model_name)
