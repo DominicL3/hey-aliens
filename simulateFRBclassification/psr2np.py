@@ -68,6 +68,7 @@ def chop_off(array):
 
     # split array into multiples of 256
     subsections = np.arange(256, array.shape[-1], 256)
+    print('Splitting each array into {0} blocks'.format(len(subsections)))
     split_array = np.split(array, subsections, axis=2)
 
     if split_array[-1].shape[-1] < 256:
@@ -123,6 +124,9 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins
     psrchive_data = chop_off(np.array(psrchive_data))
+
+    # clone weights so they match up with split chunks of psrchive data
+    weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
     
     end = time()
     print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
