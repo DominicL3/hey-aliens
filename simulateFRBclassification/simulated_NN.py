@@ -324,11 +324,13 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
         training progresses. Will also print out validation precision for good measure."""
         def __init__(self, filepath):
             self.filepath = filepath
-            self.epoch = 1
+            self.epoch = 0
             self.best = -np.inf
 
         # calculate recall and precision after every epoch
         def on_epoch_end(self, epoch, logs={}):
+            self.epoch += 1
+            
             y_pred = np.asarray(self.model.predict(self.validation_data[0]))
             y_pred = np.argmax(y_pred, axis=1)
             
@@ -348,7 +350,6 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                     self.model.save(self.filepath, overwrite=True)
                 else:
                     print(f"fscore did not improve from {np.round(self.best, 4)}")
-            self.epoch += 1
             return
 
     fscore_callback = FscoreCallback(saved_model_name)
