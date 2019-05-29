@@ -9,7 +9,12 @@ import glob
 """Takes a directory of .ar files and converts them into one 
 large numpy array with dimensions (num_samples, NCHAN, 256). 
 The number of frequency channels will be scrunched to NCHAN, 
-and dispersion measure is randomized with every sample."""
+and dispersion measure is randomized with every sample.
+
+NOTE: since chop_off() splits the arrays into chunks, the number 
+of samples actually generated is the number of samples given as a 
+command line argument multiplied by the number of chunks that 
+chop_off() has to split the arrays into to get 256 time bins."""
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
@@ -122,7 +127,7 @@ if __name__ == "__main__":
         psrchive_data.append(normalized_data)
         weights.append(w)
     
-    # split array into multiples of 256 time bins
+    # split array into multiples of 256 time bins 
     psrchive_data = chop_off(np.array(psrchive_data))
 
     # clone weights so they match up with split chunks of psrchive data
