@@ -346,7 +346,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             if epoch > 3:
                 if fscore > self.best:
                     print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
-                    self.best = recall
+                    self.best = fscore
                     self.model.save(self.filepath, overwrite=True)
                 else:
                     print(f"fscore did not improve from {np.round(self.best, 4)}")
