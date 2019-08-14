@@ -3,12 +3,16 @@
 import psr2np
 import numpy as np
 import psrchive as psr
+import os
 import argparse
 import keras
 from keras.models import load_model
 
 """Reads in an .ar file and a model and outputs probabilities
 on whether or not the .ar file contains an FRB."""
+
+# used for reading in h5 files
+os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
 def extract_DM(fname):
     # read the ar file and extract the DM
@@ -25,7 +29,7 @@ def predict_probabilities(model, candidate_arrays):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', type=str, help='Name of candidate file(s) to predict')
+    parser.add_argument('files', type=str, help='List of candidate file(s) to predict')
     parser.add_argument('model_name', type=str, help='Path to Keras model used for prediction')
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize psrchive files to')
