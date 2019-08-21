@@ -33,10 +33,10 @@ if __name__ == "__main__":
         OPTIONAL
             NCHAN: Number of frequency channels to resize psrchive files to
     """
-    if len(sys.argv) == 2:
+    if len(sys.argv) == 3:
         filename = str(sys.argv[1])
         model = load_model(str(sys.argv[2]), compile=True)
-    elif len(sys.argv) == 3:
+    elif len(sys.argv) == 4:
         filename = str(sys.argv[1])
         model = load_model(str(sys.argv[2]), compile=True)
         NCHAN = int(sys.argv[3])
