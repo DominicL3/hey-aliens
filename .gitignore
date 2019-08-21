@@ -14,5 +14,3 @@ breakthrough
 simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
 *.np*
 simulateFRBclassification/presentation_plots/*
-single_pulse_ml
-simulateFRBclassification/PlotNeuralNet
