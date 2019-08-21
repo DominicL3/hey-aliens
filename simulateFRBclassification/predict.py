@@ -57,5 +57,5 @@ if __name__ == "__main__":
     candidates = psr2np.chop_off(np.array(candidates))
 
     # predictions = predict_probabilities(model, candidates)
-    predictions = model.predict(candidate_arrays[..., None], verbose=1)[:, 1]
+    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
     print(predictions)
