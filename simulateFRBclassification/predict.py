@@ -34,12 +34,12 @@ if __name__ == "__main__":
             NCHAN: Number of frequency channels to resize psrchive files to
     """
     if len(sys.argv) == 2:
-        filename = sys.argv[0]
-        model = load_model(sys.argv[1], compile=True)
+        filename = str(sys.argv[1])
+        model = load_model(str(sys.argv[2]), compile=True)
     elif len(sys.argv) == 3:
-        filename = sys.argv[0]
-        model = load_model(sys.argv[1], compile=True)
-        NCHAN = sys.argv[2]
+        filename = str(sys.argv[1])
+        model = load_model(str(sys.argv[2]), compile=True)
+        NCHAN = int(sys.argv[3])
     else:
         raise RuntimeError('Arguments should be candidate filename, model name, and optionally the number of channels')
 
