@@ -31,7 +31,7 @@ if __name__ == "__main__":
         Candidate file: Path to candidate file to be predicted. Should be .ar file
         Model name: Path of model used to make this prediction. Should be .h5 file
         OPTIONAL
-            NCHAN: Number of frequency channels to resize psrchive files to
+            NCHAN: Number of frequency channels (default 64) to resize psrchive files to.
     """
     if len(sys.argv) == 3:
         filename = str(sys.argv[1])
@@ -56,5 +56,6 @@ if __name__ == "__main__":
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
 
-    predictions = predict_probabilities(model, candidates)
+    # predictions = predict_probabilities(model, candidates)
+    predictions = model.predict(candidate_arrays[..., None], verbose=1)[:, 1]
     print(predictions)
