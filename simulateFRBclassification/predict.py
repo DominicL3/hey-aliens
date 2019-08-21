@@ -3,8 +3,7 @@
 import psr2np
 import numpy as np
 import psrchive as psr
-import os
-import argparse
+import sys, os
 import keras
 from keras.models import load_model
 
@@ -28,16 +27,21 @@ def predict_probabilities(model, candidate_arrays):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=lambda s: unicode(s, 'utf8'), help='Candidate file to predict')
-    parser.add_argument('model_name', type=str, help='Path to Keras model used for prediction')
-    parser.add_argument('--NCHAN', type=int, default=64,
-                        help='Number of frequency channels to resize psrchive files to')
-    
-    args = parser.parse_args()
-    filename = args.file
-    model = load_model(args.model_name, compile=True)
-    NCHAN = args.NCHAN
+    """Argument inputs
+        Candidate file: Path to candidate file to be predicted. Should be .ar file
+        Model name: Path of model used to make this prediction. Should be .h5 file
+        OPTIONAL
+            NCHAN: Number of frequency channels to resize psrchive files to
+    """
+    if len(sys.argv) == 2:
+        filename = sys.argv[0]
+        model = load_model(sys.argv[1], compile=True)
+    elif len(sys.argv) == 3:
+        filename = sys.argv[0]
+        model = load_model(sys.argv[1], compile=True)
+        NCHAN = sys.argv[2]
+    else:
+        raise RuntimeError('Arguments should be candidate filename, model name, and optionally the number of channels')
 
     candidates = []
 
