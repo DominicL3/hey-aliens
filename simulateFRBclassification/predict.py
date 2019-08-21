@@ -29,7 +29,7 @@ def predict_probabilities(model, candidate_arrays):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('file', type=str, help='Candidate file to predict')
+    parser.add_argument('file', type=lambda s: unicode(s, 'utf8'), help='Candidate file to predict')
     parser.add_argument('model_name', type=str, help='Path to Keras model used for prediction')
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize psrchive files to')
