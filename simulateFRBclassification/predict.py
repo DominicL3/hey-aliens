@@ -36,6 +36,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 3:
         filename = str(sys.argv[1])
         model = load_model(str(sys.argv[2]), compile=True)
+        NCHAN = 64
     elif len(sys.argv) == 4:
         filename = str(sys.argv[1])
         model = load_model(str(sys.argv[2]), compile=True)
