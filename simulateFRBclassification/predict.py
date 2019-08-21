@@ -29,26 +29,24 @@ def predict_probabilities(model, candidate_arrays):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument('files', type=str, help='List of candidate file(s) to predict')
+    parser.add_argument('file', type=str, help='Candidate file to predict')
     parser.add_argument('model_name', type=str, help='Path to Keras model used for prediction')
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize psrchive files to')
     
     args = parser.parse_args()
-
-    path = args.files
+    filename = args.file
     model = load_model(args.model_name, compile=True)
     NCHAN = args.NCHAN
 
     candidates = []
 
-    # convert each file to a numpy array
-    for filename in path:
-        dm = extract_DM(filename)
-        data = psr2np.psr2np(filename, NCHAN, dm)[0]
-        candidate_data = psr2np.normalize_background(data)
-        
-        candidates.append(candidate_data)
+    # convert candidate to numpy array
+    dm = extract_DM(filename)
+    data = psr2np.psr2np(filename, NCHAN, dm)[0]
+    candidate_data = psr2np.normalize_background(data)
+    
+    candidates.append(candidate_data)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
