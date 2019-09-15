@@ -352,17 +352,15 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                     print(f"fscore did not improve from {np.round(self.best, 4)}")
             return
 
-    fscore_callback = FscoreCallback(saved_model_name)
-
     # save best model according to validation accuracy
     model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
               class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs, 
-              callbacks=[fscore_callback])
+              callbacks=[FscoreCallback(saved_model_name)])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
 
-    return model, score
+    return score
 
 
 def get_classification_results(y_true, y_pred):
@@ -590,13 +588,15 @@ if __name__ == "__main__":
     start_time = time()
 
     # Fit convolutional neural network to the training data
-    model_freq_time, score_freq_time = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
-                                                        eval_data=eval_data_freq, eval_labels=eval_labels_keras,
-                                                        nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size, 
-                                                        num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
-                                                        n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
-                                                        weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
+    score = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
+                            eval_data=eval_data_freq, eval_labels=eval_labels_keras,
+                            nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size, 
+                            num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
+                            n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
+                            weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
 
+    # load the best model saved to test out confusion matrix
+    model_freq_time = load_model(best_model_name, compile=True)
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
     
