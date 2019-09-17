@@ -1,6 +1,9 @@
 #!/usr/bin/python
 
-import psrchive as psr
+# import psrchive from Vishal's path
+import imp
+psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
+
 from time import time
 import numpy as np
 import argparse
