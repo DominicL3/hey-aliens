@@ -562,6 +562,9 @@ if __name__ == "__main__":
     print(num_data, nfreq, ntime)
     print(labels)
 
+    print('Saving ftdata to disk')
+    np.save('ftdata', ftdata)
+
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
 
