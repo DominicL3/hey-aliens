@@ -563,7 +563,7 @@ if __name__ == "__main__":
     print(labels)
 
     print('Saving ftdata to disk')
-    np.save('ftdata', ftdata[:100])
+    np.savez('simulation_data', ftdata=ftdata[:100], labels=labels[:100])
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
