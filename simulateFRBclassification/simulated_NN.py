@@ -563,7 +563,8 @@ if __name__ == "__main__":
     print(labels)
 
     print('Saving ftdata to disk')
-    np.savez('simulation_data', ftdata=ftdata[:100], labels=labels[:100])
+    random_simulation = np.random.randint(0, len(ftdata), 10000)
+    np.savez('simulation_data', ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
