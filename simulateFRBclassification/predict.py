@@ -59,6 +59,8 @@ if __name__ == "__main__":
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
 
+    print(candidates.shape)
+
     # predictions = predict_probabilities(model, candidates)
     predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
     print(predictions)

@@ -76,7 +76,7 @@ def chop_off(array):
 
     # split array into multiples of 256
     subsections = np.arange(256, array.shape[-1], 256)
-    print('Splitting each array into {0} blocks'.format(len(subsections)))
+    print('Splitting each array into {0} blocks'.format(len(subsections) + 1))
     split_array = np.split(array, subsections, axis=2)
 
     if split_array[-1].shape[-1] < 256:
