@@ -23,7 +23,7 @@ if __name__ == "__main__":
     path = args.path_RFI
     saved_name = args.saved_RFI_name
 
-    rfi_names = glob.glob(path + "/*")
+    rfi_names = glob.glob(path + "*")
     rfi = []
 
     for i, name in enumerate(rfi_names):
