@@ -29,8 +29,8 @@ if __name__ == "__main__":
 
     for name in tqdm(rfi_names):
         try:
-            rfi_np = psr2np.psr2np(name, 64, 0)
-            rfi.append(np.array(rfi_np))
+            single_rfi = psr2np.psr2np(name, 64, 0)[0]
+            rfi.append(single_rfi)
         except:
             pass
 
