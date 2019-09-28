@@ -10,6 +10,7 @@ import psr2np
 import numpy as np
 import argparse
 import glob
+from tqdm import tqdm
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -26,11 +27,10 @@ if __name__ == "__main__":
     rfi_names = glob.glob(path + "*")
     rfi = []
 
-    for i, name in enumerate(rfi_names):
+    for name in tqdm(rfi_names):
         try:
             rfi_np = psr2np.psr2np(name, 64, 0)
-            print("Converted {0} out of {1} files".format(i, len(rfi_names)))
-            rfi.append(rfi_np)
+            rfi.append(np.array(rfi_np))
         except:
             pass
 
