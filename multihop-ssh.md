@@ -97,6 +97,8 @@ There should be at least one key there. If not, something's up.
 
 Assuming you've gotten this far, you can just `scp` your public key to as many machines as you want. **Note**: you must ensure that the `.ssh` directory exists in the machines you are copying to—if it doesn't, simply create it!
 
+After verifying that the `.ssh` directory exists on the second machine, run the following command while you're on the first machine that you need to SSH into:
+
 ```
 scp ~/.ssh/authorized_keys blph0:.ssh/.
 ```
