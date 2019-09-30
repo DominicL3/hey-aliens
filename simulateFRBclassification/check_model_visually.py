@@ -43,6 +43,6 @@ if __name__ == "__main__":
     with PdfPages(args.pdf_rfi) as pdf:
         for random_RFI_idx in np.random.randint(0, high=len(rfi_predicted), size=args.num_false):
             fig, ax = plt.subplots()
-            ax.imshow(random_RFI[random_RFI_idx])
+            ax.imshow(rfi_predicted[random_RFI_idx])
             pdf.savefig(fig)
             plt.close(fig)
