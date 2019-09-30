@@ -41,8 +41,8 @@ if __name__ == "__main__":
     # save a certain number of purportedly false values
     np.random.seed(args.seed)
     with PdfPages(args.pdf_rfi) as pdf:
-        for random_RFI in np.random.choice(rfi_predicted, size=args.num_false):
+        for random_RFI_idx in np.random.randint(0, high=len(rfi_predicted), size=args.num_false):
             fig, ax = plt.subplots()
-            ax.imshow(random_RFI)
+            ax.imshow(random_RFI[random_RFI_idx])
             pdf.savefig(fig)
             plt.close(fig)
