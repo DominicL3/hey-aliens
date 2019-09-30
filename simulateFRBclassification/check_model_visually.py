@@ -35,7 +35,7 @@ if __name__ == "__main__":
         for FRB in frb_predicted:
             fig, ax = plt.subplots()
             ax.imshow(FRB)
-            pdf.savefig(fig)
+            pdf.savefig(fig, dpi=300)
             plt.close(fig)
 
     # save a certain number of purportedly false values
@@ -44,5 +44,5 @@ if __name__ == "__main__":
         for random_RFI_idx in np.random.randint(0, high=len(rfi_predicted), size=args.num_false):
             fig, ax = plt.subplots()
             ax.imshow(rfi_predicted[random_RFI_idx])
-            pdf.savefig(fig)
+            pdf.savefig(fig, dpi=300)
             plt.close(fig)
