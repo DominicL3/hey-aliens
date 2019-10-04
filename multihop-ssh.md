@@ -97,10 +97,10 @@ There should be at least one key there. If not, something's up.
 
 Assuming you've gotten this far, you can just `scp` your public key to as many machines as you want. **Note**: you must ensure that the `.ssh` directory exists in the machines you are copying to—if it doesn't, simply create it!
 
-After verifying that the `.ssh` directory exists on the second machine, run the following command while you're on the first machine that you need to SSH into:
+After verifying that the `.ssh` directory exists on the second machine, run the following command while you're on the first machine that you need to SSH into (usually digilab):
 
 ```
-scp ~/.ssh/authorized_keys blph0:.ssh/.
+scp ~/.ssh/authorized_keys blph0.ssl.berkeley.edu:.ssh/.
 ```
 If you've done this right, you can just use `blph0` or whatever `Host` you've selected in your `~/.ssh/config` file. This command will copy your authorized_keys to the same directory in the host that you set (`blph0` in my case). _Be careful about overwriting!_
 
