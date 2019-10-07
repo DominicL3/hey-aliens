@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from .. import psr2np
+import psr2np
 import sys
 
 # import psrchive from Vishal's path
