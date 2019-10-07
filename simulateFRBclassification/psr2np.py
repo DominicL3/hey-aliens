@@ -125,9 +125,9 @@ if __name__ == "__main__":
         print("Generating sample {0} of {1}".format(i + 1, len(random_files)))
         filename, DM = random_files[i], random_DMs[i]
         data, w, freq = psr2np(filename, NCHAN, DM)
-        normalized_data = normalize_background(data)
+        # normalized_data = normalize_background(data)
         
-        psrchive_data.append(normalized_data)
+        psrchive_data.append(data)
         weights.append(w)
     
     # split array into multiples of 256 time bins 
