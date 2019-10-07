@@ -66,9 +66,9 @@ def normalize_background(background):
     print(div_cond)
     
     # normalize background
-    normed_background = np.divide(background, background_row_sums)
+    normed_background = np.divide(background, background_row_sums, 
                                   #out=np.zeros_like(background),
-                                  #where=div_cond)
+                                  where=background_row_sums != 0)
 
     return normed_background
 
