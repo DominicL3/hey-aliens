@@ -20,8 +20,8 @@ def extract_DM(fname):
 
 def normalization_plot(fname):
     # dedisperse the file and convert to numpy array
-    dm = extract_DM(filename)
-    data = psr2np.psr2np(fname=filename, NCHAN=64, dm=dm)[0]
+    dm = extract_DM(fname)
+    data = psr2np.psr2np(fname=fname, NCHAN=64, dm=dm)[0]
 
     # extract the time data and frequency data
     time_data = np.sum(data, axis=0)
