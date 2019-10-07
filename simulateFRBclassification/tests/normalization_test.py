@@ -26,7 +26,7 @@ if __name__ == "__main__":
     
     # dedisperse the file and convert to numpy array
     dm = extract_DM(filename)
-    data = psr2np.psr2np(fname=filename, NCHAN=64, dm=dm)
+    data = psr2np.psr2np(fname=filename, NCHAN=64, dm=dm)[0]
 
     # extract the time data and frequency data
     time_data = np.sum(data, axis=0)
