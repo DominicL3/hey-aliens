@@ -33,6 +33,8 @@ def normalization_plot(fname):
 
     ax[0].plot(time_data)
     ax[0].set_title('Time')
-    ax[1].imshow(data)
+    ax[1].imshow(data, aspect='auto')
     ax[2].plot(freq_data)
     ax[2].set_title('Frequency')
+    
+    fig.tight_layout()
