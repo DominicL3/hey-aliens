@@ -53,4 +53,3 @@ def norm_plot(fname):
     ax_norm[2].set_title('Normalized Frequency')
     
     fig_norm.tight_layout()
-    print('Finished the normalization plot')
