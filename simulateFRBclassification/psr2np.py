@@ -57,7 +57,9 @@ def psr2np(fname, NCHAN, dm):
 
 def normalize_background(background):
     """Normalize the background array so each row sums up to 1"""
-    background_row_sums = np.trapz(background, axis=1).reshape(-1, 1)
+    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
+    print(background_row_sums.shape)
+    print(background_row_sums)
 
     # only divide out areas where the row sums up past 0 and isn't nan
     div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
