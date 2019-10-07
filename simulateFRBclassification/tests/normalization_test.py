@@ -41,8 +41,8 @@ def norm_plot(fname):
 
     # normalize data and plot
     norm_data = psr2np.normalize_background(data)
-    time_norm = np.sum(data, axis=0)
-    freq_norm = np.sum(data, axis=1)
+    time_norm = np.sum(norm_data, axis=0)
+    freq_norm = np.sum(norm_data, axis=1)
 
     fig_norm, ax_norm = plt.subplots(nrows=3, ncols=1)
 
