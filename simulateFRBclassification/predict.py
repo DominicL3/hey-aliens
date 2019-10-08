@@ -22,27 +22,20 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
-def predict_probabilities(model, candidate_arrays):
-    """Given a bunch of candidate spectrograms and a model, 
-    output the probability that the objects are FRBs or RFI."""
-    probabilities = model.predict(candidate_arrays[..., None])[:, 1]
-    return probabilities
-
-
 if __name__ == "__main__":
     """Argument inputs
-        Candidate file: Path to candidate file to be predicted. Should be .ar file
         Model name: Path of model used to make this prediction. Should be .h5 file
+        Candidate file: Path to candidate file to be predicted. Should be .ar file
         OPTIONAL
             NCHAN: Number of frequency channels (default 64) to resize psrchive files to.
     """
-    if len(sys.argv) == 3:
-        filename = str(sys.argv[1])
-        model = load_model(str(sys.argv[2]), compile=True)
+    if len(sys.argv) == 3:  
+        model = load_model(str(sys.argv[1]), compile=True)
+        filename = str(sys.argv[2])
         NCHAN = 64
     elif len(sys.argv) == 4:
-        filename = str(sys.argv[1])
-        model = load_model(str(sys.argv[2]), compile=True)
+        model = load_model(str(sys.argv[1]), compile=True)
+        filename = str(sys.argv[2])
         NCHAN = int(sys.argv[3])
     else:
         raise RuntimeError('Arguments should be candidate filename, model name, and optionally the number of channels')
@@ -52,7 +45,7 @@ if __name__ == "__main__":
     # convert candidate to numpy array
     dm = extract_DM(filename)
     data = psr2np.psr2np(filename, NCHAN, dm)[0]
-    candidate_data = data # psr2np.normalize_background(data)
+    candidate_data = psr2np.normalize_background(data)
     
     candidates.append(candidate_data)
     
