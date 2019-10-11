@@ -60,13 +60,13 @@ def normalize_background(background):
     background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
 
     # only divide out areas where the row sums up past 0 and isn't nan
-    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool))
+    #div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool))
                           #where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
 
     # normalize background
     normed_background = np.divide(background, background_row_sums, 
                                   out=np.zeros_like(background),
-                                  where=div_cond)
+                                  where=background_row_sums != 0)
 
     return normed_background
 
@@ -125,9 +125,9 @@ if __name__ == "__main__":
         print("Generating sample {0} of {1}".format(i + 1, len(random_files)))
         filename, DM = random_files[i], random_DMs[i]
         data, w, freq = psr2np(filename, NCHAN, DM)
-        # normalized_data = normalize_background(data)
+        normalized_data = normalize_background(data)
         
-        psrchive_data.append(data)
+        psrchive_data.append(normalized_data)
         weights.append(w)
     
     # split array into multiples of 256 time bins 
