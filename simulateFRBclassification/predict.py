@@ -45,7 +45,7 @@ if __name__ == "__main__":
     # convert candidate to numpy array
     dm = extract_DM(filename)
     data = psr2np.psr2np(filename, NCHAN, dm)[0]
-    candidate_data = data # psr2np.normalize_background(data)
+    candidate_data = psr2np.normalize_background(data)
     
     candidates.append(candidate_data)
     
