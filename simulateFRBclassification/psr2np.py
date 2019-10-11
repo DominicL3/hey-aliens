@@ -133,8 +133,6 @@ if __name__ == "__main__":
     # clone weights so they match up with split chunks of psrchive data
     weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
     
-    print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
-    
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
     np.savez(save_name, rfi_data=psrchive_data, weights=weights, freq=freq)
