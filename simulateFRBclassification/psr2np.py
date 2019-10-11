@@ -118,7 +118,6 @@ if __name__ == "__main__":
     random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
 
-    start = time()
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
@@ -134,7 +133,6 @@ if __name__ == "__main__":
     # clone weights so they match up with split chunks of psrchive data
     weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
     
-    end = time()
     print("\n Converted {0} samples in {1} seconds \n".format(args.num_samples, end - start))
     
     # save final array to disk
