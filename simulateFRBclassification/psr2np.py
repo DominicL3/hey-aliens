@@ -4,7 +4,7 @@
 import imp
 psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
 
-from time import time
+from tqdm import tqdm
 import numpy as np
 import argparse
 import glob
@@ -121,9 +121,7 @@ if __name__ == "__main__":
     start = time()
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
-    for i in np.arange(len(random_files)):
-        print("Generating sample {0} of {1}".format(i + 1, len(random_files)))
-        filename, DM = random_files[i], random_DMs[i]
+    for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
         data, w, freq = psr2np(filename, NCHAN, DM)
         normalized_data = normalize_background(data)
         
