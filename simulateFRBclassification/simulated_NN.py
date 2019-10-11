@@ -504,6 +504,8 @@ if __name__ == "__main__":
                                                                        Only valid if generating Gaussian noise; overwritten\
                                                                        if background files are provided')
 
+    parser.add_argument('--sim_data', type=str, default='simulated_data', help='Filename to save simulation data')
+
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
                         the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
@@ -564,7 +566,7 @@ if __name__ == "__main__":
 
     print('Saving ftdata to disk')
     random_simulation = np.random.randint(0, len(ftdata), 10000)
-    np.savez('simulation_data', ftdata=ftdata[random_simulation], labels=labels[random_simulation])
+    np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
