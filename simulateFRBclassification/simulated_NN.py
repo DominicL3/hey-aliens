@@ -527,10 +527,10 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
     
     # save the model, confusion matrix for last epoch, and validation set
-    parser.add_argument('--save_model', dest='best_model_file', type=str, default='best_model.h5',
+    parser.add_argument('--save_model', dest='best_model_file', type=str, default='models/best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='confmat', metavar='confusion matrix name', type=str,
-                        default='confusion_matrix.png', help='Filename to store final confusion matrix')
+                        default='confusion_matrix/confusion_matrix.png', help='Filename to store final confusion matrix')
     parser.add_argument('--save_classifications', type=str, default='classification_results.npz', 
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
@@ -564,7 +564,7 @@ if __name__ == "__main__":
     print(num_data, nfreq, ntime)
     print(labels)
 
-    print('Saving ftdata to disk')
+    print(f'Saving ftdata to disk as {args.sim_data}')
     random_simulation = np.random.randint(0, len(ftdata), 10000)
     np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
