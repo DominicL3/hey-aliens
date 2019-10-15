@@ -383,7 +383,7 @@ def print_metric(y_true, y_pred):
     and print a confusion matrix, metrics, 
     return accuracy, precision, recall, fscore
     """
-    conf_mat = confusion_mat(y_true, y_pred)
+    confmat = confusion_mat(y_true, y_pred)
 
     NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
 
