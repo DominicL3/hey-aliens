@@ -419,7 +419,7 @@ def print_metric(y_true, y_pred):
     print("recall: %f" % recall)
     print("fscore: %f" % fscore)    
 
-    return accuracy, precision, recall, fscore
+    return accuracy, precision, recall, fscore, conf_mat
 
 def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800, 
@@ -529,7 +529,7 @@ if __name__ == "__main__":
     # save the model, confusion matrix for last epoch, and validation set
     parser.add_argument('--save_model', dest='best_model_file', type=str, default='models/best_model.h5',
                         help='Filename to save best model in')
-    parser.add_argument('--save_confusion_matrix', dest='confmat', metavar='confusion matrix name', type=str,
+    parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
                         default='confusion_matrix/confusion_matrix.png', help='Filename to store final confusion matrix')
     parser.add_argument('--save_classifications', type=str, default='classification_results.npz', 
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
@@ -538,7 +538,7 @@ if __name__ == "__main__":
 
     # Read archive files and extract data arrays
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
-    confusion_matrix_name = args.confmat
+    confusion_matrix_name = args.conf_mat
     results_file = args.save_classifications
     RFI_array = np.load(args.RFI_array)
 
@@ -609,7 +609,7 @@ if __name__ == "__main__":
     print (f"Training on {args.num_samples} samples took {(time() - start_time) / 60} minutes")
     
     # print out scores of various metrics
-    print_metric(eval_labels, y_pred_freq_time)
+    accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
     print(f"Saving classification results to {results_file}")
@@ -639,17 +639,18 @@ if __name__ == "__main__":
     else:
         TNdata = np.zeros((NFREQ, NTIME))
 
+    # plot the confusion matrix and display
     plt.subplot(221)
-    plt.gca().set_title('TP')
+    plt.gca().set_title(f'TP: {conf_mat[0][0]}')
     plt.imshow(TPdata, aspect='auto', interpolation='none')
     plt.subplot(222)
-    plt.gca().set_title('FP')
+    plt.gca().set_title(f'FP: {conf_mat[0][1]}')
     plt.imshow(FPdata, aspect='auto', interpolation='none')
     plt.subplot(223)
-    plt.gca().set_title('FN')
+    plt.gca().set_title(f'FN: {conf_mat[1][0]}')
     plt.imshow(FNdata, aspect='auto', interpolation='none')
     plt.subplot(224)
-    plt.gca().set_title('TN')
+    plt.gca().set_title(f'TN: {conf_mat[1][1]}')
     plt.imshow(TNdata, aspect='auto', interpolation='none')
 
     # save data, show plot
