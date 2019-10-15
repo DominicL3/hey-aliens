@@ -202,8 +202,7 @@ class SimulatedFRB(object):
         if weights is not None:
             signal *= weights.reshape(-1, 1)
 
-        # detrend signal
-        return detrend(background + signal, axis=1)
+        return background + signal
 
     def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
@@ -219,7 +218,7 @@ class SimulatedFRB(object):
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
-        # add to background and detrend
+        # add to background
         self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
@@ -453,6 +452,9 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         labels.append(1)
 
     ftdata, labels = np.array(ftdata), np.array(labels)
+    
+    # detrend the data
+    ftdata = detrend(ftdata, axis=2)
 
     return normalize_data(ftdata), labels
 

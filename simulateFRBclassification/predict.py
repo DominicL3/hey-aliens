@@ -23,6 +23,21 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
+def normalize_data(ftdata):
+    """Pretty straightforward, normalizes the data to 
+    zero median, unit variance."""
+    dshape = ftdata.shape
+    
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
+
+    return ftdata
+
 if __name__ == "__main__":
     """Argument inputs
         Model name: Path of model used to make this prediction. Should be .h5 file
@@ -53,8 +68,8 @@ if __name__ == "__main__":
     candidates = psr2np.chop_off(np.array(candidates))
     print(candidates.shape)
     
-    # detrend the signal in each array
-    candidates = detrend(candidates, axis=2)
+    # detrend the signal and normalize to zero mean, unit variance
+    candidates = normalize_data(detrend(candidates, axis=2))
     
     predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
     print(predictions)
