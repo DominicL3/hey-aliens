@@ -454,7 +454,6 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     ftdata, labels = np.array(ftdata), np.array(labels)
 
-    # return normalize_data(ftdata), labels
     return normalize_data(ftdata), labels
 
 def normalize_data(ftdata):
