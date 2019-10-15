@@ -60,13 +60,12 @@ def normalize_background(background):
     background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
 
     # only divide out areas where the row sums up past 0 and isn't nan
-    #div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool))
-                          #where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
+    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool))
+                          where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
 
     # normalize background
     normed_background = np.divide(background, background_row_sums, 
-                                  out=np.zeros_like(background),
-                                  where=background_row_sums != 0)
+                                  out=np.zeros_like(background), where=div_cond)
 
     return normed_background
 
