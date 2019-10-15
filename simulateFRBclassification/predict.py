@@ -22,6 +22,21 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
+def normalize_data(ftdata):
+    """Pretty straightforward, normalizes the data to 
+    zero median, unit variance."""
+    dshape = ftdata.shape
+    
+    ftdata = ftdata.reshape(len(ftdata), -1)
+    ftdata -= np.median(ftdata, axis=-1)[:, None]
+    ftdata /= np.std(ftdata, axis=-1)[:, None]
+
+    # zero out nans
+    ftdata[ftdata != ftdata] = 0.0
+    ftdata = ftdata.reshape(dshape)
+
+    return ftdata
+
 if __name__ == "__main__":
     """Argument inputs
         Model name: Path of model used to make this prediction. Should be .h5 file
@@ -51,9 +66,10 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
+    normalized_candidates = normalize_data(candidates)
 
-    print(candidates.shape)
+    print(normalized_candidates.shape)
 
     # predictions = predict_probabilities(model, candidates)
-    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
+    predictions = model.predict(normalized_candidates[..., None], verbose=1)[:, 1]
     print(predictions)
