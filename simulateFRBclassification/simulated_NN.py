@@ -471,22 +471,7 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     ftdata, labels = np.array(ftdata), np.array(labels)
 
-    return normalize_data(ftdata), labels
-
-def normalize_data(ftdata):
-    """Pretty straightforward, normalizes the data to 
-    zero median, unit variance."""
-    dshape = ftdata.shape
-    
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
-
-    return ftdata
+    return ftdata, labels
 
 if __name__ == "__main__":
     # Read command line arguments
