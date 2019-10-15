@@ -606,7 +606,7 @@ if __name__ == "__main__":
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
     
-    print (f"Training on {args.num_samples} samples took {(time() - start_time) / 60} minutes")
+    print (f"Training on {len(train_labels)} samples took {np.round((time() - start_time) / 60)} minutes")
     
     # print out scores of various metrics
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
@@ -652,6 +652,7 @@ if __name__ == "__main__":
     plt.subplot(224)
     plt.gca().set_title(f'TN: {conf_mat[1][1]}')
     plt.imshow(TNdata, aspect='auto', interpolation='none')
+    plt.tight_layout()
 
     # save data, show plot
     print(f"Saving confusion matrix to {confusion_matrix_name}")
