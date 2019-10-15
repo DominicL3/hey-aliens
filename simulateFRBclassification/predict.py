@@ -60,6 +60,8 @@ if __name__ == "__main__":
     # convert candidate to numpy array
     dm = extract_DM(filename)
     data = psr2np.psr2np(filename, NCHAN, dm)[0]
+
+    print('Normalizing background')
     candidate_data = psr2np.normalize_background(data)
     
     candidates.append(candidate_data)
