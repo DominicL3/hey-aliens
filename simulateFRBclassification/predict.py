@@ -2,6 +2,7 @@
 
 import psr2np
 import numpy as np
+from scipy.signal import detrend
 import sys, os
 import keras
 from keras.models import load_model
@@ -44,16 +45,16 @@ if __name__ == "__main__":
 
     # convert candidate to numpy array
     dm = extract_DM(filename)
-    data = psr2np.psr2np(filename, NCHAN, dm)[0]
-    candidate_data = psr2np.normalize_background(data)
+    candidate_data = psr2np.psr2np(filename, NCHAN, dm)[0]
     
     candidates.append(candidate_data)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
-
     print(candidates.shape)
-
-    # predictions = predict_probabilities(model, candidates)
+    
+    # detrend the signal in each array
+    candidates = detrend(candidates, axis=2)
+    
     predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
     print(predictions)
