@@ -402,7 +402,7 @@ def print_metric(y_true, y_pred):
     print("recall: %f" % recall)
     print("fscore: %f" % fscore)    
 
-    return accuracy, precision, recall, fscore
+    return accuracy, precision, recall, fscore, confmat
 
 def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800, 
@@ -593,12 +593,13 @@ if __name__ == "__main__":
     print (f"Training on {args.num_samples} samples took {(time() - start_time) / 60} minutes")
     
     # print out scores of various metrics
-    print_metric(eval_labels, y_pred_freq_time)
+    accuracy, precision, recall, fscore, confmat = print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
     print(f"Saving classification results to {results_file}")
     np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
+    # get lowest confidence selection for each category
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
         TPdata = eval_data_freq[..., 0][TPind]
@@ -623,17 +624,18 @@ if __name__ == "__main__":
     else:
         TNdata = np.zeros((NFREQ, NTIME))
 
+    # plot the confusion matrix and display
     plt.subplot(221)
-    plt.gca().set_title('TP')
+    plt.gca().set_title(f'TP: {confmat[0][0]}')
     plt.imshow(TPdata, aspect='auto', interpolation='none')
     plt.subplot(222)
-    plt.gca().set_title('FP')
+    plt.gca().set_title(f'FP: {confmat[0][1]}')
     plt.imshow(FPdata, aspect='auto', interpolation='none')
     plt.subplot(223)
-    plt.gca().set_title('FN')
+    plt.gca().set_title(f'FN: {confmat[1][0]}')
     plt.imshow(FNdata, aspect='auto', interpolation='none')
     plt.subplot(224)
-    plt.gca().set_title('TN')
+    plt.gca().set_title(f'TN: {confmat[1][1]}')
     plt.imshow(TNdata, aspect='auto', interpolation='none')
 
     # save data, show plot
