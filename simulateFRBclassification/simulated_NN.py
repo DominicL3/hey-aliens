@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import gaussian, fftconvolve
+from scipy.signal import gaussian, fftconvolve, detrend
 from time import time
 import os
 from tqdm import tqdm, trange  # progress bar
@@ -174,26 +174,9 @@ class SimulatedFRB(object):
         else:
             return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
-    def normalize_background(self, background):
-        """Normalize the background array so each row sums up to 1"""
-        background_row_sums = np.trapz(background, axis=1)[:, None]
-
-        # only divide out areas where the row sums up past 0 and isn't nan
-        div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
-                                where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
-        
-        # normalize background
-        normed_background = np.divide(background, background_row_sums, 
-                                      out=np.zeros_like(background), 
-                                      where=div_cond)
-
-        return normed_background
-
-    def injectFRB(self, SNR, background=None, weights=None):
+    def injectFRB(self, SNR, background, weights=None):
         """Inject FRB into the background. If specified, signal will 
         be multiplied by the given weights along the frequency axis."""
-        if background is None:
-            background = self.normalize_background(self.background)
             
         # update the background of the object
         self.background = background
@@ -219,7 +202,8 @@ class SimulatedFRB(object):
         if weights is not None:
             signal *= weights.reshape(-1, 1)
 
-        return background + signal
+        # detrend signal
+        return detrend(background + signal, axis=1)
 
     def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
@@ -227,7 +211,6 @@ class SimulatedFRB(object):
         If given, the signal will be multiplied by the given weights 
         along the frequency axis."""
         if background is None:
-            self.normalize_background(self.background)
             background = self.background
 
         # Create the FRB
@@ -236,7 +219,7 @@ class SimulatedFRB(object):
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
-        # add to normalized background
+        # add to background and detrend
         self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
@@ -471,9 +454,10 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     ftdata, labels = np.array(ftdata), np.array(labels)
 
-    return normalize_data(ftdata), labels
+    # return normalize_data(ftdata), labels
+    return ftdata, labels
 
-def normalize_data(ftdata):
+'''def normalize_data(ftdata):
     """Pretty straightforward, normalizes the data to 
     zero median, unit variance."""
     dshape = ftdata.shape
@@ -486,7 +470,7 @@ def normalize_data(ftdata):
     ftdata[ftdata != ftdata] = 0.0
     ftdata = ftdata.reshape(dshape)
 
-    return ftdata
+    return ftdata'''
 
 if __name__ == "__main__":
     # Read command line arguments
