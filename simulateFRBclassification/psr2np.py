@@ -55,21 +55,6 @@ def psr2np(fname, NCHAN, dm):
     """
     return data, w, freq
 
-def normalize_background(background):
-    """Normalize the background array so each row sums up to 1"""
-    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
-
-    # only divide out areas where the row sums up past 0 and isn't nan
-    #div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool))
-                          #where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
-
-    # normalize background
-    normed_background = np.divide(background, background_row_sums, 
-                                  out=np.zeros_like(background),
-                                  where=background_row_sums != 0)
-
-    return normed_background
-
 def chop_off(array):
     """Splits 3D array such that each 2D array has 256 time bins.
     Drops the last chunk if it has fewer than 256 bins."""
@@ -122,9 +107,8 @@ if __name__ == "__main__":
     psrchive_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
         data, w, freq = psr2np(filename, NCHAN, DM)
-        normalized_data = normalize_background(data)
         
-        psrchive_data.append(normalized_data)
+        psrchive_data.append(data)
         weights.append(w)
     
     # split array into multiples of 256 time bins 
