@@ -13,5 +13,4 @@ breakthrough
 *.h5
 simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
 *.np*
-simulateFRBclassification/presentation_plots/*
 debugging plots/
