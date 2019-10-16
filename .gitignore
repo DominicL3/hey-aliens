@@ -6,7 +6,7 @@ psr
 *.pytest*
 *.vscode
 agarwal_model.h5
-*.png
+*.ipynb_checkpoints
 *report*
 dominic-connor-FRB.py
 breakthrough
