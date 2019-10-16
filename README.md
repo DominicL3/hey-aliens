@@ -96,10 +96,14 @@ python predict.py models/first_model /datax/scratch/vgajjar/Archive_files_to_tes
 The prediction script takes in a model name and a candidate file and will output the probability that the candidate has an FRB in it.
 
 In this example, the model will be tested on the following candidate:
+
 <center>
 <img src="simulateFRBclassification/presentation_plots/frb.png">
 <figcaption> Unaltered candidate file with FRB.
 </center>
+
+![candidate](simulateFRBclassification/presentation_plots/frb.png)
+*cappyton*
 
 There is a strong pulse at around t~650 on the x-axis. Because the network was trained on arrays with only 256 columns, this candidate will be split up into four different arrays from its original size of 1024 columns.
 
