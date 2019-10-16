@@ -1,18 +1,14 @@
 # FRB FBI: Teaching a Neural Network to Distinguish Between Fast Radio Bursts and Radio Frequency Interference
 
-Fast radio bursts (FRBs) are highly energetic radio pulses whose origin is still hotly debated. Neutron stars? Supernovae? Aliens? **Nobody knows!** The image below ([UTMOST collaboration](https://astronomy.swin.edu.au/research/utmost/?p=1508)) is an example spectrogram of a dedispersed FRB.
+Fast radio bursts (FRBs) are highly energetic radio pulses whose origin is still hotly debated. Neutron stars? Supernovae? Aliens? **Nobody knows!** The image below ([UTMOST collaboration](https://astronomy.swin.edu.au/research/utmost/?p=1508)) is an example spectrogram of a dedispersed FRB. Notice how the signal is broad in frequency but extremely narrow in time.
 
 <center>
 <img src=http://astronomy.swin.edu.au/research/utmost/wp-content/uploads/2018/10/frb181017.png>
-<figcaption> Example of a dedispersed fast radio burst. Notice how the signal is broad in frequency but extremely narrow in time.
-</figcaption>
 </center>
 
 At these frequencies, however, a major problem for current detection software is radio frequency interference (RFI). Emissions like WiFi would very likely be mistaken for an FRB, as seen in the image below ([Miller et al. 2007](https://www.researchgate.net/publication/4281289_Service_Discovery_and_Device_Identification_in_Cognitive_Radio_Networks)).
 <center>
 <img src=https://www.researchgate.net/profile/Wenyuan_Xu/publication/4281289/figure/fig3/AS:671515225911303@1537113114264/Spectrogram-of-the-ISM-band-centered-at-2467-MHz-and-spanning-4-MHz.png>
-<figcaption> Bluetooth and WiFi interference.
-</figcaption>
 </center>
 
 ## Objective
