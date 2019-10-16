@@ -28,7 +28,7 @@ The first step is creating a suitable set of RFI arrays in which to inject simul
 
 Don't worry if you don't know what that means—here's an empirical example.
 
-**Note: This must be run in Python 2, because `psrchive` (which converts from `.ar` to `.npy`) is written for Python 2.**
+**Note: This must be run in Python 2, because `psrchive` (the software used to convert from `.ar` to `.npy`) is written for Python 2.**
 
 ```bash 
 python2 psr2np.py /datax/scratch/vgajjar/Archive_files_to_train/ --num_samples 5000 --save_name rfi.npz
@@ -106,13 +106,13 @@ There is a strong pulse at around t~650 on the x-axis. Because the network was t
     <img src="simulateFRBclassification/presentation_plots/split_frb.png">
 </p>
 
-As you can see, the FRB is contained in the third array. The output of the prediction script should look something like this:
+As you can see, the FRB is contained in the third array. The prediction script should output something like this:
 
 ```bash
 Splitting each array into 4 blocks
 (4, 64, 256)
-4/4 [==============================] - 2s
-[0.1718652  0.15840465 1.         0.18031006]
+4/4 [=============================>] - 2s
+[0.1718652  0.15840465 1.            0.18031006]
 ```
 
 The CNN predicts each of the arrays to have an FRB (> 50%) in the third array with absolute certainty, while also correctly guessing that there is no FRB in the other arrays.
