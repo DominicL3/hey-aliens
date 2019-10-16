@@ -10,7 +10,7 @@ At these frequencies, however, a major problem for current detection software is
 
 
 <p align="center">
-    <img src=https://www.researchgate.net/profile/Wenyuan_Xu/publication/4281289/figure/fig3/AS:671515225911303@1537113114264/Spectrogram-of-the-ISM-band-centered-at-2467-MHz-and-spanning-4-MHz.png caption='fish'>
+    <img src=https://www.researchgate.net/profile/Wenyuan_Xu/publication/4281289/figure/fig3/AS:671515225911303@1537113114264/Spectrogram-of-the-ISM-band-centered-at-2467-MHz-and-spanning-4-MHz.png>
 </p>
 
 
@@ -80,12 +80,9 @@ fscore: 0.999452
 ```
 and a plot should appear like the following:
 
-<center>
-<img src="simulateFRBclassification/presentation_plots/readme_confmat.png">
-<figcaption> Confusion matrix. From left to right, top to bottom: number of true positives, false positives, false negatives, true negatives. </figcaption>
-</center>
-
-![candidate](simulateFRBclassification/presentation_plots/readme_confmat.png)
+<p align="center">
+    <img src="simulateFRBclassification/presentation_plots/readme_confmat.png">
+</p>
 
 ## Prediction
 Once the model has been trained, predicting whether an `.ar` file contains an FRB is as easy as
@@ -99,19 +96,15 @@ The prediction script takes in a model name and a candidate file and will output
 
 In this example, the model will be tested on the following candidate:
 
-<center>
-<img src="simulateFRBclassification/presentation_plots/frb.png">
-<figcaption> Unaltered candidate file with FRB.
-</center>
-
-![candidate](simulateFRBclassification/presentation_plots/frb.png)
+<p align="center">
+    <img src="simulateFRBclassification/presentation_plots/frb.png">
+</p>
 
 There is a strong pulse at around t~650 on the x-axis. Because the network was trained on arrays with only 256 columns, this candidate will be split up into four different arrays from its original size of 1024 columns.
 
-<center>
-<img src="simulateFRBclassification/presentation_plots/split_frb.png">
-<figcaption> Candidate after splitting into 256 time bins.
-</center>
+<p align="center">
+    <img src="simulateFRBclassification/presentation_plots/split_frb.png">
+</p>
 
 As you can see, the FRB is contained in the third array. The output of the prediction script should look something like this:
 
