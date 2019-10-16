@@ -85,6 +85,8 @@ and a plot should appear like the following:
 <figcaption> Confusion matrix. From left to right, top to bottom: number of true positives, false positives, false negatives, true negatives. </figcaption>
 </center>
 
+![candidate](simulateFRBclassification/presentation_plots/readme_confmat.png)
+
 ## Prediction
 Once the model has been trained, predicting whether an `.ar` file contains an FRB is as easy as
 
@@ -103,7 +105,6 @@ In this example, the model will be tested on the following candidate:
 </center>
 
 ![candidate](simulateFRBclassification/presentation_plots/frb.png)
-*cappyton*
 
 There is a strong pulse at around t~650 on the x-axis. Because the network was trained on arrays with only 256 columns, this candidate will be split up into four different arrays from its original size of 1024 columns.
 
