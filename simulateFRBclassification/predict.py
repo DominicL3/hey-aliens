@@ -3,6 +3,7 @@
 import numpy as np
 import argparse, os
 from glob import glob
+from tqdm import tqdm
 import psr2np
 import keras
 from keras.models import load_model
@@ -58,7 +59,9 @@ if __name__ == "__main__":
 
     candidates = []
 
-    for filename in candidate_names:
+    print("Preparing %d files for prediction" % len(candidate_names))
+
+    for filename in tqdm(candidate_names):
         # convert candidate to numpy array
         dm = extract_DM(filename)
         data = psr2np.psr2np(filename, NCHAN, dm)[0]
