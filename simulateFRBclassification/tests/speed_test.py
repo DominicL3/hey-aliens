@@ -41,12 +41,6 @@ def psr2np(fname, NCHAN, dm):
 
     return data, w, freq
 
-def extract_DM(fname):
-    # read the ar file and extract the DM
-    fpsr = psr.Archive_load(fname)
-    dm = fpsr.get_dispersion_measure()
-    return dm
-
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
@@ -72,15 +66,3 @@ if __name__ == "__main__":
         data, w, freq = psr2np(filename, NCHAN, DM)
         psrchive_data.append(data)
         weights.append(w)
-
-    print('\npredict.py loop:\n')
-
-    candidates = []
-
-    for filename in tqdm(files):
-        # convert candidate to numpy array
-        # dm = extract_DM(filename)
-        data, w, freq = psr2np(filename, NCHAN, 0)
-        
-        # candidates[i, :, :] = candidate_data
-        candidates.append(data)
