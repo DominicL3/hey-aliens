@@ -57,14 +57,20 @@ if __name__ == "__main__":
     if not candidate_names:
         raise ValueError('No .ar files detected in path!')
 
-    candidates = []
+    # get number of time bins to pre-allocate zero array
+    random_file =  np.random.choice(filename)
+    random_dm = extract_DM(random_file)
+    random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
+
+    # pre-allocate array containing all candidates
+    candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
 
     print("Preparing %d files for prediction" % len(candidate_names))
 
     for filename in tqdm(candidate_names):
         # convert candidate to numpy array
         dm = extract_DM(filename)
-        data = psr2np.psr2np(filename, NCHAN, dm)[0]
+        data, w, freq = psr2np.psr2np(filename, NCHAN, dm)[0]
 
         candidate_data = psr2np.normalize_background(data)
         
