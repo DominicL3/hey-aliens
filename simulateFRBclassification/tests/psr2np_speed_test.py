@@ -59,14 +59,6 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('num_samples', type=int, help='Number of RFI arrays to generate')
-    parser.add_argument('--save_name', type=str, default='psr_arrays.npz',
-                        help='Filename to save frequency-time arrays')
-    
-    parser.add_argument('--NCHAN', type=int, default=64,
-                        help='Number of frequency channels to resize psrchive files to')
-    
-    parser.add_argument('--min_DM', type=float, default=0.0, help='Minimum DM to sample')
-    parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
     
     args = parser.parse_args()
 
@@ -91,14 +83,3 @@ if __name__ == "__main__":
         data, w, freq = psr2np(filename, NCHAN, DM)
         psrchive_data.append(data)
         weights.append(w)
-    
-    # split array into multiples of 256 time bins 
-    psrchive_data = chop_off(np.array(psrchive_data))
-    psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
-
-    # clone weights so they match up with split chunks of psrchive data
-    weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
-    
-    # save final array to disk
-    print("Saving arrays to {0}".format(save_name))
-    np.savez(save_name, rfi_data=psrchive_data, weights=weights, freq=freq)
