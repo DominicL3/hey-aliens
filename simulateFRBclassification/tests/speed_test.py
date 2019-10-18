@@ -44,7 +44,7 @@ def psr2np(fname, NCHAN, dm):
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('num_samples', type=int)
+    parser.add_argument('num_samples', type=int, help='Number of RFI arrays to generate')
     
     args = parser.parse_args()
     NCHAN = 64
@@ -57,9 +57,6 @@ if __name__ == "__main__":
     # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
-
-    print('Testing on %d samples' % args.num_samples)
-    print('\npsr2np.py loop:\n')
 
     psrchive_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):

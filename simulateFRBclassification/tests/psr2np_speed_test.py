@@ -58,9 +58,6 @@ if __name__ == "__main__":
     random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
 
-    print("Unique number of random files: %d" % len(np.unique(files)))
-
-    # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
         data, w, freq = psr2np(filename, NCHAN, DM)
