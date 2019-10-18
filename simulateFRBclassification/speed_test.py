@@ -1,14 +1,15 @@
 #!/usr/bin/python
 
+# import psrchive from Vishal's path
+import imp
+psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
+
 import numpy as np
 import argparse
 import glob
 from tqdm import tqdm
 import psr2np
 
-# import psrchive from Vishal's path
-import imp
-psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
 
 def extract_DM(fname):
     # read the ar file and extract the DM
