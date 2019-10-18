@@ -56,8 +56,6 @@ if __name__ == "__main__":
     files = glob.glob("/datax/scratch/vgajjar/Archive_files_to_train/*.ar")
     print("Length of files: %d" % len(files))
 
-    if not files:
-        raise ValueError("No files found in path " + path)
 
     # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
