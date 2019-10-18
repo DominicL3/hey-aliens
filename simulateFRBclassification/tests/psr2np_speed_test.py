@@ -54,26 +54,87 @@ def psr2np(fname, NCHAN, dm):
 
     return data, w, freq
 
-if __name__== "__main__":
+def normalize_background(background):
+    """
+    Normalize the background array so each row sums up to 1.
+    """
+    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
+
+    # only divide out areas where the row sums up past 0 and isn't nan
+    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool),
+                        where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
+
+    # normalize background
+    normed_background = np.divide(background, background_row_sums, 
+                                  out=np.zeros_like(background), where=div_cond)
+
+    return normed_background
+
+def chop_off(array):
+    """
+    Splits long 2D array into 3D array of multiple 2D arrays, 
+    such that each has 256 time bins. Drops the last chunk if it 
+    has fewer than 256 bins.
+    """
+
+    # split array into multiples of 256
+    subsections = np.arange(256, array.shape[-1], 256)
+    print('Splitting each array into {0} blocks'.format(len(subsections) + 1))
+    split_array = np.split(array, subsections, axis=2)
+
+    if split_array[-1].shape[-1] < 256:
+        split_array.pop()
+
+    combined_chunks = np.concatenate(split_array, axis=0)
+    return combined_chunks
+
+
+if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('num_samples', type=int, help='Number of RFI arrays to generate')
-    args = parser.parse_args()
-    NCHAN = 64
+    parser.add_argument('path_RFI', type=str)
+    parser.add_argument('--num_samples', type=int, default=320, help='Number of RFI arrays to generate')
+    parser.add_argument('--save_name', type=str, default='psr_arrays.npz',
+                        help='Filename to save frequency-time arrays')
     
-    files = glob.glob('/datax/scratch/vgajjar/Archive_files_to_test/*.ar')
+    parser.add_argument('--NCHAN', type=int, default=64,
+                        help='Number of frequency channels to resize psrchive files to')
+    
+    parser.add_argument('--min_DM', type=float, default=0.0, help='Minimum DM to sample')
+    parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
+    
+    args = parser.parse_args()
+
+    path = args.path_RFI
+    save_name = args.save_name
+    NCHAN = args.NCHAN
+
+    files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
+    print("Length of files: %d" % len(files))
 
     if not files:
-        raise ValueError("No files found in path")
+        raise ValueError("No files found in path " + path)
 
     # choose DM and files from a uniform distribution
-    random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
+    random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
+
+    print("Unique number of random files: %d" % len(np.unique(files)))
 
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
-
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
         data, w, freq = psr2np(filename, NCHAN, DM)
         psrchive_data.append(data)
         weights.append(w)
+    
+    # split array into multiples of 256 time bins 
+    psrchive_data = chop_off(np.array(psrchive_data))
+    psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
+
+    # clone weights so they match up with split chunks of psrchive data
+    weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
+    
+    # save final array to disk
+    print("Saving arrays to {0}".format(save_name))
+    np.savez(save_name, rfi_data=psrchive_data, weights=weights, freq=freq)
