@@ -61,18 +61,16 @@ if __name__ == "__main__":
     random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
 
     # pre-allocate array containing all candidates
-    # candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
-    candidates = []
+    candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
 
     print("Preparing %d files for prediction" % len(candidate_names))
 
-    for filename in tqdm(candidate_names):
+    for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
-        # dm = extract_DM(filename)
+        dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
         
-        # candidates[i, :, :] = candidate_data
-        candidates.append(data)
+        candidates[i, :, :] = candidate_data
 
     candidate_data = np.array([psr2np.normalize_background(data) for data in candidates])
     
