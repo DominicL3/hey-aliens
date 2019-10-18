@@ -16,6 +16,10 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
+# import psrchive from Vishal's path
+import imp
+psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
+
 def extract_DM(fname):
     # read the ar file and extract the DM
     fpsr = psr.Archive_load(fname)
