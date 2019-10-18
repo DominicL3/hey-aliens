@@ -8,7 +8,6 @@ from tqdm import tqdm
 import numpy as np
 import argparse
 import glob
-import numba
 
 """
 Takes a directory of .ar files and converts them into one 
@@ -23,7 +22,6 @@ chop_off() has to split the arrays into to get 256 time bins.
 
 """
 
-@numba.jit
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
     fpsr = psr.Archive_load(fname)
