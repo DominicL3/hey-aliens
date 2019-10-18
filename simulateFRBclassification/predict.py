@@ -5,8 +5,8 @@ import argparse, os
 from glob import glob
 from tqdm import tqdm
 import psr2np
-import keras
-from keras.models import load_model
+# import keras
+# from keras.models import load_model
 
 """After taking in a directory of .ar files and a model,
 outputs probabilities that the files contain an FRB. Also 
