@@ -41,7 +41,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
     parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
-    parser.add_argument('NCHAN', type=int, default=64, help=' Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--NCHAN', type=int, default=64, help=' Number of frequency channels to resize psrchive files to.')
     
     args = parser.parse_args()
 
