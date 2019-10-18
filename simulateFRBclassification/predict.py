@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import numpy as np
+import matplotlib.pyplot as plt
 import argparse, os, glob
 from tqdm import tqdm
 import psr2np
@@ -84,3 +85,11 @@ if __name__ == "__main__":
     
     predictions = model.predict_classes(candidates[..., None], verbose=1)
     print(predictions)
+
+    plt.ion()
+    plt.plot(predictions)
+    plt.xlabel('Number')
+    plt.ylabel('Prediction')
+    plt.savefig('prediction_plot.png', dpi=300)
+
+    print('Number of FRBs: {}'.format(np.sum(predictions)))
