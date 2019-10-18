@@ -58,7 +58,7 @@ def psr2np(fname, NCHAN, dm):
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('--num_samples', type=int, default=320, help='Number of RFI arrays to generate')
+    parser.add_argument('num_samples', type=int, help='Number of RFI arrays to generate')
     parser.add_argument('--save_name', type=str, default='psr_arrays.npz',
                         help='Filename to save frequency-time arrays')
     
@@ -70,7 +70,7 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    path = args.path_RFI
+    path = '/datax/scratch/vgajjar/Archive_files_to_train/'
     NCHAN = args.NCHAN
 
     files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
