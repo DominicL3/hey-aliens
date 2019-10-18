@@ -4,11 +4,10 @@
 import imp
 psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
 
-from tqdm import tqdm
 import numpy as np
 import argparse
 import glob
-
+from tqdm import tqdm
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
@@ -42,7 +41,6 @@ def psr2np(fname, NCHAN, dm):
 
     return data, w, freq
 
-
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
@@ -52,8 +50,9 @@ if __name__ == "__main__":
     NCHAN = 64
 
     files = glob.glob("/datax/scratch/vgajjar/Archive_files_to_train/*.ar")
-    print("Length of files: %d" % len(files))
 
+    if not files:
+        raise ValueError("No files found in path")
 
     # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
