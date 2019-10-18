@@ -4,7 +4,7 @@ import numpy as np
 import argparse, os
 from glob import glob
 from tqdm import tqdm
-import psr2np
+# import psr2np
 import keras
 from keras.models import load_model
 
@@ -25,6 +25,38 @@ def extract_DM(fname):
     fpsr = psr.Archive_load(fname)
     dm = fpsr.get_dispersion_measure()
     return dm
+
+def psr2np(fname, NCHAN, dm):
+    # Get psrchive file as input and outputs numpy array
+    fpsr = psr.Archive_load(fname)
+
+    # must disperse the signal then dedisperse due to crashes on already dedispersed signals
+    fpsr.dededisperse()
+    fpsr.set_dispersion_measure(dm)
+    fpsr.dedisperse()
+
+    # resize image to number of frequency channels
+    fpsr.fscrunch_to_nchan(NCHAN)
+    fpsr.remove_baseline()
+
+    # -- apply weights for RFI lines --#
+    ds = fpsr.get_data().squeeze()
+    
+    # set channels marked as RFI (zero weight) to NaN
+    w = fpsr.get_weights().flatten()
+    w = w / np.max(w)
+    idx = np.where(w == 0)[0]
+    ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
+    ds[:, idx, :] = np.nan
+
+    # -- Get total intensity data (I) from the full stokes --#
+    data = ds[0, :, :]
+
+    # -- Get frequency axis values --#
+    freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
+                       fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
+
+    return data, w, freq
 
 if __name__ == "__main__":
     """
@@ -59,7 +91,7 @@ if __name__ == "__main__":
     # get number of time bins to pre-allocate zero array
     random_file =  np.random.choice(candidate_names)
     random_dm = extract_DM(random_file)
-    random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
+    random_data = psr2np(random_file, NCHAN, random_dm)[0]
 
     # pre-allocate array containing all candidates
     # candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
@@ -70,7 +102,7 @@ if __name__ == "__main__":
     for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
         # dm = extract_DM(filename)
-        data, w = psr2np.psr2np(filename, NCHAN, 0)[0:2]
+        data, w = psr2np(filename, NCHAN, 0)[0:2]
 
         # candidate_data = psr2np.normalize_background(data)
         
