@@ -49,8 +49,6 @@ if __name__ == "__main__":
     parser.add_argument('num_samples', type=int, help='Number of RFI arrays to generate')
     
     args = parser.parse_args()
-
-    path = '/datax/scratch/vgajjar/Archive_files_to_train/'
     NCHAN = 64
 
     files = glob.glob("/datax/scratch/vgajjar/Archive_files_to_train/*.ar")
