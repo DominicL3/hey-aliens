@@ -1,8 +1,7 @@
 #!/usr/bin/python
 
 import numpy as np
-import argparse, os
-from glob import glob
+import argparse, os, glob
 from tqdm import tqdm
 import psr2np
 import keras
@@ -51,7 +50,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     # get filenames of candidates
-    candidate_names = glob(path + '*.ar' if path[-1] == '/' else path + '/*.ar')
+    candidate_names = glob.glob(path + '*.ar' if path[-1] == '/' else path + '/*.ar')
 
     if not candidate_names:
         raise ValueError('No .ar files detected in path!')
@@ -71,11 +70,11 @@ if __name__ == "__main__":
         # convert candidate to numpy array
         # dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
-
-        # candidate_data = psr2np.normalize_background(data)
         
         # candidates[i, :, :] = candidate_data
         candidates.append(data)
+
+    candidate_data = np.array([psr2np.normalize_background(data) for data in candidates])
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
