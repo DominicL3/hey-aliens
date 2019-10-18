@@ -69,8 +69,8 @@ if __name__ == "__main__":
 
     for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
-        dm = extract_DM(filename)
-        data, w = psr2np.psr2np(filename, NCHAN, dm)[0:2]
+        # dm = extract_DM(filename)
+        data, w = psr2np.psr2np(filename, NCHAN, 0)[0:2]
 
         # candidate_data = psr2np.normalize_background(data)
         
