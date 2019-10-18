@@ -9,18 +9,6 @@ import numpy as np
 import argparse
 import glob
 
-"""
-Takes a directory of .ar files and converts them into one 
-large numpy array with dimensions (num_samples, NCHAN, 256). 
-The number of frequency channels will be scrunched to NCHAN, 
-and dispersion measure is randomized with every sample.
-
-NOTE: since chop_off() splits the arrays into chunks, the number 
-of samples actually generated is the number of samples given as a 
-command line argument multiplied by the number of chunks that 
-chop_off() has to split the arrays into to get 256 time bins.
-
-"""
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
@@ -62,14 +50,12 @@ if __name__ == "__main__":
     
     args = parser.parse_args()
 
-    path = '/datax/scratch/vgajjar/Archive_files_to_train/'
+    # path = '/datax/scratch/vgajjar/Archive_files_to_train/'
     NCHAN = 64
 
-    files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
+    # files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
+    files = glob.glob('/datax/scratch/vgajjar/Archive_files_to_test/*.ar')
     print("Length of files: %d" % len(files))
-
-    if not files:
-        raise ValueError("No files found in path " + path)
 
     # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
