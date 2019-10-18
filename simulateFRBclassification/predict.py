@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     print("Preparing %d files for prediction" % len(candidate_names))
 
-    for i, filename in enumerate(tqdm(candidate_names)):
+    for filename in tqdm(candidate_names):
         # convert candidate to numpy array
         # dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
