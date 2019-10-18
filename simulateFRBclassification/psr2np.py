@@ -109,7 +109,7 @@ if __name__ == "__main__":
     save_name = args.save_name
     NCHAN = args.NCHAN
 
-    files = glob.glob(path + "*.ar" if path[:-1] == '/' else path + '/*.ar')
+    files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
     print("Length of files: %d" % len(files))
 
     if not files:
