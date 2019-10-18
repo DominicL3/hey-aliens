@@ -45,9 +45,8 @@ if __name__ == "__main__":
     parser.add_argument('--NCHAN', type=int, default=64, help=' Number of frequency channels to resize psrchive files to.')
     
     args = parser.parse_args()
-
-    # load model and file path
-    model = load_model(args.model_name, compile=True)
+    
+    # load file path
     path = args.candidate_path
     NCHAN = args.NCHAN
 
@@ -83,5 +82,8 @@ if __name__ == "__main__":
 
     print(candidates.shape)
 
+    # load model and predict
+    model = load_model(args.model_name, compile=True)
+    
     predictions = model.predict_classes(candidates[..., None], verbose=1)
     print(predictions)
