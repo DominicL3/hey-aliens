@@ -58,7 +58,7 @@ if __name__ == "__main__":
         raise ValueError('No .ar files detected in path!')
 
     # get number of time bins to pre-allocate zero array
-    random_file =  np.random.choice(filename)
+    random_file =  np.random.choice(candidate_names)
     random_dm = extract_DM(random_file)
     random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
 
