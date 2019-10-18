@@ -8,8 +8,38 @@ import numpy as np
 import argparse
 import glob
 from tqdm import tqdm
-import psr2np
 
+def psr2np(fname, NCHAN, dm):
+    # Get psrchive file as input and outputs numpy array
+    fpsr = psr.Archive_load(fname)
+
+    # must disperse the signal then dedisperse due to crashes on already dedispersed signals
+    fpsr.dededisperse()
+    fpsr.set_dispersion_measure(dm)
+    fpsr.dedisperse()
+
+    # resize image to number of frequency channels
+    fpsr.fscrunch_to_nchan(NCHAN)
+    fpsr.remove_baseline()
+
+    # -- apply weights for RFI lines --#
+    ds = fpsr.get_data().squeeze()
+    
+    # set channels marked as RFI (zero weight) to NaN
+    w = fpsr.get_weights().flatten()
+    w = w / np.max(w)
+    idx = np.where(w == 0)[0]
+    ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
+    ds[:, idx, :] = np.nan
+
+    # -- Get total intensity data (I) from the full stokes --#
+    data = ds[0, :, :]
+
+    # -- Get frequency axis values --#
+    freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
+                       fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
+
+    return data, w, freq
 
 def extract_DM(fname):
     # read the ar file and extract the DM
@@ -39,7 +69,7 @@ if __name__ == "__main__":
 
     psrchive_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
-        data, w, freq = psr2np.psr2np(filename, NCHAN, DM)
+        data, w, freq = psr2np(filename, NCHAN, DM)
         psrchive_data.append(data)
         weights.append(w)
 
@@ -50,7 +80,7 @@ if __name__ == "__main__":
     for filename in tqdm(files):
         # convert candidate to numpy array
         # dm = extract_DM(filename)
-        data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
+        data, w, freq = psr2np(filename, NCHAN, 0)
         
         # candidates[i, :, :] = candidate_data
         candidates.append(data)
