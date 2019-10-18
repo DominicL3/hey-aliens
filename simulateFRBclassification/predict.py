@@ -70,7 +70,7 @@ if __name__ == "__main__":
     for filename in tqdm(candidate_names):
         # convert candidate to numpy array
         dm = extract_DM(filename)
-        data, w = psr2np.psr2np(filename, NCHAN, dm)[0, 1]
+        data, w = psr2np.psr2np(filename, NCHAN, dm)[0:2]
 
         candidate_data = psr2np.normalize_background(data)
         
