@@ -70,9 +70,6 @@ if __name__ == "__main__":
         dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
         
-        print('candidate shape: {}'.format(candidates.shape))
-        print('data shape: {}'.format(data.shape))
-        
         candidates[i, :, :] = data
 
     candidate_data = np.array([psr2np.normalize_background(data) for data in candidates])
