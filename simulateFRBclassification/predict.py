@@ -67,14 +67,14 @@ if __name__ == "__main__":
 
     print("Preparing %d files for prediction" % len(candidate_names))
 
-    for filename in tqdm(candidate_names):
+    for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
         dm = extract_DM(filename)
         data, w = psr2np.psr2np(filename, NCHAN, dm)[0:2]
 
         candidate_data = psr2np.normalize_background(data)
         
-        candidates.append(candidate_data)
+        candidates[i, :, :] = candidate_data
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
