@@ -1,13 +1,16 @@
 #!/usr/bin/python
 
-import psr2np
 import numpy as np
-import sys, os
+import argparse, os
+from glob import glob
+import psr2np
 import keras
 from keras.models import load_model
 
-"""Reads in an .ar file and a model and outputs probabilities
-on whether or not the .ar file contains an FRB."""
+"""After taking in a directory of .ar files and a model,
+outputs probabilities that the files contain an FRB. Also 
+returns the files that have FRBs in them, and optionally 
+saves those filenames to some specified document."""
 
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
@@ -23,38 +26,51 @@ def extract_DM(fname):
     return dm
 
 if __name__ == "__main__":
-    """Argument inputs
-        Model name: Path of model used to make this prediction. Should be .h5 file
-        Candidate file: Path to candidate file to be predicted. Should be .ar file
-        OPTIONAL
-            NCHAN: Number of frequency channels (default 64) to resize psrchive files to.
     """
-    if len(sys.argv) == 3:  
-        model = load_model(str(sys.argv[1]), compile=True)
-        filename = str(sys.argv[2])
-        NCHAN = 64
-    elif len(sys.argv) == 4:
-        model = load_model(str(sys.argv[1]), compile=True)
-        filename = str(sys.argv[2])
-        NCHAN = int(sys.argv[3])
-    else:
-        raise RuntimeError('Arguments should be candidate filename, model name, and optionally the number of channels')
+    Parameters
+    ---------------
+    model_name: str
+        Path to trained model used to make prediction. Should be .h5 file
+    candidate_filepath: str 
+        Path to candidate file to be predicted. Should be .ar file
+    NCHAN: int, optional
+        Number of frequency channels (default 64) to resize psrchive files to.
+    """
+
+    # Read command line arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
+    parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
+    parser.add_argument('NCHAN', type=int, default=64, help=' Number of frequency channels to resize psrchive files to.')
+    
+    args = parser.parse_args()
+
+    # load model and file path
+    model = load_model(args.model_name, compile=True)
+    path = args.candidate_path
+    NCHAN = args.NCHAN
+
+    # get filenames of candidates
+    candidate_names = glob(path + '*.ar' if path[-1] == '/' else path + '/*.ar')
+
+    if not candidate_names:
+        raise ValueError('No .ar files detected in path!')
 
     candidates = []
 
-    # convert candidate to numpy array
-    dm = extract_DM(filename)
-    data = psr2np.psr2np(filename, NCHAN, dm)[0]
+    for filename in candidate_names:
+        # convert candidate to numpy array
+        dm = extract_DM(filename)
+        data = psr2np.psr2np(filename, NCHAN, dm)[0]
 
-    candidate_data = psr2np.normalize_background(data)
-    
-    candidates.append(candidate_data)
+        candidate_data = psr2np.normalize_background(data)
+        
+        candidates.append(candidate_data)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
 
     print(candidates.shape)
 
-    # predictions = predict_probabilities(model, candidates)
-    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
+    predictions = model.predict_classes(candidates[..., None], verbose=1)
     print(predictions)
