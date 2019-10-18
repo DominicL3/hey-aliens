@@ -114,7 +114,7 @@ if __name__ == "__main__":
     else:    
         files = glob.glob("*.ar")
    
-    if len(files) == 0:
+    if not files:
         raise ValueError("No files found in path " + path)
 
     # choose DM and files from a uniform distribution
