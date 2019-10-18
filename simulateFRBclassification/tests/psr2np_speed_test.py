@@ -63,7 +63,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     path = '/datax/scratch/vgajjar/Archive_files_to_train/'
-    NCHAN = args.NCHAN
+    NCHAN = 64
 
     files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
     print("Length of files: %d" % len(files))
