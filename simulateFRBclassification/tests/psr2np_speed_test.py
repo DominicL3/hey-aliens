@@ -54,45 +54,10 @@ def psr2np(fname, NCHAN, dm):
 
     return data, w, freq
 
-def normalize_background(background):
-    """
-    Normalize the background array so each row sums up to 1.
-    """
-    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
-
-    # only divide out areas where the row sums up past 0 and isn't nan
-    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool),
-                        where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
-
-    # normalize background
-    normed_background = np.divide(background, background_row_sums, 
-                                  out=np.zeros_like(background), where=div_cond)
-
-    return normed_background
-
-def chop_off(array):
-    """
-    Splits long 2D array into 3D array of multiple 2D arrays, 
-    such that each has 256 time bins. Drops the last chunk if it 
-    has fewer than 256 bins.
-    """
-
-    # split array into multiples of 256
-    subsections = np.arange(256, array.shape[-1], 256)
-    print('Splitting each array into {0} blocks'.format(len(subsections) + 1))
-    split_array = np.split(array, subsections, axis=2)
-
-    if split_array[-1].shape[-1] < 256:
-        split_array.pop()
-
-    combined_chunks = np.concatenate(split_array, axis=0)
-    return combined_chunks
-
 
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('path_RFI', type=str)
     parser.add_argument('--num_samples', type=int, default=320, help='Number of RFI arrays to generate')
     parser.add_argument('--save_name', type=str, default='psr_arrays.npz',
                         help='Filename to save frequency-time arrays')
@@ -106,7 +71,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     path = args.path_RFI
-    save_name = args.save_name
     NCHAN = args.NCHAN
 
     files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
