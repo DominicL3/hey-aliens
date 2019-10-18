@@ -49,7 +49,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     NCHAN = 64
     
-    files = glob.glob('/datax/scratch/vgajjar/Archive_files_to_test/*.ar')
+    files = glob.glob('/datax/scratch/vgajjar/Archive_files_to_train/*.ar')
 
     if not files:
         raise ValueError("No files found in path")
