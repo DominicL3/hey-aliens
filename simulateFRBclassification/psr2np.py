@@ -9,7 +9,8 @@ import numpy as np
 import argparse
 import glob
 
-"""Takes a directory of .ar files and converts them into one 
+"""
+Takes a directory of .ar files and converts them into one 
 large numpy array with dimensions (num_samples, NCHAN, 256). 
 The number of frequency channels will be scrunched to NCHAN, 
 and dispersion measure is randomized with every sample.
@@ -17,7 +18,9 @@ and dispersion measure is randomized with every sample.
 NOTE: since chop_off() splits the arrays into chunks, the number 
 of samples actually generated is the number of samples given as a 
 command line argument multiplied by the number of chunks that 
-chop_off() has to split the arrays into to get 256 time bins."""
+chop_off() has to split the arrays into to get 256 time bins.
+
+"""
 
 def psr2np(fname, NCHAN, dm):
     # Get psrchive file as input and outputs numpy array
@@ -49,14 +52,12 @@ def psr2np(fname, NCHAN, dm):
     freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
                        fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
 
-    """ Get time axis and convert to milliseconds
-    tbin = float(fpsr.integration_length() / fpsr.get_nbin())
-    taxis = np.arange(0, fpsr.integration_length(), tbin) * 1000
-    """
     return data, w, freq
 
 def normalize_background(background):
-    """Normalize the background array so each row sums up to 1"""
+    """
+    Normalize the background array so each row sums up to 1.
+    """
     background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
 
     # only divide out areas where the row sums up past 0 and isn't nan
@@ -70,8 +71,11 @@ def normalize_background(background):
     return normed_background
 
 def chop_off(array):
-    """Splits 3D array such that each 2D array has 256 time bins.
-    Drops the last chunk if it has fewer than 256 bins."""
+    """
+    Splits long 2D array into 3D array of multiple 2D arrays, 
+    such that each has 256 time bins. Drops the last chunk if it 
+    has fewer than 256 bins.
+    """
 
     # split array into multiples of 256
     subsections = np.arange(256, array.shape[-1], 256)
