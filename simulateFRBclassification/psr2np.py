@@ -110,6 +110,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     files = glob.glob(path + "*.ar" if path[:-1] == '/' else path + '/*.ar')
+    print("Length of files: %d" % len(files))
 
     if not files:
         raise ValueError("No files found in path " + path)
@@ -117,6 +118,8 @@ if __name__ == "__main__":
     # choose DM and files from a uniform distribution
     random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
+
+    print("Unique number of random files: %d" % len(np.unique(files)))
 
     # transform .ar files into numpy arrays and time how long it took
     psrchive_data, weights = [], []
