@@ -67,7 +67,7 @@ if __name__== "__main__":
         raise ValueError("No files found in path")
 
     # choose DM and files from a uniform distribution
-    random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
+    random_DMs = np.random.uniform(low=0, high=10000, size=args.num_samples)
     random_files = np.random.choice(files, size=args.num_samples, replace=True)
 
     # transform .ar files into numpy arrays and time how long it took
