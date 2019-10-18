@@ -5,8 +5,8 @@ import argparse, os
 from glob import glob
 from tqdm import tqdm
 import psr2np
-# import keras
-# from keras.models import load_model
+import keras
+from keras.models import load_model
 
 """After taking in a directory of .ar files and a model,
 outputs probabilities that the files contain an FRB. Also 
@@ -15,10 +15,6 @@ saves those filenames to some specified document."""
 
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
-
-# import psrchive from Vishal's path
-import imp
-psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
 
 def extract_DM(fname):
     # read the ar file and extract the DM
