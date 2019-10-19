@@ -316,8 +316,8 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # optimize using Adam
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-    print("Using batch_size: %d" % batch_size)
-    print("Using %d epochs" % epochs)
+    print("\nBatch size: %d" % batch_size)
+    print("Epochs: %d" % epochs)
 
     class FscoreCallback(keras.callbacks.Callback):
         """Custom metric that will save the model with the highest validation recall as
@@ -425,9 +425,9 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
                 FRB_parameters={'shape': (64, 256), 'f_low': 800, 
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
-    '''Simulates the background for num_data number of points and appends to ftdata.
-    Each iteration will have just noise and an injected FRB, so the label list should
-    be populated with just 0 and 1, which will then be shuffled later.'''
+    """Simulates the background for num_data number of points and appends to ftdata.
+    Each iteration will contain one RFI and one FRB array, so the label list should
+    be populated with consecutive 0s and 1s, which will then be shuffled later."""
 
     ftdata = []
     labels = []
@@ -447,7 +447,6 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
-        # create simulation object and add FRB to it
         event = SimulatedFRB(**FRB_parameters)
         
         if background_files is None:
@@ -455,10 +454,10 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         else:
             # get background and weights from the given array
             background_RFI = backgrounds[sim]
-            background_weight = weights[sim]
+            background_weights = weights[sim]
             
             # inject FRB into real noise array and append label the noise as RFI
-            event.simulateFRB(background=background_RFI, weights=background_weight, 
+            event.simulateFRB(background=background_RFI, weights=background_weights, 
                               SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         
         # append noise to ftdata and label it RFI

@@ -86,6 +86,8 @@ def chop_off(array):
         split_array.pop()
 
     combined_chunks = np.concatenate(split_array, axis=0)
+    print('Final array shape: {0}'.format(combined_chunks.shape))
+    
     return combined_chunks
 
 
