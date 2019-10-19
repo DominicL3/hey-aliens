@@ -515,7 +515,7 @@ if __name__ == "__main__":
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
                         default='confusion_matrix/confusion_matrix.png', help='Filename to store final confusion matrix')
-    parser.add_argument('--save_classifications', type=str, default='classification_results.npz', 
+    parser.add_argument('--save_classifications', type=str, default=None, 
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
     args = parser.parse_args()
