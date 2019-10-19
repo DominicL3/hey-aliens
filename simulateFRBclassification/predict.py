@@ -76,14 +76,15 @@ if __name__ == "__main__":
         data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
         
         candidates[i, :, :] = data * w.reshape(-1, 1)
-
-    candidate_data = np.array([psr2np.normalize_background(data) for data in candidates])
     
     # split array into multiples of 256 time bins, removing the remainder at the end
-    candidates = psr2np.chop_off(np.array(candidates))
+    split_candidates = psr2np.chop_off(np.array(candidates))
+
+    # normalize the background of each array
+    candidate_data = np.array([psr2np.normalize_background(data) for data in split_candidates])
 
     # keep track of original filenames corresponding to each array
-    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
+    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(split_candidates))
 
     if args.save_candidates is not None:
         print('\nSaving candidates to {}'.format(args.save_candidates))
