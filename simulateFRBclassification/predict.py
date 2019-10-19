@@ -42,7 +42,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
     parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
-    parser.add_argument('--NCHAN', type=int, default=64, help=' Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--save_candidates', type=str, default=None, help='Filename to save pre-processed candidates.')
     
     args = parser.parse_args()
     
@@ -77,6 +78,12 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
+
+    # keep track of original filenames corresponding to each array
+    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
+
+    if args.save_candidates is not None:
+        np.savez(args.save_candidates, filenames=duplicated_names, candidates=candidates)
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
