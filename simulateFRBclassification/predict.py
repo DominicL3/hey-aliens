@@ -69,7 +69,7 @@ if __name__ == "__main__":
     for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
         dm = extract_DM(filename)
-        data, w, freq = psr2np.psr2np(filename, NCHAN, 0)
+        data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
         
         candidates[i, :, :] = data
 
