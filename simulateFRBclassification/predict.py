@@ -100,7 +100,7 @@ if __name__ == "__main__":
     # candidate_data = np.array([normalize_background(data) for data in split_candidates])
 
     # keep track of original filenames corresponding to each array
-    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(split_candidates))
+    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
 
     if args.save_candidates is not None:
         print('\nSaving candidates to {}'.format(args.save_candidates))
