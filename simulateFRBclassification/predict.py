@@ -55,7 +55,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     # get filenames of candidates
-    candidate_names = glob.glob(path + 'pulse*.ar' if path[-1] == '/' else path + '/pulse*.ar')
+    candidate_names = glob.glob(path + 'real*.ar' if path[-1] == '/' else path + '/real*.ar')
 
     if not candidate_names:
         raise ValueError('No .ar files detected in path!')
