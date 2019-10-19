@@ -83,13 +83,19 @@ if __name__ == "__main__":
     # load model and predict
     model = load_model(args.model_name, compile=True)
     
-    predictions = model.predict_classes(candidates[..., None], verbose=1)
+    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
     print(predictions)
 
-    plt.ion()
-    plt.plot(predictions)
-    plt.xlabel('Number')
-    plt.ylabel('Prediction')
-    plt.savefig('prediction_plot.png', dpi=300)
+    sorted_predictions = np.argsort(-predictions)
+    top_pred = candidates[sorted_predictions[:5]]
+    probabilities = predictions[sorted_predictions[:5]]
+
+    fig, ax_pred = plt.subplots(nrows=5, ncols=1)
+    for data, prob, ax in zip(top_pred, probabilities, ax_pred):
+        ax.imshow(data, aspect='auto')
+        ax.set_title('Confidence: {}'.format(prob))
+
+    fig.suptitle('Top 5 Predicted FRBs')
+    fig.savefig('top_predictions.png', dpi=300)
 
     print('Number of FRBs: {}'.format(np.sum(predictions)))
