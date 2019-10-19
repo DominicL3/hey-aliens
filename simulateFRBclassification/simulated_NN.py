@@ -227,7 +227,6 @@ class SimulatedFRB(object):
         If given, the signal will be multiplied by the given weights 
         along the frequency axis."""
         if background is None:
-            self.normalize_background(self.background)
             background = self.background
 
         # Create the FRB
@@ -237,7 +236,8 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
         # add to normalized background
-        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
+        frb_background = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
+        self.simulatedFRB = self.normalize_background(frb_background)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
