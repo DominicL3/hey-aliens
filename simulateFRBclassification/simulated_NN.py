@@ -548,9 +548,10 @@ if __name__ == "__main__":
     print(num_data, nfreq, ntime)
     print(labels)
 
-    print(f'Saving ftdata to disk as {args.sim_data}')
-    random_simulation = np.random.randint(0, len(ftdata), 10000)
-    np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
+    if args.sim_data is not None:
+        print(f'Saving 10000 samples to disk as {args.sim_data}')
+        random_simulation = np.random.randint(0, len(ftdata), 10000)
+        np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]
@@ -596,8 +597,10 @@ if __name__ == "__main__":
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
-    print(f"Saving classification results to {results_file}")
-    np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
+
+    if results_file is not None:
+        print(f"Saving classification results to {results_file}")
+        np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
