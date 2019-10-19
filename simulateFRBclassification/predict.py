@@ -71,7 +71,7 @@ if __name__ == "__main__":
         dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
         
-        candidates[i, :, :] = data
+        candidates[i, :, :] = data * w.reshape(-1, 1)
 
     candidate_data = np.array([psr2np.normalize_background(data) for data in candidates])
     
