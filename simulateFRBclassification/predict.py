@@ -78,8 +78,6 @@ if __name__ == "__main__":
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
 
-    print('Candidates shape: {}'.format(candidates.shape))
-
     # load model and predict
     model = load_model(args.model_name, compile=True)
     
