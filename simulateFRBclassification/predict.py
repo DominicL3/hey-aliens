@@ -104,16 +104,16 @@ if __name__ == "__main__":
 
     if args.save_candidates is not None:
         print('\nSaving candidates to {}'.format(args.save_candidates))
-        np.savez(args.save_candidates, filenames=duplicated_names, candidates=candidates)
+        np.savez(args.save_candidates, filenames=duplicated_names, candidates=candidate_data)
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
     
-    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
+    predictions = model.predict(candidate_data[..., None], verbose=1)[:, 1]
     print(predictions)
 
     sorted_predictions = np.argsort(-predictions)
-    top_pred = candidates[sorted_predictions[:5]]
+    top_pred = candidate_data[sorted_predictions[:5]]
     probabilities = predictions[sorted_predictions[:5]]
 
     fig, ax_pred = plt.subplots(nrows=5, ncols=1)
