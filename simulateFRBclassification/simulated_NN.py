@@ -488,7 +488,7 @@ if __name__ == "__main__":
                                                                        Only valid if generating Gaussian noise; overwritten\
                                                                        if background files are provided')
 
-    parser.add_argument('--sim_data', type=str, default='simulated_data', help='Filename to save simulation data')
+    parser.add_argument('--sim_data', type=str, default=None, help='Filename to save simulation data')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -643,5 +643,5 @@ if __name__ == "__main__":
 
     # save data, show plot
     print(f"Saving confusion matrix to {confusion_matrix_name}")
-    plt.savefig(confusion_matrix_name)
+    plt.savefig(confusion_matrix_name, dpi=300)
     plt.show()
