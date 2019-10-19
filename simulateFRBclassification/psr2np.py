@@ -54,7 +54,7 @@ def psr2np(fname, NCHAN, dm):
 
     return data, w, freq
 
-def normalize_background(background):
+'''def normalize_background(background):
     """
     Normalize the background array so each row sums up to 1.
     """
@@ -68,7 +68,7 @@ def normalize_background(background):
     normed_background = np.divide(background, background_row_sums, 
                                   out=np.zeros_like(background), where=div_cond)
 
-    return normed_background
+    return normed_background'''
 
 def chop_off(array):
     """
@@ -132,7 +132,7 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins 
     psrchive_data = chop_off(np.array(psrchive_data))
-    psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
+    # psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
 
     # clone weights so they match up with split chunks of psrchive data
     weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
