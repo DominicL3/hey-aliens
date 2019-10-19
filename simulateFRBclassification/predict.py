@@ -36,10 +36,13 @@ if __name__ == "__main__":
         Path to candidate file to be predicted. Should be .ar file
     NCHAN: int, optional
         Number of frequency channels (default 64) to resize psrchive files to.
+    save_candidates: str, optional
+        Filename to save pre-processed candidates, just before they are thrown into CNN.
     """
 
     # Read command line arguments
     parser = argparse.ArgumentParser()
+
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
     parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
@@ -83,6 +86,7 @@ if __name__ == "__main__":
     duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
 
     if args.save_candidates is not None:
+        print('\nSaving candidates to {}'.format(args.save_candidates))
         np.savez(args.save_candidates, filenames=duplicated_names, candidates=candidates)
 
     # load model and predict
