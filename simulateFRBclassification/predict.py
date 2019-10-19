@@ -97,6 +97,7 @@ if __name__ == "__main__":
 
     fig.suptitle('Top 5 Predicted FRBs')
     fig.tight_layout()
+    plt.show()
     fig.savefig('top_predictions.png', dpi=300)
 
-    print('Number of FRBs: {}'.format(np.sum(predictions)))
+    print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
