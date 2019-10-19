@@ -26,6 +26,22 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
+def normalize_background(background):
+    """
+    Normalize the background array so each row sums up to 1.
+    """
+    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
+
+    # only divide out areas where the row sums up past 0 and isn't nan
+    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool),
+                        where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
+
+    # normalize background
+    normed_background = np.divide(background, background_row_sums, 
+                                  out=np.zeros_like(background), where=div_cond)
+
+    return normed_background
+
 if __name__ == "__main__":
     """
     Parameters
@@ -81,7 +97,7 @@ if __name__ == "__main__":
     split_candidates = psr2np.chop_off(np.array(candidates))
 
     # normalize the background of each array
-    candidate_data = np.array([psr2np.normalize_background(data) for data in split_candidates])
+    candidate_data = np.array([normalize_background(data) for data in split_candidates])
 
     # keep track of original filenames corresponding to each array
     duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(split_candidates))
