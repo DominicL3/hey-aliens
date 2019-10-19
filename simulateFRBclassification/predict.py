@@ -94,10 +94,10 @@ if __name__ == "__main__":
         candidates[i, :, :] = data * w.reshape(-1, 1)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
-    split_candidates = psr2np.chop_off(np.array(candidates))
+    candidate_data = psr2np.chop_off(np.array(candidates))
 
     # normalize the background of each array
-    candidate_data = np.array([normalize_background(data) for data in split_candidates])
+    # candidate_data = np.array([normalize_background(data) for data in split_candidates])
 
     # keep track of original filenames corresponding to each array
     duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(split_candidates))
