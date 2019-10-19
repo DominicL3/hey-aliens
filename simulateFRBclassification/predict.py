@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # pre-allocate array containing all candidates
     candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
 
-    print("Preparing %d files for prediction" % len(candidate_names))
+    print("\nPreparing %d files for prediction" % len(candidate_names))
 
     for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
@@ -78,7 +78,7 @@ if __name__ == "__main__":
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidates = psr2np.chop_off(np.array(candidates))
 
-    print(candidates.shape)
+    print('Candidates shape: {}'.format(candidates.shape))
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
@@ -96,6 +96,7 @@ if __name__ == "__main__":
         ax.set_title('Confidence: {}'.format(prob))
 
     fig.suptitle('Top 5 Predicted FRBs')
+    fig.tight_layout()
     fig.savefig('top_predictions.png', dpi=300)
 
     print('Number of FRBs: {}'.format(np.sum(predictions)))
