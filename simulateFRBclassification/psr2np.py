@@ -130,7 +130,7 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins 
     psrchive_data = chop_off(np.array(psrchive_data))
-    psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
+    # psrchive_data = np.array([normalize_background(data) for data in psrchive_data])
 
     # clone weights so they match up with split chunks of psrchive data
     weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
