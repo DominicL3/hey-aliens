@@ -117,23 +117,25 @@ if __name__ == "__main__":
     top_pred = candidate_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
-    fig, ax_pred = plt.subplots(nrows=5, ncols=1)
+    """fig, ax_pred = plt.subplots(nrows=5, ncols=1)
     for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
         ax.imshow(data, aspect='auto')
         ax.set_title('Confidence: {}'.format(prob))
+    
+    fig.suptitle('Top 5 Predicted FRBs')
+    fig.tight_layout()
+    plt.show()
+    fig.savefig('top_predictions.png', dpi=300)
+    """
 
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
+        print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
         with PdfPages(args.save_predicted_FRBs) as pdf:
             plt.figure()
             for data, prob in zip(top_pred, probabilities):
                 plt.imshow(data, aspect='auto')
                 plt.title('Confidence: {}'.format(prob))
                 pdf.savefig()
-
-    fig.suptitle('Top 5 Predicted FRBs')
-    fig.tight_layout()
-    plt.show()
-    fig.savefig('top_predictions.png', dpi=300)
 
     print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
