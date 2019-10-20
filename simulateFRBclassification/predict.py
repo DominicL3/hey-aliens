@@ -128,14 +128,15 @@ if __name__ == "__main__":
     fig.savefig('top_predictions.png', dpi=300)
     """
 
-    """if args.save_predicted_FRBs:
+    if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
         print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
         with PdfPages(args.save_predicted_FRBs) as pdf:
-            plt.figure()
-            for data, prob in zip(top_pred, probabilities):
+            for data, prob in tqdm(zip(top_pred, probabilities), total=len(top_pred)):
+                plt.figure()
                 plt.imshow(data, aspect='auto')
                 plt.title('Confidence: {}'.format(prob))
-                pdf.savefig()"""
+                pdf.savefig()
+                plt.close()
 
     print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
