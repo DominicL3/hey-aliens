@@ -137,11 +137,10 @@ if __name__ == "__main__":
         frb_probs = probabilities[voted_FRB_probs]
 
         with PdfPages(args.save_predicted_FRBs) as pdf:
+            plt.figure()
             for data, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
-                plt.figure()
                 plt.imshow(data, aspect='auto')
                 plt.title('Confidence: {}'.format(prob))
                 pdf.savefig()
-                plt.close()
 
     print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
