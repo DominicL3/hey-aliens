@@ -176,7 +176,7 @@ class SimulatedFRB(object):
 
     def normalize_background(self, background):
         """Normalize the background array so each row sums up to 1"""
-        background_row_sums = np.trapz(background, axis=1)[:, None]
+        background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
 
         # only divide out areas where the row sums up past 0 and isn't nan
         div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
@@ -184,27 +184,25 @@ class SimulatedFRB(object):
         
         # normalize background
         normed_background = np.divide(background, background_row_sums, 
-                                      out=np.zeros_like(background), 
-                                      where=div_cond)
+                                      out=np.zeros_like(background), where=div_cond)
 
         return normed_background
 
     def injectFRB(self, SNR, background=None, weights=None):
         """Inject FRB into the background. If specified, signal will 
         be multiplied by the given weights along the frequency axis."""
-        if background is None:
-            background = self.normalize_background(self.background)
-            
-        # update the background of the object
-        self.background = background
+        
+        # update object background if provided
+        if background is not None:
+            self.background = background
 
-        # remove RFI channels in the background
+        # remove channels in background flagged as RFI
         if weights is not None:
             if len(weights) != background.shape[0]:
                 raise ValueError("Number of input weights does not match number of channels")
             background *= weights.reshape(-1, 1)
 
-        # get 1D noise and multiply signal by given SNR
+        # get 1D noise profile and multiply signal by given SNR
         noise_profile = np.mean(background, axis=0)
         peak_value = SNR * np.std(noise_profile)
         profile_FRB = np.mean(self.FRB, axis=0)
@@ -236,8 +234,8 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
         # add to normalized background
-        frb_background = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
-        self.simulatedFRB = self.normalize_background(frb_background)
+        frb_with_background = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
+        self.simulatedFRB = self.normalize_background(frb_with_background)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
