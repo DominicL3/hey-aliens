@@ -62,7 +62,7 @@ if __name__ == "__main__":
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
     parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
-    parser.add_argument('--save_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
+    parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     
     args = parser.parse_args()
@@ -117,16 +117,16 @@ if __name__ == "__main__":
     top_pred = candidate_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
-    """fig, ax_pred = plt.subplots(nrows=5, ncols=1)
-    for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
-        ax.imshow(data, aspect='auto')
-        ax.set_title('Confidence: {}'.format(prob))
-    
-    fig.suptitle('Top 5 Predicted FRBs')
-    fig.tight_layout()
-    plt.show()
-    fig.savefig('top_predictions.png', dpi=300)
-    """
+    if args.save_top_candidates:
+        fig, ax_pred = plt.subplots(nrows=5, ncols=1)
+        for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
+            ax.imshow(data, aspect='auto')
+            ax.set_title('Confidence: {}'.format(prob))
+        
+        fig.suptitle('Top 5 Predicted FRBs')
+        fig.tight_layout()
+        plt.show()
+        fig.savefig(args.save_top_candidates, dpi=300)
 
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
