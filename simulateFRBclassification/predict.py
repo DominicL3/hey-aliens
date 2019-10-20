@@ -131,8 +131,13 @@ if __name__ == "__main__":
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
         print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
+
+        voted_FRB_probs = probabilities > 0.5
+        predicted_frbs = top_pred[voted_FRB_probs]
+        frb_probs = probabilities[voted_FRB_probs]
+
         with PdfPages(args.save_predicted_FRBs) as pdf:
-            for data, prob in tqdm(zip(top_pred, probabilities), total=len(top_pred)):
+            for data, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
                 plt.figure()
                 plt.imshow(data, aspect='auto')
                 plt.title('Confidence: {}'.format(prob))
