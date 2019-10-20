@@ -52,7 +52,7 @@ if __name__ == "__main__":
         Path to candidate file to be predicted. Should be .ar file
     NCHAN: int, optional
         Number of frequency channels (default 64) to resize psrchive files to.
-    save_candidates: str, optional
+    save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
     """
 
@@ -103,9 +103,9 @@ if __name__ == "__main__":
     # keep track of original filenames corresponding to each array
     duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
 
-    if args.save_candidates is not None:
-        print('\nSaving candidates to {}'.format(args.save_candidates))
-        np.savez(args.save_candidates, filenames=duplicated_names, candidates=candidate_data)
+    if args.save_top_candidates is not None:
+        print('\nSaving candidates to {}'.format(args.save_top_candidates))
+        np.savez(args.save_top_candidates, filenames=duplicated_names, candidates=candidate_data)
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
