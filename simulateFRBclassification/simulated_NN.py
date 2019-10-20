@@ -234,8 +234,8 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
         # add to normalized background
-        frb_with_background = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
-        self.simulatedFRB = self.normalize_background(frb_with_background)
+        background = self.normalize_background(background)
+        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
