@@ -126,8 +126,9 @@ if __name__ == "__main__":
         from matplotlib.backends.backend_pdf import PdfPages
         with PdfPages(args.save_predicted_FRBs) as pdf:
             plt.figure()
-            for data in top_pred:
+            for data, prob in zip(top_pred, probabilities):
                 plt.imshow(data, aspect='auto')
+                plt.title('Confidence: {}'.format(prob))
                 pdf.savefig()
 
     fig.suptitle('Top 5 Predicted FRBs')
