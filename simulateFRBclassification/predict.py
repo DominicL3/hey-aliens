@@ -143,4 +143,7 @@ if __name__ == "__main__":
                 plt.title('Confidence: {}'.format(prob))
                 pdf.savefig()
 
+        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
+        print('Saving predicted to {}.npy'.format(args.save_predicted_FRBs))
+
     print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
