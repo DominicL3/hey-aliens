@@ -250,7 +250,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     train_data : ndarray
         (ntrain, ntime, 1) float64 array with training data
     train_labels :  ndarray
-        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0]=RFI 
+        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0] = RFI 
     eval_data : ndarray
         (neval, ntime, 1) float64 array with evaluation data
     eval_labels : 
@@ -567,7 +567,7 @@ if __name__ == "__main__":
 
     train_labels, eval_labels = labels[ind_train], labels[ind_eval]
 
-    # convert to binary matrix
+    # encode RFI as [1, 0] and FRB as [0, 1]
     train_labels_keras = keras.utils.to_categorical(train_labels)
     eval_labels_keras = keras.utils.to_categorical(eval_labels)
 
