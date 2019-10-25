@@ -103,10 +103,6 @@ if __name__ == "__main__":
     # keep track of original filenames corresponding to each array
     duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
 
-    if args.save_top_candidates is not None:
-        print('\nSaving candidates to {}'.format(args.save_top_candidates))
-        np.savez(args.save_top_candidates, filenames=duplicated_names, candidates=candidate_data)
-
     # load model and predict
     model = load_model(args.model_name, compile=True)
     
@@ -117,7 +113,7 @@ if __name__ == "__main__":
     top_pred = candidate_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
-    if args.save_predicted_FRBs:
+    if args.save_top_candidates:
         fig, ax_pred = plt.subplots(nrows=5, ncols=1)
         for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
             ax.imshow(data, aspect='auto')
