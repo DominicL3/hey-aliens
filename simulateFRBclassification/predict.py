@@ -117,7 +117,7 @@ if __name__ == "__main__":
     top_pred = candidate_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
-    if args.save_top_candidates:
+    if args.save_predicted_FRBs:
         fig, ax_pred = plt.subplots(nrows=5, ncols=1)
         for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
             ax.imshow(data, aspect='auto')
@@ -126,7 +126,7 @@ if __name__ == "__main__":
         fig.suptitle('Top 5 Predicted FRBs')
         fig.tight_layout()
         plt.show()
-        fig.savefig(args.save_top_candidates, dpi=300)
+        fig.savefig(args.save_predicted_FRBs, dpi=300)
 
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
