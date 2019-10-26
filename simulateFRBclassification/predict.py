@@ -26,21 +26,15 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
-def normalize_background(background):
-    """
-    Normalize the background array so each row sums up to 1.
-    """
-    background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
+def scale_data(ftdata):
+    """Subtract each channel in 3D array by its median and 
+    divide each array by its global standard deviation."""
 
-    # only divide out areas where the row sums up past 0 and isn't nan
-    div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool),
-                        where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
-
-    # normalize background
-    normed_background = np.divide(background, background_row_sums, 
-                                  out=np.zeros_like(background), where=div_cond)
-
-    return normed_background
+    medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
+    stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
+    
+    scaled_data = (ftdata - medians) / stddev
+    return scaled_data
 
 if __name__ == "__main__":
     """
@@ -91,11 +85,11 @@ if __name__ == "__main__":
         # convert candidate to numpy array
         dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
-
-        # normalize the background of each array
-        normalized_data = normalize_background(data)
         
-        candidates[i, :, :] = normalized_data * w.reshape(-1, 1)
+        # bring each channel to zero median and each array to unit stddev
+        zscore_data = scale_data(data)
+        
+        candidates[i, :, :] = zscore_data * w.reshape(-1, 1)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidate_data = psr2np.chop_off(np.array(candidates))

@@ -174,20 +174,6 @@ class SimulatedFRB(object):
         else:
             return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
-    def normalize_background(self, background):
-        """Normalize the background array so each row sums up to 1"""
-        background_row_sums = np.sum(background, axis=1).reshape(-1, 1)
-
-        # only divide out areas where the row sums up past 0 and isn't nan
-        div_cond = np.greater(background_row_sums, 0, out=np.zeros_like(background, dtype=bool), 
-                                where=(~np.isnan(background_row_sums))) & (~np.isnan(background))
-        
-        # normalize background
-        normed_background = np.divide(background, background_row_sums, 
-                                      out=np.zeros_like(background), where=div_cond)
-
-        return normed_background
-
     def injectFRB(self, SNR, background=None, weights=None):
         """Inject FRB into the background. If specified, signal will 
         be multiplied by the given weights along the frequency axis."""
@@ -234,8 +220,17 @@ class SimulatedFRB(object):
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
         
         # add to normalized background
-        unnormalized_FRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
-        self.simulatedFRB = self.normalize_background(unnormalized_FRB)
+        self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
+
+def scale_data(ftdata):
+    """Subtract each channel in 3D array by its median and 
+    divide each array by its global standard deviation."""
+
+    medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
+    stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
+    
+    scaled_data = (ftdata - medians) / stddev
+    return scaled_data
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
@@ -542,6 +537,11 @@ if __name__ == "__main__":
 
     ftdata, labels = make_labels(**label_params)
     
+    # bring each channel to zero median and each array to unit stddev
+    print('Scaling arrays. . .')
+    ftdata = scale_data(ftdata)
+    print('Done scaling!')
+
     num_data, nfreq, ntime = ftdata.shape
     print(num_data, nfreq, ntime)
     print(labels)
