@@ -86,25 +86,25 @@ if __name__ == "__main__":
         dm = extract_DM(filename)
         data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
         
-        # bring each channel to zero median and each array to unit stddev
-        zscore_data = scale_data(data)
-        
-        candidates[i, :, :] = zscore_data * w.reshape(-1, 1)
+        candidates[i, :, :] = data * w.reshape(-1, 1)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
     candidate_data = psr2np.chop_off(np.array(candidates))
 
+    # bring each channel to zero median and each array to unit stddev
+    zscore_data = scale_data(candidate_data)
+
     # keep track of original filenames corresponding to each array
-    duplicated_names = np.repeat(candidate_names, float(len(candidates))/ len(candidate_data))
+    duplicated_names = np.repeat(candidate_names, float(len(candidates)) / len(zscore_data))
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
     
-    predictions = model.predict(candidate_data[..., None], verbose=1)[:, 1]
+    predictions = model.predict(zscore_data[..., None], verbose=1)[:, 1]
     print(predictions)
 
     sorted_predictions = np.argsort(-predictions)
-    top_pred = candidate_data[sorted_predictions]
+    top_pred = zscore_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
     if args.save_top_candidates:
