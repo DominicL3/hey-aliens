@@ -14,12 +14,6 @@ Takes a directory of .ar files and converts them into one
 large numpy array with dimensions (num_samples, NCHAN, 256). 
 The number of frequency channels will be scrunched to NCHAN, 
 and dispersion measure is randomized with every sample.
-
-NOTE: since chop_off() splits the arrays into chunks, the number 
-of samples actually generated is the number of samples given as a 
-command line argument multiplied by the number of chunks that 
-chop_off() has to split the arrays into to get 256 time bins.
-
 """
 
 def psr2np(fname, NCHAN, dm):
@@ -70,10 +64,20 @@ def chop_off(array):
         split_array.pop()
 
     combined_chunks = np.concatenate(split_array, axis=0)
-    print('Final array shape: {0}'.format(combined_chunks.shape))
+    print('Array shape after splitting: {0}'.format(combined_chunks.shape))
     
     return combined_chunks
 
+def remove_extras(array, num_samples):
+    """
+    Randomly removes a certain number of 2D arrays from 3D array
+    such that there are num_samples 2D arrays in output.
+    """
+    assert(num_samples <= len(array), "More samples needed than array has")
+    random_indices = np.random.randint(0, len(array), size=num_samples)
+
+    print('Removing {0} random arrays'.format(len(array) - num_samples))
+    return array[random_indices]
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -116,6 +120,9 @@ if __name__ == "__main__":
     
     # split array into multiples of 256 time bins 
     psrchive_data = chop_off(np.array(psrchive_data))
+
+    # remove extra arrays after splitting
+    psrchive_data = remove_extras(psrchive_data, args.num_samples)
 
     # clone weights so they match up with split chunks of psrchive data
     weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
