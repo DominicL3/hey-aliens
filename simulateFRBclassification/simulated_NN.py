@@ -334,15 +334,15 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             precision = precision_score(y_true, y_pred)
             fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
-            print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
+            print(" — val_recall: {0} — val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
             
             if epoch > 3:
                 if fscore > self.best:
-                    print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
+                    print('fscore improved from {0} to {1}, saving model to {2}'.format(np.round(self.best, 4), np.round(fscore, 4), self.filepath))
                     self.best = fscore
                     self.model.save(self.filepath, overwrite=True)
                 else:
-                    print(f"fscore ({np.round(fscore, 4)}) did not improve from {np.round(self.best, 4)}")
+                    print("fscore ({0}) did not improve from {1}".format(np.round(fscore, 4), np.round(self.best, 4)))
             return
 
     # save best model according to validation accuracy
@@ -526,7 +526,7 @@ if __name__ == "__main__":
     else:
         NFREQ = 64
     
-    print(f'Number of frequency channels: {NFREQ}')
+    print('Number of frequency channels: {}'.format(NFREQ))
     NTIME = 256
 
     # make dictionaries to pass all the arguments into functions succintly
@@ -547,7 +547,7 @@ if __name__ == "__main__":
     print(labels)
 
     if args.sim_data is not None:
-        print(f'Saving 10000 samples to disk as {args.sim_data}')
+        print('Saving 10000 samples to disk as {}'.format(args.sim_data))
         random_simulation = np.random.randint(0, len(ftdata), 10000)
         np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
@@ -589,7 +589,7 @@ if __name__ == "__main__":
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
     
-    print (f"Training on {len(train_labels)} samples took {np.round((time() - start_time) / 60)} minutes")
+    print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60)))
     
     # print out scores of various metrics
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
@@ -597,7 +597,7 @@ if __name__ == "__main__":
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
 
     if results_file is not None:
-        print(f"Saving classification results to {results_file}")
+        print("Saving classification results to {0}".format(results_file))
         np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     if TP.size:
@@ -626,20 +626,20 @@ if __name__ == "__main__":
 
     # plot the confusion matrix and display
     plt.subplot(221)
-    plt.gca().set_title(f'TP: {conf_mat[0][0]}')
+    plt.gca().set_title('TP: {}'.format(conf_mat[0][0]))
     plt.imshow(TPdata, aspect='auto', interpolation='none')
     plt.subplot(222)
-    plt.gca().set_title(f'FP: {conf_mat[0][1]}')
+    plt.gca().set_title('FP: {}'.format(conf_mat[0][1]))
     plt.imshow(FPdata, aspect='auto', interpolation='none')
     plt.subplot(223)
-    plt.gca().set_title(f'FN: {conf_mat[1][0]}')
+    plt.gca().set_title('FN: {}'.format(conf_mat[1][0]))
     plt.imshow(FNdata, aspect='auto', interpolation='none')
     plt.subplot(224)
-    plt.gca().set_title(f'TN: {conf_mat[1][1]}')
+    plt.gca().set_title('TN: {}'.format(conf_mat[1][1]))
     plt.imshow(TNdata, aspect='auto', interpolation='none')
     plt.tight_layout()
 
     # save data, show plot
-    print(f"Saving confusion matrix to {confusion_matrix_name}")
+    print("Saving confusion matrix to {}".format(confusion_matrix_name))
     plt.savefig(confusion_matrix_name, dpi=300)
     plt.show()
