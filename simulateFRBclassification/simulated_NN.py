@@ -334,7 +334,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             precision = precision_score(y_true, y_pred)
             fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
-            print(" — val_recall: {0} — val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
+            print(" - val_recall: {0} - val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
             
             if epoch > 3:
                 if fscore > self.best:
@@ -365,7 +365,7 @@ def get_classification_results(y_true, y_pred):
     false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
     true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
     false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
-    
+
     return true_positives, false_positives, true_negatives, false_negatives
 
 
