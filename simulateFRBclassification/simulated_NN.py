@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 
 from __future__ import absolute_import
 from __future__ import division
@@ -13,7 +13,15 @@ from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
 
-"""Adapted from the code published alongside the paper 'Applying Deep Learning 
+# neural network imports
+import keras
+from sklearn.metrics import recall_score, precision_score, fbeta_score
+from keras.models import Sequential
+from keras.layers import Dense, Dropout, Flatten
+from keras.layers import Conv2D, MaxPooling2D
+from keras.models import load_model
+
+"""Adapted from the code published alongside the paper 'Applying Deep Learning
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
 well as code wrapping done by Vishal Gajjar."""
 
@@ -25,33 +33,26 @@ into numpy formats that this program can inject FRBs into."""
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-import keras
-from sklearn.metrics import recall_score, precision_score, fbeta_score
-from keras.models import Sequential
-from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, MaxPooling2D
-from keras.models import load_model
-
 
 class SimulatedFRB(object):
-    """ Class to generate a realistic fast radio burst and 
-    add the event to data, including scintillation and 
+    """ Class to generate a realistic fast radio burst and
+    add the event to data, including scintillation and
     temporal scattering. @source liamconnor
     """
-    def __init__(self, shape=(64, 256), f_low=800, f_high=2000, f_ref=1350, 
+    def __init__(self, shape=(64, 256), f_low=800, f_high=2000, f_ref=1350,
                 bandwidth=1500, max_width=3, tau=0.1):
-        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"        
+        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"
         self.shape = shape
 
         # reference frequency (MHz) of observations
         self.f_ref = f_ref
-        
+
         # maximum width of pulse, high point of uniform distribution for pulse width
-        self.max_width = max_width 
-        
+        self.max_width = max_width
+
         # number of bins/data points on the time (x) axis
-        self.nt = shape[1] 
-        
+        self.nt = shape[1]
+
         # frequency range for the pulse, given the number of channels
         self.frequencies = np.linspace(f_ref - bandwidth // 2, f_ref + bandwidth // 2, shape[0])
 
@@ -60,7 +61,7 @@ class SimulatedFRB(object):
         self.f_high = f_high
 
         # where the pulse will be centered on the time (x) axis
-        self.t0 = np.random.randint(-shape[1] + max_width, shape[1] - max_width) 
+        self.t0 = np.random.randint(-shape[1] + max_width, shape[1] - max_width)
 
         # scattering timescale (milliseconds)
         self.tau = tau
@@ -69,8 +70,8 @@ class SimulatedFRB(object):
         self.SNR = None
         self.FRB = None
 
-        '''Simulates background noise similar to the .ar 
-        files. Backgrounds will be injected with FRBs to 
+        '''Simulates background noise similar to the .ar
+        files. Backgrounds will be injected with FRBs to
         be used in classification later on.'''
         self.background = np.random.randn(*self.shape)
 
@@ -78,20 +79,20 @@ class SimulatedFRB(object):
         """Model pulse as a normalized Gaussian."""
         t = np.linspace(-self.nt // 2, self.nt // 2, self.nt)
         g = np.exp(-(t / np.random.randint(1, self.max_width))**2)
-        
+
         if not np.all(g > 0):
             g += 1e-18
 
         # clone Gaussian into 2D array with NFREQ rows
         return np.tile(g, (self.shape[0], 1))
-    
+
     def scatter_profile(self):
         """ Include exponential scattering profile."""
         tau_nu = self.tau * (self.frequencies / self.f_ref) ** -4
         t = np.linspace(0, self.nt // 2, self.nt)
 
         scatter = np.exp(-t / tau_nu.reshape(-1, 1)) / tau_nu.reshape(-1, 1)
-        
+
         # normalize the scattering profile and move it to the middle of the array
         scatter /= np.max(scatter, axis=1).reshape(-1, 1)
         scatter = np.roll(scatter, self.shape[1] // 2, axis=1)
@@ -104,7 +105,7 @@ class SimulatedFRB(object):
         """
         gaus_prof = self.gaussian_profile()
         scat_prof = self.scatter_profile()
-        
+
         # convolve the two profiles for each frequency
         pulse_prof = fftconvolve(gaus_prof, scat_prof, axes=1, mode='same')
 
@@ -127,7 +128,7 @@ class SimulatedFRB(object):
             nscint = 0
 
         envelope = np.cos(2 * np.pi * nscint * (self.frequencies / self.f_ref)**-2 + scint_phi)
-        
+
         # set all negative elements to zero and add small factor
         envelope[envelope < 0] = 0
         envelope += 0.1
@@ -168,16 +169,16 @@ class SimulatedFRB(object):
             raise ValueError('SNRmin cannot be greater than SNRmax')
 
         random_SNR = SNRmin + np.random.lognormal(mean=1.0, sigma=SNR_sigma)
-        if random_SNR < SNRmax:     
+        if random_SNR < SNRmax:
             self.SNR = random_SNR
             return random_SNR
         else:
             return self.sample_SNR(SNRmin, SNR_sigma, SNRmax)
 
     def injectFRB(self, SNR, background=None, weights=None):
-        """Inject FRB into the background. If specified, signal will 
+        """Inject FRB into the background. If specified, signal will
         be multiplied by the given weights along the frequency axis."""
-        
+
         # update object background if provided
         if background is not None:
             self.background = background
@@ -192,13 +193,13 @@ class SimulatedFRB(object):
         noise_profile = np.mean(background, axis=0)
         peak_value = SNR * np.std(noise_profile)
         profile_FRB = np.mean(self.FRB, axis=0)
-        
+
         # make a signal with given SNR
         signal = self.FRB * (peak_value / np.max(profile_FRB))
 
         # zero out the FRB channels that are low powered on the telescope
         signal[(self.frequencies < self.f_low) | (self.frequencies > self.f_high), :] = 0
-        
+
         # also remove channels from signal that have RFI flagged
         if weights is not None:
             signal *= weights.reshape(-1, 1)
@@ -208,7 +209,7 @@ class SimulatedFRB(object):
     def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
         background array (Gaussian noise if background is not specified).
-        If given, the signal will be multiplied by the given weights 
+        If given, the signal will be multiplied by the given weights
         along the frequency axis."""
         if background is None:
             background = self.background
@@ -218,21 +219,21 @@ class SimulatedFRB(object):
         self.roll() # move the FRB around freq-time array
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
-        
+
         # add to normalized background
         self.simulatedFRB = self.injectFRB(SNR=self.SNR, background=background, weights=weights)
 
 def scale_data(ftdata):
-    """Subtract each channel in 3D array by its median and 
+    """Subtract each channel in 3D array by its median and
     divide each array by its global standard deviation."""
 
     medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
     stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
-    
+
     scaled_data = (ftdata - medians) / stddev
     return scaled_data
 
-def construct_conv2d(train_data, train_labels, eval_data, eval_labels, 
+def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
                      num_conv_layers=4, filter_size=32, batch_size=32,
                      weight_FRB=2, saved_model_name='best_model.h5'):
@@ -245,36 +246,36 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     train_data : ndarray
         (ntrain, ntime, 1) float64 array with training data
     train_labels :  ndarray
-        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0] = RFI 
+        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0] = RFI
     eval_data : ndarray
         (neval, ntime, 1) float64 array with evaluation data
-    eval_labels : 
-        (neval, 2) binary labels of eval data 
-    epochs : int 
-        Number of training epochs 
+    eval_labels :
+        (neval, 2) binary labels of eval data
+    epochs : int
+        Number of training epochs
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to max pooling layers,
         otherwise Keras will throw an error)
     filter_size : int
         Number of filters in first convolutional layer, doubles after each convolutional block.
     n_dense1 : int
-        Number of neurons in first hidden layer 
-    n_dense2 : int 
-        Number of neurons in second hidden layer 
-    
-    batch_size : int 
+        Number of neurons in first hidden layer
+    n_dense2 : int
+        Number of neurons in second hidden layer
+
+    batch_size : int
         Number of batches for training
     weight_FRB : float
         Class weight given to FRB during fitting. This means the loss function
         will penalize missing an FRB more with larger weight_FRB.
-       
+
     Returns
     -------
     model : Keras model
         Fitted model
 
-    score : np.float 
-        Accuracy, the fraction of predictions that are correct 
+    score : np.float
+        Accuracy, the fraction of predictions that are correct
 
     """
     # number of elements for each axis
@@ -295,7 +296,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # flatten all neurons
     model.add(Flatten())
-    
+
     # run through two fully connected layers
     model.add(Dense(n_dense1, activation='relu'))
     model.add(Dropout(0.4))
@@ -323,19 +324,19 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
         # calculate recall and precision after every epoch
         def on_epoch_end(self, epoch, logs={}):
             self.epoch += 1
-            
+
             y_pred = np.asarray(self.model.predict(self.validation_data[0]))
             y_pred = np.argmax(y_pred, axis=1)
-            
+
             y_true = self.validation_data[1]
             y_true = np.argmax(y_true, axis=1)
-            
+
             recall = recall_score(y_true, y_pred)
             precision = precision_score(y_true, y_pred)
             fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
 
             print(" - val_recall: {0} - val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
-            
+
             if epoch > 3:
                 if fscore > self.best:
                     print('fscore improved from {0} to {1}, saving model to {2}'.format(np.round(self.best, 4), np.round(fscore, 4), self.filepath))
@@ -347,7 +348,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # save best model according to validation accuracy
     model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
-              class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs, 
+              class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
               callbacks=[FscoreCallback(saved_model_name)])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
@@ -357,8 +358,8 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
 
 def get_classification_results(y_true, y_pred):
-    """ Take true labels (y_true) and model-predicted 
-    label (y_pred) for a binary classifier, and return 
+    """ Take true labels (y_true) and model-predicted
+    label (y_pred) for a binary classifier, and return
     true_positives, false_positives, true_negatives, false_negatives
     """
     true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
@@ -388,9 +389,9 @@ def confusion_mat(y_true, y_pred):
 
 
 def print_metric(y_true, y_pred):
-    """ Take true labels (y_true) and model-predicted 
+    """ Take true labels (y_true) and model-predicted
     label (y_pred) for a binary classifier
-    and print a confusion matrix, metrics, 
+    and print a confusion matrix, metrics,
     return accuracy, precision, recall, fscore
     """
     conf_mat = confusion_mat(y_true, y_pred)
@@ -410,12 +411,12 @@ def print_metric(y_true, y_pred):
     print("accuracy: %f" % accuracy)
     print("precision: %f" % precision)
     print("recall: %f" % recall)
-    print("fscore: %f" % fscore)    
+    print("fscore: %f" % fscore)
 
     return accuracy, precision, recall, fscore, conf_mat
 
 def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
-                FRB_parameters={'shape': (64, 256), 'f_low': 800, 
+                FRB_parameters={'shape': (64, 256), 'f_low': 800,
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
     """Simulates the background for num_data number of points and appends to ftdata.
@@ -424,7 +425,7 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     ftdata = []
     labels = []
-    
+
     if background_files is not None:
         # extract data from background files
         backgrounds = background_files['rfi_data']
@@ -436,23 +437,23 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
 
         # set number of samples to iterate over all backgrounds
-        num_samples = len(backgrounds)        
+        num_samples = len(backgrounds)
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
         event = SimulatedFRB(**FRB_parameters)
-        
+
         if background_files is None:
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
             # get background and weights from the given array
             background_RFI = backgrounds[sim]
             background_weights = weights[sim]
-            
+
             # inject FRB into real noise array and append label the noise as RFI
-            event.simulateFRB(background=background_RFI, weights=background_weights, 
+            event.simulateFRB(background=background_RFI, weights=background_weights,
                               SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
-        
+
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)
         labels.append(0)
@@ -469,7 +470,7 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')    
+    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')
 
     # parameters that will be used to simulate FRB
     parser.add_argument('f_low', type=float, help='Minimum cutoff frequency (MHz) to inject FRB')
@@ -486,13 +487,13 @@ if __name__ == "__main__":
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
                         the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
-    parser.add_argument('--filter_size', type=int, default=32, 
+    parser.add_argument('--filter_size', type=int, default=32,
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
     # parameters for dense layers
     parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
     parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
-    
+
     # parameters for signal-to-noise ratio of FRB
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
     parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
@@ -502,13 +503,13 @@ if __name__ == "__main__":
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
-    
+
     # save the model, confusion matrix for last epoch, and validation set
     parser.add_argument('--save_model', dest='best_model_file', type=str, default='models/best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
                         default='confusion_matrix/confusion_matrix.png', help='Filename to store final confusion matrix')
-    parser.add_argument('--save_classifications', type=str, default=None, 
+    parser.add_argument('--save_classifications', type=str, default=None,
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
     args = parser.parse_args()
@@ -525,18 +526,18 @@ if __name__ == "__main__":
         NFREQ = RFI_array['rfi_data'].shape[1]
     else:
         NFREQ = 64
-    
+
     print('Number of frequency channels: {}'.format(NFREQ))
     NTIME = 256
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
-    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma, 
+    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma,
                     'SNRmax': args.SNRmax, 'background_files': RFI_array, 'FRB_parameters': frb_params}
 
     ftdata, labels = make_labels(**label_params)
-    
+
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
     ftdata = scale_data(ftdata)
@@ -579,18 +580,18 @@ if __name__ == "__main__":
     # Fit convolutional neural network to the training data
     score = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
                             eval_data=eval_data_freq, eval_labels=eval_labels_keras,
-                            nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size, 
+                            nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
-                            n_dense1=args.n_dense1, n_dense2=args.n_dense2, 
+                            n_dense1=args.n_dense1, n_dense2=args.n_dense2,
                             weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
 
     # load the best model saved to test out confusion matrix
     model_freq_time = load_model(best_model_name, compile=True)
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
-    
+
     print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60)))
-    
+
     # print out scores of various metrics
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
 
