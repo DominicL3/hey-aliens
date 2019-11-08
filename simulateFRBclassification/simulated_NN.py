@@ -206,7 +206,7 @@ class SimulatedFRB(object):
 
         return background + signal
 
-    def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
+    def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15, roll=False):
         """Combine everything together and inject the FRB into a
         background array (Gaussian noise if background is not specified).
         If given, the signal will be multiplied by the given weights
@@ -216,7 +216,8 @@ class SimulatedFRB(object):
 
         # Create the FRB
         self.scintillate() # make the pulse profile with scintillation
-        self.roll() # move the FRB around freq-time array
+        if roll:
+            self.roll() # move the FRB around freq-time array
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
 
