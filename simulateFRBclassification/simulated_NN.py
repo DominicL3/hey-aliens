@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import gaussian, fftconvolve, detrend
+from scipy.signal import gaussian, fftconvolve
 from time import time
 import os
 from tqdm import tqdm, trange  # progress bar
@@ -464,9 +464,6 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         labels.append(1)
 
     ftdata, labels = np.array(ftdata), np.array(labels)
-
-    # detrend the data
-    ftdata = detrend(ftdata, axis=2)
 
     return ftdata, labels
 
