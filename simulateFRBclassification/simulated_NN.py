@@ -41,7 +41,7 @@ class SimulatedFRB(object):
     """
     def __init__(self, shape=(64, 256), f_low=800, f_high=2000, f_ref=1350,
                 bandwidth=1500, max_width=3, tau=0.1):
-        assert type(shape) == tuple and len(shape) == 2, "shape needs to be a tuple of 2 integers"
+        assert isinstance(shape, tuple) and len(shape) == 2, "Array shape must 2D tuple of integers"
         self.shape = shape
 
         # reference frequency (MHz) of observations
