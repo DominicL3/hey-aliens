@@ -6,7 +6,7 @@ from __future__ import print_function
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.signal import gaussian, fftconvolve
+from scipy.signal import gaussian, fftconvolve, detrend
 from time import time
 import os
 from tqdm import tqdm, trange  # progress bar
@@ -465,6 +465,9 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     ftdata, labels = np.array(ftdata), np.array(labels)
 
+    # detrend the data
+    ftdata = detrend(ftdata, axis=2)
+
     return ftdata, labels
 
 if __name__ == "__main__":
@@ -602,6 +605,7 @@ if __name__ == "__main__":
         print("Saving classification results to {0}".format(results_file))
         np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
+    # get lowest confidence selection for each category
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
         TPdata = eval_data_freq[..., 0][TPind]
