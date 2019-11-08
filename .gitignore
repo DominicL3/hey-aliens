@@ -6,12 +6,11 @@ psr
 *.pytest*
 *.vscode
 agarwal_model.h5
-*.png
+*.ipynb_checkpoints
 *report*
 dominic-connor-FRB.py
 breakthrough
 *.h5
 simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
 *.np*
-simulateFRBclassification/presentation_plots/*
 debugging plots/

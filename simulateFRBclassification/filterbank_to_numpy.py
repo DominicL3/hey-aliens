@@ -1,24 +1,26 @@
 #!/usr/bin/python
 
-# import psrchive from Vishal's path
-import imp
-psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
-
 from tqdm import tqdm
 import numpy as np
 import argparse
 import glob
 
-"""
-Takes a directory of .ar files and converts them into one
-large numpy array with dimensions (num_samples, NCHAN, 256).
-The number of frequency channels will be scrunched to NCHAN,
-and dispersion measure is randomized with every sample.
-"""
+# paths needed to use filterbank and waterfaller modules
+import sys
+sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 
-def psr2np(fname, NCHAN, dm):
-    # Get psrchive file as input and outputs numpy array
-    fpsr = psr.Archive_load(fname)
+import filterbank
+import waterfaller
+
+"""Converts filterbank files to Spectra objects, which will then be used to
+artifically inject FRBs and train a neural network on. Takes in as input
+a directory of pertinent filterbank files."""
+
+def fil2np(fname, NCHAN, dm):
+    # get filterbank file as input and output a Spectra object
+    rawdatafile = filterbank.FilterbankFile(fname)
+    spectra_data, bins, nbins, start_time = wt.waterfall(rawdatafile, 2, 0.12, 0, 512, 128)
 
     # must disperse the signal then dedisperse due to crashes on already dedispersed signals
     fpsr.dededisperse()
@@ -79,6 +81,7 @@ def remove_extras(array, num_samples):
     print('Removing {0} random arrays'.format(len(array) - num_samples))
     return array[random_indices]
 
+
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
@@ -99,7 +102,7 @@ if __name__ == "__main__":
     save_name = args.save_name
     NCHAN = args.NCHAN
 
-    files = glob.glob(path + "*.ar" if path[-1] == '/' else path + '/*.ar')
+    files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
     print("\nNumber of files to sample from: %d" % len(files))
 
     if not files:
@@ -112,21 +115,21 @@ if __name__ == "__main__":
     print("Unique number of files after random sampling: %d" % len(np.unique(random_files)))
 
     # transform .ar files into numpy arrays and time how long it took
-    psrchive_data, weights = [], []
+    filterbank_data, weights = [], []
     for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
         data, w, freq = psr2np(filename, NCHAN, DM)
-        psrchive_data.append(data)
+        filterbank_data.append(data)
         weights.append(w)
 
     # split array into multiples of 256 time bins
-    psrchive_data = chop_off(np.array(psrchive_data))
+    filterbank_data = chop_off(np.array(filterbank_data))
 
     # remove extra arrays after splitting
-    psrchive_data = remove_extras(psrchive_data, args.num_samples)
+    filterbank_data = remove_extras(filterbank_data, args.num_samples)
 
     # clone weights so they match up with split chunks of psrchive data
-    weights = np.repeat(weights, len(psrchive_data) // len(weights), axis=0)
+    weights = np.repeat(weights, len(filterbank_data) // len(weights), axis=0)
 
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
-    np.savez(save_name, rfi_data=psrchive_data, weights=weights, freq=freq)
+    np.savez(save_name, rfi_data=filterbank_data, weights=weights, freq=freq)

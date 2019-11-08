@@ -1,14 +1,17 @@
 #!/usr/bin/python
 
-import psr2np
 import numpy as np
-from scipy.signal import detrend
-import sys, os
+import matplotlib.pyplot as plt
+import argparse, os, glob
+from tqdm import tqdm
+import psr2np
 import keras
 from keras.models import load_model
 
-"""Reads in an .ar file and a model and outputs probabilities
-on whether or not the .ar file contains an FRB."""
+"""After taking in a directory of .ar files and a model,
+outputs probabilities that the files contain an FRB. Also 
+returns the files that have FRBs in them, and optionally 
+saves those filenames to some specified document."""
 
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
@@ -23,53 +26,114 @@ def extract_DM(fname):
     dm = fpsr.get_dispersion_measure()
     return dm
 
-def normalize_data(ftdata):
-    """Pretty straightforward, normalizes the data to 
-    zero median, unit variance."""
-    dshape = ftdata.shape
+def scale_data(ftdata):
+    """Subtract each channel in 3D array by its median and 
+    divide each array by its global standard deviation."""
+
+    medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
+    stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
     
-    ftdata = ftdata.reshape(len(ftdata), -1)
-    ftdata -= np.median(ftdata, axis=-1)[:, None]
-    ftdata /= np.std(ftdata, axis=-1)[:, None]
-
-    # zero out nans
-    ftdata[ftdata != ftdata] = 0.0
-    ftdata = ftdata.reshape(dshape)
-
-    return ftdata
+    scaled_data = (ftdata - medians) / stddev
+    return scaled_data
 
 if __name__ == "__main__":
-    """Argument inputs
-        Model name: Path of model used to make this prediction. Should be .h5 file
-        Candidate file: Path to candidate file to be predicted. Should be .ar file
-        OPTIONAL
-            NCHAN: Number of frequency channels (default 64) to resize psrchive files to.
     """
-    if len(sys.argv) == 3:  
-        model = load_model(str(sys.argv[1]), compile=True)
-        filename = str(sys.argv[2])
-        NCHAN = 64
-    elif len(sys.argv) == 4:
-        model = load_model(str(sys.argv[1]), compile=True)
-        filename = str(sys.argv[2])
-        NCHAN = int(sys.argv[3])
-    else:
-        raise RuntimeError('Arguments should be candidate filename, model name, and optionally the number of channels')
+    Parameters
+    ---------------
+    model_name: str
+        Path to trained model used to make prediction. Should be .h5 file
+    candidate_filepath: str 
+        Path to candidate file to be predicted. Should be .ar file
+    NCHAN: int, optional
+        Number of frequency channels (default 64) to resize psrchive files to.
+    save_top_candidates: str, optional
+        Filename to save pre-processed candidates, just before they are thrown into CNN.
+    """
 
-    candidates = []
+    # Read command line arguments
+    parser = argparse.ArgumentParser()
 
-    # convert candidate to numpy array
-    dm = extract_DM(filename)
-    candidate_data = psr2np.psr2np(filename, NCHAN, dm)[0]
+    parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
+    parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
+    parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
+    parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     
-    candidates.append(candidate_data)
+    args = parser.parse_args()
+    
+    # load file path
+    path = args.candidate_path
+    NCHAN = args.NCHAN
+
+    # get filenames of candidates
+    candidate_names = glob.glob(path + 'pulse*.ar' if path[-1] == '/' else path + '/pulse*.ar')
+
+    if not candidate_names:
+        raise ValueError('No .ar files detected in path!')
+
+    # get number of time bins to pre-allocate zero array
+    random_file =  np.random.choice(candidate_names)
+    random_dm = extract_DM(random_file)
+    random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
+
+    # pre-allocate array containing all candidates
+    candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
+
+    print("\nPreparing %d files for prediction" % len(candidate_names))
+
+    for i, filename in enumerate(tqdm(candidate_names)):
+        # convert candidate to numpy array
+        dm = extract_DM(filename)
+        data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
+        
+        candidates[i, :, :] = data * w.reshape(-1, 1)
     
     # split array into multiples of 256 time bins, removing the remainder at the end
-    candidates = psr2np.chop_off(np.array(candidates))
-    print(candidates.shape)
+    candidate_data = psr2np.chop_off(np.array(candidates))
+
+    # bring each channel to zero median and each array to unit stddev
+    zscore_data = scale_data(candidate_data)
+
+    # keep track of original filenames corresponding to each array
+    duplicated_names = np.repeat(candidate_names, float(len(candidates)) / len(zscore_data))
+
+    # load model and predict
+    model = load_model(args.model_name, compile=True)
     
-    # detrend the signal and normalize to zero mean, unit variance
-    candidates = normalize_data(detrend(candidates, axis=2))
-    
-    predictions = model.predict(candidates[..., None], verbose=1)[:, 1]
+    predictions = model.predict(zscore_data[..., None], verbose=1)[:, 1]
     print(predictions)
+
+    sorted_predictions = np.argsort(-predictions)
+    top_pred = zscore_data[sorted_predictions]
+    probabilities = predictions[sorted_predictions]
+
+    if args.save_top_candidates:
+        fig, ax_pred = plt.subplots(nrows=5, ncols=1)
+        for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
+            ax.imshow(data, aspect='auto')
+            ax.set_title('Confidence: {}'.format(prob))
+        
+        fig.suptitle('Top 5 Predicted FRBs')
+        fig.tight_layout()
+        plt.show()
+        fig.savefig(args.save_predicted_FRBs, dpi=300)
+
+    if args.save_predicted_FRBs:
+        from matplotlib.backends.backend_pdf import PdfPages
+        print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
+
+        voted_FRB_probs = probabilities > 0.5
+        predicted_frbs = top_pred[voted_FRB_probs]
+        frb_probs = probabilities[voted_FRB_probs]
+
+        with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
+            plt.figure()
+            for data, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
+                plt.imshow(data, aspect='auto')
+                plt.title('Confidence: {}'.format(prob))
+                pdf.savefig()
+
+        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
+        print('Saving predicted to {}.npy'.format(args.save_predicted_FRBs))
+
+    print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))

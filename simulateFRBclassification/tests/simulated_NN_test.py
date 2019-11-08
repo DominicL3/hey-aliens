@@ -22,7 +22,7 @@ class TestSimulateFRB(object):
         scatter = event.scatter_profile()
         assert scatter.shape == g.shape, f"Needs shape {g.shape} to match Gaussian profile"
         assert not np.all(scatter == scatter[0][0]), "No elements changed/are different"
-    
+
     def test_pulse(self):
         g = event.gaussian_profile() # used to match shapes
         pulse = event.pulse_profile()
@@ -31,7 +31,7 @@ class TestSimulateFRB(object):
 
         assert np.allclose(pulse[:, :pulse.shape[1] // 4], 0), "First 1/4 of array is non-zero"
         assert np.allclose(pulse[:, -pulse.shape[1] // 4:], 0, atol=1e-6), "Last 1/4 of array is non-zero"
-    
+
     def test_pulse_normalization(self):
         """Test whether the pulse profile is narrow/high at high frequencies
         and wide/low for lower frequencies and have approximately the same area."""
@@ -40,7 +40,7 @@ class TestSimulateFRB(object):
         np.random.seed(128)
         indices = np.random.randint(low=0, high=pulse.shape[0], size=5)
         pulse_1D = pulse[indices]
-        
+
         # calculate area under curve assuming dx = 1
         pulse_areas = np.trapz(pulse_1D, axis=1)
         assert np.allclose(pulse_areas, pulse_areas[0]), "Not properly normalized curves"
@@ -65,7 +65,7 @@ class TestSimulateFRB(object):
         original_FRB = np.copy(event.FRB)
 
         # get random SNR and multiply by signal
-        event.sample_SNR() 
+        event.sample_SNR()
         injectedFRB = event.injectFRB(event.SNR)
 
         assert not np.all(original_FRB == injectedFRB), "FRB didn't change!"
@@ -84,7 +84,7 @@ class TestSimulateFRB(object):
 
     def test_plot_injectedFRB(self, SNR=5):
         fig, ax = plt.subplots(nrows=3, ncols=1)
-        event = SimulatedFRB()
+
         event.scintillate() # add .FRB attribute to event
         event.roll()
         event.fractional_bandwidth()
@@ -92,7 +92,27 @@ class TestSimulateFRB(object):
 
         # collapse all frequencies by taking mean for each column
         profile_1D = np.mean(signal, axis=0)
-        
+
+        # plot results for every 3 axes
+        ax[0].imshow(event.background)
+        ax[0].set_title("Background")
+        ax[1].imshow(signal)
+        ax[1].set_title(f"Noise and FRB (SNR: {SNR})")
+        ax[2].plot(profile_1D)
+        ax[2].set_title(f"Profile")
+
+        fig.tight_layout()
+        plt.show(fig)
+
+    def test_simulation(self, SNR=5):
+        fig, ax = plt.subplots(nrows=3, ncols=1)
+        event.simulateFRB(background=None, roll=False, SNRmin=SNR, SNRmax=SNR+1)
+
+        signal = event.simulatedFRB
+
+        # collapse all frequencies by taking mean for each column
+        profile_1D = np.mean(signal, axis=0)
+
         # plot results for every 3 axes
         ax[0].imshow(event.background)
         ax[0].set_title("Background")
