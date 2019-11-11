@@ -1,6 +1,5 @@
 #!/usr/bin/python
 
-from tqdm import tqdm
 import numpy as np
 import argparse
 import glob
@@ -10,45 +9,39 @@ import sys
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 
-import filterbank
-import waterfaller
+# generate Spectra objects for FRB injection
+from waterfaller import filterbank, waterfall
 
 """Converts filterbank files to Spectra objects, which will then be used to
 artifically inject FRBs and train a neural network on. Takes in as input
 a directory of pertinent filterbank files."""
 
-def fil2np(fname, NCHAN, dm):
+def fil2spec(fname, num_channels, spectra_array):
     # get filterbank file as input and output a Spectra object
-    rawdatafile = filterbank.FilterbankFile(fname)
-    spectra_data, bins, nbins, start_time = wt.waterfall(rawdatafile, 2, 0.12, 0, 512, 128)
+    raw_filterbank_file = filterbank.FilterbankFile(fname)
 
-    # must disperse the signal then dedisperse due to crashes on already dedispersed signals
-    fpsr.dededisperse()
-    fpsr.set_dispersion_measure(dm)
-    fpsr.dedisperse()
+    # loop over entire filterbank file in 256 bin multiples until reaching the end
+    finished_scanning = False
 
-    # resize image to number of frequency channels
-    fpsr.fscrunch_to_nchan(NCHAN)
-    fpsr.remove_baseline()
+    while not finished_scanning:
+        timestep = 0
+        try:
+            # get spectra object at some timestep, incrementing timestep if successful
+            spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=raw_filterbank_file.dt,
+                                    dm=0, nbins=256, nsub=num_channels)
+            spectra_array.append(spectra_obj)
+            timestep += 1
+        except AssertionError as error:
+            # empty AssertionError is the correct case to break loop and stop scanning
+            if not str(error):
+                finished_scanning = True
+                print('Finished scanning "{0}"'.format(raw_filterbank_file.filename))
+            else:
+                raise ValueError('An unknown error was caught when scanning over filterbank file!')
 
-    # -- apply weights for RFI lines --#
-    ds = fpsr.get_data().squeeze()
+    freq = raw_filterbank_file.frequencies
 
-    # set channels marked as RFI (zero weight) to NaN
-    w = fpsr.get_weights().flatten()
-    w = w / np.max(w)
-    idx = np.where(w == 0)[0]
-    ds = np.multiply(ds, w[np.newaxis, :, np.newaxis])
-    ds[:, idx, :] = np.nan
-
-    # -- Get total intensity data (I) from the full stokes --#
-    data = ds[0, :, :]
-
-    # -- Get frequency axis values --#
-    freq = np.linspace(fpsr.get_centre_frequency() - abs(fpsr.get_bandwidth() / 2),
-                       fpsr.get_centre_frequency() + abs(fpsr.get_bandwidth() / 2), fpsr.get_nchan())
-
-    return data, w, freq
+    return spectra_array, freq
 
 def chop_off(array):
     """
@@ -72,14 +65,14 @@ def chop_off(array):
 
 def remove_extras(array, num_samples):
     """
-    Randomly removes a certain number of 2D arrays from 3D array
-    such that there are num_samples 2D arrays in output.
+    Randomly removes a certain number of Spectra objects such that
+    there are num_samples Spectra in the output.
     """
-    assert(num_samples <= len(array), "More samples needed than array has")
-    random_indices = np.random.randint(0, len(array), size=num_samples)
+    assert num_samples <= len(array), "More samples needed than array has"
+    leftovers = np.random.choice(array, size=num_samples, replace=False)
 
     print('Removing {0} random arrays'.format(len(array) - num_samples))
-    return array[random_indices]
+    return leftovers
 
 
 if __name__ == "__main__":
@@ -108,28 +101,28 @@ if __name__ == "__main__":
     if not files:
         raise ValueError("No files found in path " + path)
 
-    # choose DM and files from a uniform distribution
+    # choose DM randomly from a uniform distribution
+    random_files = []
     random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
-    random_files = np.random.choice(files, size=args.num_samples, replace=True)
 
-    print("Unique number of files after random sampling: %d" % len(np.unique(random_files)))
+    # extract spectra from .fil files until number of samples is reached
+    spectra_samples = []
 
-    # transform .ar files into numpy arrays and time how long it took
-    filterbank_data, weights = [], []
-    for filename, DM in tqdm(zip(random_files, random_DMs), total=len(random_files)):
-        data, w, freq = psr2np(filename, NCHAN, DM)
-        filterbank_data.append(data)
-        weights.append(w)
+    while len(spectra_samples) < args.num_samples:
+        # pick a random filterbank file from directory
+        rand_filename = np.random.choice(files)
+        random_files.append(rand_filename)
+        print("Sampling file: " + str(rand_filename))
 
-    # split array into multiples of 256 time bins
-    filterbank_data = chop_off(np.array(filterbank_data))
+        # get spectra information and append to growing list of samples
+        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples)
+        print("Finished! Number of samples after scan: " + str(len(spectra_samples)))
 
-    # remove extra arrays after splitting
-    filterbank_data = remove_extras(filterbank_data, args.num_samples)
+    print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
 
-    # clone weights so they match up with split chunks of psrchive data
-    weights = np.repeat(weights, len(filterbank_data) // len(weights), axis=0)
+    # remove extra samples, since last file may have provided more than needed
+    spectra_samples = remove_extras(spectra_samples, args.num_samples)
 
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
-    np.savez(save_name, rfi_data=filterbank_data, weights=weights, freq=freq)
+    np.savez(save_name, spectra_data=spectra_samples, freq=freq)
