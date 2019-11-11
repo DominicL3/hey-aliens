@@ -31,6 +31,7 @@ def fil2spec(fname, num_channels, spectra_array):
                                     dm=0, nbins=256, nsub=num_channels)
             spectra_array.append(spectra_obj)
             timestep += 1
+            print('Finished scan number ' + str(timestep))
         except AssertionError as error:
             # empty AssertionError is the correct case to break loop and stop scanning
             if not str(error):
