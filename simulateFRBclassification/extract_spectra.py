@@ -121,6 +121,7 @@ if __name__ == "__main__":
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
     spectra_samples = np.array(spectra_samples)
+    print(spectra_samples.shape)
 
     # remove extra samples, since last file may have provided more than needed
     spectra_samples = remove_extras(spectra_samples, args.num_samples)
