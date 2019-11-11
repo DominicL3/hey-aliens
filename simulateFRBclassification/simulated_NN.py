@@ -143,8 +143,7 @@ class SimulatedFRB(object):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        bin_shift = np.random.randint(low = -self.shape[1] // 2 + self.max_width,
-                                      high = self.shape[1] // 2 - self.max_width)
+        bin_shift = np.random.randint(low=-self.max_width, high=self.max_width)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
@@ -206,7 +205,7 @@ class SimulatedFRB(object):
 
         return background + signal
 
-    def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15, roll=False):
+    def simulateFRB(self, background=None, weights=None, SNRmin=8, SNR_sigma=1.0, SNRmax=15):
         """Combine everything together and inject the FRB into a
         background array (Gaussian noise if background is not specified).
         If given, the signal will be multiplied by the given weights
@@ -216,8 +215,7 @@ class SimulatedFRB(object):
 
         # Create the FRB
         self.scintillate() # make the pulse profile with scintillation
-        if roll:
-            self.roll() # move the FRB around freq-time array
+        self.roll() # move the FRB around freq-time array
         self.fractional_bandwidth() # cut out some of the bandwidth
         self.sample_SNR(SNRmin, SNR_sigma, SNRmax) # get random SNR
 
