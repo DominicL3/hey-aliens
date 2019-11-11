@@ -28,7 +28,7 @@ def fil2spec(fname, num_channels, spectra_array):
         try:
             # get spectra object at some timestep, incrementing timestep if successful
             spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=raw_filterbank_file.dt,
-                                    dm=0, nbins=256, nsub=num_channels)
+                                    dm=0, nbins=256, nsub=num_channels)[0]
             spectra_array.append(spectra_obj)
             timestep += 1
             print('Finished scan number ' + str(timestep))
