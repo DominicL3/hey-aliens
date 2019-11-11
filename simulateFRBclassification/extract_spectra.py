@@ -22,9 +22,9 @@ def fil2spec(fname, num_channels, spectra_array):
 
     # loop over entire filterbank file in 256 bin multiples until reaching the end
     finished_scanning = False
+    timestep = 0
 
     while not finished_scanning:
-        timestep = 0
         try:
             # get spectra object at some timestep, incrementing timestep if successful
             spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=raw_filterbank_file.dt,
