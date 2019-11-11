@@ -117,9 +117,10 @@ if __name__ == "__main__":
 
         # get spectra information and append to growing list of samples
         spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples)
-        print("Finished! Number of samples after scan: " + str(len(spectra_samples)))
+        print("Number of samples after scan: " + str(len(spectra_samples)))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
+    spectra_samples = np.array(spectra_samples)
 
     # remove extra samples, since last file may have provided more than needed
     spectra_samples = remove_extras(spectra_samples, args.num_samples)
