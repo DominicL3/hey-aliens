@@ -1,9 +1,5 @@
 #!/usr/bin/python
 
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
-
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
@@ -207,7 +203,7 @@ if __name__ == "__main__":
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
 
-    print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60)))
+    print("Training on {0} samples took {1} minutes".format(len(train_labels), np.divide(np.round((time() - start_time), 60))))
 
     # print out scores of various metrics
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)

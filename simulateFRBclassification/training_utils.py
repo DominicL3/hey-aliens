@@ -1,12 +1,16 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.signal import gaussian, fftconvolve
-from time import time
-import os
-from tqdm import tqdm, trange  # progress bar
 
 """Helper functions for training neural network, including
 data preprocessing and computing training results."""
+
+def spec2np(spectra_list):
+    """Takes in an array of Spectra objects and retrieves
+    the data, placing it all into one 3D numpy array."""
+    spectra_data= [spec.data for spec in spectra_list]
+    return np.array(spectra_data)
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
