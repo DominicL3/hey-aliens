@@ -118,7 +118,7 @@ if __name__ == "__main__":
         print("Sampling file: " + str(rand_filename))
 
         # get spectra information and append to growing list of samples
-        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples, len(spectra_samples))
+        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples, args.num_samples)
         print("Number of samples after scan: " + str(len(spectra_samples)))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
