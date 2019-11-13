@@ -5,6 +5,9 @@ from time import time
 import os
 from tqdm import tqdm, trange  # progress bar
 
+"""Helper functions for training neural network, including
+data preprocessing and computing training results."""
+
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
     divide each array by its global standard deviation."""

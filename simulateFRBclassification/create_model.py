@@ -12,10 +12,10 @@ from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
 
-# neural network imports
 from keras.utils import to_categorical
 from keras.models import load_model
 
+# simulate FRB, create a model, and helper functions for training
 from simulate_FRB import SimulatedFRB
 from training_utils import scale_data, get_classification_results, print_metric
 from model import construct_conv2d
@@ -27,8 +27,8 @@ well as code wrapping done by Vishal Gajjar."""
 """Trains a convolutional neural network to recognize differences between fast
 radio bursts and RFI. Training is done by simulating a specified number of FRB
 examples and injecting them into noisy Gaussian backgrounds. To include actual
-RFI data, psrchive will be used in another file (psr2np.py) to export real data
-into numpy formats that this program can inject FRBs into."""
+RFI data, extract_spectra gets real data from filterbank files and turns them
+into numpy arrays that this program can inject FRBs into."""
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
@@ -125,7 +125,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_model', dest='best_model_file', type=str, default='models/best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
-                        default='confusion_matrix/confusion_matrix.png', help='Filename to store final confusion matrix')
+                        default='confusion_matrices/confusion_matrix.png', help='Filename to store final confusion matrix')
     parser.add_argument('--save_classifications', type=str, default=None,
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
