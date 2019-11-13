@@ -16,7 +16,7 @@ from waterfaller import filterbank, waterfall
 artifically inject FRBs and train a neural network on. Takes in as input
 a directory of pertinent filterbank files."""
 
-def fil2spec(fname, num_channels, spectra_array):
+def fil2spec(fname, num_channels, spectra_array, num_samples):
     # get filterbank file as input and output a Spectra object
     raw_filterbank_file = filterbank.FilterbankFile(fname)
 
@@ -32,6 +32,8 @@ def fil2spec(fname, num_channels, spectra_array):
             spectra_array.append(spectra_obj)
             timestep += 1
             print('Finished scan number ' + str(timestep))
+            if len(spectra_array) >= num_samples:
+                finished_scanning = True
         except AssertionError as error:
             # empty AssertionError is the correct case to break loop and stop scanning
             if not str(error):
@@ -116,7 +118,7 @@ if __name__ == "__main__":
         print("Sampling file: " + str(rand_filename))
 
         # get spectra information and append to growing list of samples
-        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples)
+        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples, len(spectra_samples))
         print("Number of samples after scan: " + str(len(spectra_samples)))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))

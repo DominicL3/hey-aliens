@@ -9,7 +9,7 @@ data preprocessing and computing training results."""
 def spec2np(spectra_list):
     """Takes in an array of Spectra objects and retrieves
     the data, placing it all into one 3D numpy array."""
-    spectra_data= [spec.data for spec in spectra_list]
+    spectra_data = [spec.data for spec in spectra_list]
     return np.array(spectra_data)
 
 def scale_data(ftdata):
