@@ -3,6 +3,8 @@
 import numpy as np
 import argparse
 import glob
+import subprocess
+from tqdm import trange
 
 # paths needed to use filterbank and waterfaller modules
 import sys
@@ -20,28 +22,23 @@ def fil2spec(fname, num_channels, spectra_array, num_samples):
     # get filterbank file as input and output a Spectra object
     raw_filterbank_file = filterbank.FilterbankFile(fname)
 
-    # loop over entire filterbank file in 256 bin multiples until reaching the end
-    finished_scanning = False
-    timestep = 0
+    # grab total observation time to split up samples
+    t_obs = float(subprocess.check_output(['/usr/local/sigproc/bin/header',
+                                            fname, '-tobs']))
+    dt = raw_filterbank_file.dt
 
-    while not finished_scanning:
-        try:
-            # get spectra object at some timestep, incrementing timestep if successful
-            spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=raw_filterbank_file.dt,
-                                    dm=0, nbins=256, nsub=num_channels)[0]
-            spectra_array.append(spectra_obj)
-            timestep += 1
-            print('Finished scan number ' + str(timestep))
-            if len(spectra_array) >= num_samples:
-                finished_scanning = True
-        except AssertionError as error:
-            # empty AssertionError is the correct case to break loop and stop scanning
-            if not str(error):
-                finished_scanning = True
-                print('Finished scanning "{0}"'.format(raw_filterbank_file.filename))
-            else:
-                raise ValueError('An unknown error was caught when scanning over filterbank file!')
+    # loop over entire filterbank file in 256-bin time samples until file end
+    for timestep in trange(np.floor(t_obs)):
+        # get spectra object at some timestep, incrementing timestep if successful
+        spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=dt,
+                                dm=0, nbins=256, nsub=num_channels)[0]
+        spectra_array.append(spectra_obj)
 
+        if len(spectra_array) >= num_samples:
+            print('Reached total number of samples. Stopping...')
+            break
+
+    print('Finished scanning "{0}"'.format(raw_filterbank_file.filename))
     freq = raw_filterbank_file.frequencies
 
     return spectra_array, freq
