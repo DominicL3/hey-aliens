@@ -28,7 +28,7 @@ def fil2spec(fname, num_channels, spectra_array, num_samples):
     dt = raw_filterbank_file.dt
 
     # loop over entire filterbank file in 256-bin time samples until file end
-    for timestep in trange(np.floor(t_obs)):
+    for timestep in trange(int(t_obs)):
         # get spectra object at some timestep, incrementing timestep if successful
         spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=dt,
                                 dm=0, nbins=256, nsub=num_channels)[0]
