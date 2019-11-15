@@ -3,7 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from time import time
-import os
+import os, sys
 from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
 import tensorflow as tf
@@ -15,6 +15,13 @@ from keras.models import load_model
 from simulate_FRB import SimulatedFRB
 from training_utils import *
 from model import construct_conv2d
+
+# import waterfaller and filterbank from Vishal's path
+sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
+
+# generate Spectra objects for FRB injection
+from waterfaller import filterbank, waterfall
 
 """Adapted from the code published alongside the paper 'Applying Deep Learning
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
