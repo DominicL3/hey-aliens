@@ -74,6 +74,15 @@ def remove_extras(array, num_samples):
     print('Removing {0} random arrays'.format(len(array) - num_samples))
     return leftovers
 
+def random_dedispersion(spec_array, min_DM, max_DM):
+    """Dedisperse each Spectra object with a random DM in the range [min_DM, max_DM]."""
+    assert min_DM >= 0 and max_DM >= 0 and min_DM < max_DM, 'DM must be positive'
+
+    # randomly sample DM from uniform distribution
+    random_DMs = np.random.randint(low=min_DM, high=max_DM, size=len(array))
+    dedispersed_spectra = [spec.dedisperse(dm, padval='rotate') for (spec, dm)
+                            in zip(spec_array, random_DMs)]
+    return np.array(dedispersed_spectra)
 
 if __name__ == "__main__":
     # Read command line arguments
@@ -96,14 +105,13 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
-    print("\nNumber of files to sample from: %d" % len(files))
+    print("Number of files to sample from: %d" % len(files))
 
     if not files:
         raise ValueError("No files found in path " + path)
 
-    # choose DM randomly from a uniform distribution
+    # keep track of which files have been chosen for logging purposes
     random_files = []
-    random_DMs = np.random.uniform(low=args.min_DM, high=args.max_DM, size=args.num_samples)
 
     # extract spectra from .fil files until number of samples is reached
     spectra_samples = []
@@ -112,7 +120,7 @@ if __name__ == "__main__":
         # pick a random filterbank file from directory
         rand_filename = np.random.choice(files)
         random_files.append(rand_filename)
-        print("Sampling file: " + str(rand_filename))
+        print("\nSampling file: " + str(rand_filename))
 
         # get spectra information and append to growing list of samples
         spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples, args.num_samples)
@@ -125,6 +133,12 @@ if __name__ == "__main__":
     # remove extra samples, since last file may have provided more than needed
     spectra_samples = remove_extras(spectra_samples, args.num_samples)
 
+    # randomly dedisperse each spectra
+    print("\nRandomly dedispersing arrays")
+    random_dedispersion(spectra_samples, args.min_DM)
+
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
     np.savez(save_name, spectra_data=spectra_samples, freq=freq)
+
+    print("\n\nTraining set creation complete")
