@@ -13,7 +13,7 @@ from keras.models import load_model
 
 # simulate FRB, create a model, and helper functions for training
 from simulate_FRB import SimulatedFRB
-from training_utils import scale_data, get_classification_results, print_metric
+from training_utils import *
 from model import construct_conv2d
 
 """Adapted from the code published alongside the paper 'Applying Deep Learning
@@ -41,9 +41,8 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
 
     if background_files is not None:
         # extract data from background files
-        backgrounds = background_files['rfi_data']
+        backgrounds = spec2np(background_files)
         freq_RFI = background_files['freq']
-        weights = background_files['weights']
 
         # change frequency range of simulated pulse based on incoming RFI files
         FRB_parameters['f_ref'] = np.median(freq_RFI)
@@ -61,11 +60,10 @@ def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_fi
         else:
             # get background and weights from the given array
             background_RFI = backgrounds[sim]
-            background_weights = weights[sim]
 
             # inject FRB into real noise array and append label the noise as RFI
-            event.simulateFRB(background=background_RFI, weights=background_weights,
-                              SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
+            event.simulateFRB(background=background_RFI, SNRmin=SNRmin,
+                              SNR_sigma=SNR_sigma, SNRmax=SNRmax)
 
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)
@@ -83,19 +81,19 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('--RFI_array', type=str, default=None, help='Array (.npz) that contains RFI data')
-
     # parameters that will be used to simulate FRB
     parser.add_argument('f_low', type=float, help='Minimum cutoff frequency (MHz) to inject FRB')
     parser.add_argument('f_high', type=float, help='Maximum cutoff frequency (MHz) to allow inject FRB')
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (MHz) (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
-
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on.\
                                                                        Only valid if generating Gaussian noise; overwritten\
                                                                        if background files are provided')
 
     parser.add_argument('--sim_data', type=str, default=None, help='Filename to save simulation data')
+
+    # option to input RFI array
+    parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -131,12 +129,14 @@ if __name__ == "__main__":
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.conf_mat
     results_file = args.save_classifications
-    RFI_array = np.load(args.RFI_array)
+    RFI_samples = np.load(args.RFI_array, allow_pickle=True)
 
     # set number of frequency channels to simulate
-    if RFI_array is not None:
+    if RFI_samples is not None:
         print('Getting number of channels from inputted RFI array')
-        NFREQ = RFI_array['rfi_data'].shape[1]
+        spectra_samples = RFI_samples['spectra_data']
+        first_spec = spectra_samples[0].data
+        NFREQ = first_spec.shape[1]
     else:
         NFREQ = 64
 
@@ -147,7 +147,7 @@ if __name__ == "__main__":
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma,
-                    'SNRmax': args.SNRmax, 'background_files': RFI_array, 'FRB_parameters': frb_params}
+                    'SNRmax': args.SNRmax, 'background_files': RFI_samples, 'FRB_parameters': frb_params}
 
     ftdata, labels = make_labels(**label_params)
 
@@ -203,7 +203,7 @@ if __name__ == "__main__":
     y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
     y_pred_freq_time = np.round(y_pred_prob)
 
-    print("Training on {0} samples took {1} minutes".format(len(train_labels), np.divide(np.round((time() - start_time), 60))))
+    print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60, 2)))
 
     # print out scores of various metrics
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)

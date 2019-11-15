@@ -79,7 +79,7 @@ def random_dedispersion(spec_array, min_DM, max_DM):
     assert min_DM >= 0 and max_DM >= 0 and min_DM < max_DM, 'DM must be positive'
 
     # randomly sample DM from uniform distribution
-    random_DMs = np.random.randint(low=min_DM, high=max_DM, size=len(array))
+    random_DMs = np.random.randint(low=min_DM, high=max_DM, size=len(spec_array))
     dedispersed_spectra = [spec.dedisperse(dm, padval='rotate') for (spec, dm)
                             in zip(spec_array, random_DMs)]
     return np.array(dedispersed_spectra)

@@ -9,7 +9,6 @@ data preprocessing and computing training results."""
 def spec2np(fname):
     """Read in previously saved file containing Spectra objects and
     frequencies and retrieve data, placing it all into one 3D numpy array."""
-    spectra_list = np.load(fname, allow_pickle=True)['spectra_data']
     spectra_data = [spec.data for spec in spectra_list]
     return np.array(spectra_data)
 
