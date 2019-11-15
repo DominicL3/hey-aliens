@@ -6,9 +6,10 @@ import numpy as np
 """Helper functions for training neural network, including
 data preprocessing and computing training results."""
 
-def spec2np(spectra_list):
-    """Takes in an array of Spectra objects and retrieves
-    the data, placing it all into one 3D numpy array."""
+def spec2np(fname):
+    """Read in previously saved file containing Spectra objects and
+    frequencies and retrieve data, placing it all into one 3D numpy array."""
+    spectra_list = np.load(fname, allow_pickle=True)['spectra_data']
     spectra_data = [spec.data for spec in spectra_list]
     return np.array(spectra_data)
 
@@ -35,30 +36,29 @@ def get_classification_results(y_true, y_pred):
     return true_positives, false_positives, true_negatives, false_negatives
 
 
-def confusion_mat(y_true, y_pred):
-    """ Generate a confusion matrix for a
-    binary classifier based on true labels (
-    y_true) and model-predicted label (y_pred)
-
-    returns np.array([[TP, FP],[FN, TN]])
-    """
-    TP, FP, TN, FN = get_classification_results(y_true, y_pred)
-
-    NTP = len(TP)
-    NFP = len(FP)
-    NTN = len(TN)
-    NFN = len(FN)
-
-    conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
-    return conf_mat
-
-
 def print_metric(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted
     label (y_pred) for a binary classifier
     and print a confusion matrix, metrics,
     return accuracy, precision, recall, fscore
     """
+
+    def confusion_mat(y_true, y_pred):
+        """ Generate a confusion matrix for a binary classifier
+        based on true labels (y_true) and model-predicted label (y_pred)
+
+        returns np.array([[TP, FP],[FN, TN]])
+        """
+        TP, FP, TN, FN = get_classification_results(y_true, y_pred)
+
+        NTP = len(TP)
+        NFP = len(FP)
+        NTN = len(TN)
+        NFN = len(FN)
+
+        conf_mat = np.array([[NTP, NFP], [NFN, NTN]])
+        return conf_mat
+
     conf_mat = confusion_mat(y_true, y_pred)
 
     NTP, NFP, NTN, NFN = conf_mat[0, 0], conf_mat[0, 1], conf_mat[1, 1], conf_mat[1, 0]
