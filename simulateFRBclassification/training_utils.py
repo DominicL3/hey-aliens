@@ -6,9 +6,10 @@ import numpy as np
 """Helper functions for training neural network, including
 data preprocessing and computing training results."""
 
-def spec2np(fname):
+def spec2np(spec_npz):
     """Read in previously saved file containing Spectra objects and
     frequencies and retrieve data, placing it all into one 3D numpy array."""
+    spectra_list = spec_npz['spectra_data']
     spectra_data = [spec.data for spec in spectra_list]
     return np.array(spectra_data)
 
