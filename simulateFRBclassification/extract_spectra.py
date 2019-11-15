@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     # randomly dedisperse each spectra
     print("\nRandomly dedispersing arrays")
-    random_dedispersion(spectra_samples, args.min_DM)
+    random_dedispersion(spectra_samples, args.min_DM, args.max_DM)
 
     # save final array to disk
     print("Saving arrays to {0}".format(save_name))
