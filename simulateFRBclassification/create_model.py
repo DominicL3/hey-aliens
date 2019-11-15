@@ -129,7 +129,7 @@ if __name__ == "__main__":
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.conf_mat
     results_file = args.save_classifications
-    RFI_samples = np.load(args.RFI_array, allow_pickle=True)
+    RFI_samples = np.load(args.RFI_samples, allow_pickle=True)
 
     # set number of frequency channels to simulate
     if RFI_samples is not None:
