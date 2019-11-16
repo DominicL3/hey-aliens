@@ -99,6 +99,7 @@ if __name__ == "__main__":
                                                                        if background files are provided')
 
     parser.add_argument('--sim_data', type=str, default=None, help='Filename to save simulation data')
+    parser.add_argument('--save_spectra', type=str, default=None, help='Filename to save Spectra objects with injected FRBs')
 
     # option to input RFI array
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
