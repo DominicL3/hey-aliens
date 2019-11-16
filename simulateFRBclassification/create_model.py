@@ -175,7 +175,7 @@ if __name__ == "__main__":
         for spec, frb in zip(random_spectra, random_frbs):
             spec.data = frb
 
-        np.save(args.save_spectra, )
+        np.save(args.save_spectra, random_spectra)
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
