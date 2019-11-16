@@ -25,12 +25,11 @@ def fil2spec(fname, num_channels, spectra_array, num_samples):
     # grab total observation time to split up samples
     t_obs = float(subprocess.check_output(['/usr/local/sigproc/bin/header',
                                             fname, '-tobs']))
-    dt = raw_filterbank_file.dt
 
     # loop over entire filterbank file in 256-bin time samples until file end
     for timestep in trange(int(t_obs)):
         # get spectra object at some timestep, incrementing timestep if successful
-        spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=dt,
+        spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=1,
                                 dm=0, nbins=256, nsub=num_channels)[0]
         spectra_array.append(spectra_obj)
 
