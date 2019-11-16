@@ -22,6 +22,7 @@ sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
+import copy
 
 """Adapted from the code published alongside the paper 'Applying Deep Learning
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
@@ -157,6 +158,25 @@ if __name__ == "__main__":
 
     ftdata, labels = make_labels(**label_params)
 
+    if args.sim_data is not None:
+        print('Saving 10000 samples to disk as ' + args.sim_data)
+        random_simulation = np.random.randint(0, len(ftdata), 10000)
+        np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
+
+    if args.save_spectra is not None:
+        print('Saving 10000 samples to disk as  ' + args.save_spectra)
+        spectra = RFI_samples['spectra_data']
+
+        random_simulation = np.random.randint(0, len(RFI_samples), 10000)
+        random_spectra = copy.deepcopy(spectra[random_simulation])
+
+        # get only FRBs from ftdata
+        random_frbs = ftdata[random_simulation + 1]
+        for spec, frb in zip(random_spectra, random_frbs):
+            spec.data = frb
+
+        np.save(args.save_spectra, )
+
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
     ftdata = scale_data(ftdata)
@@ -165,11 +185,6 @@ if __name__ == "__main__":
     num_data, nfreq, ntime = ftdata.shape
     print(num_data, nfreq, ntime)
     print(labels)
-
-    if args.sim_data is not None:
-        print('Saving 10000 samples to disk as {}'.format(args.sim_data))
-        random_simulation = np.random.randint(0, len(ftdata), 10000)
-        np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
 
     # Get 4D vector for Keras
     ftdata = ftdata[..., None]

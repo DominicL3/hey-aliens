@@ -35,7 +35,6 @@ def get_classification_results(y_true, y_pred):
 
     return true_positives, false_positives, true_negatives, false_negatives
 
-
 def print_metric(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted
     label (y_pred) for a binary classifier
