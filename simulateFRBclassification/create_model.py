@@ -172,7 +172,7 @@ if __name__ == "__main__":
         random_spectra = copy.deepcopy(spectra[random_simulation])
 
         # get only FRBs from ftdata
-        random_frbs = ftdata[random_simulation + 1]
+        random_frbs = ftdata[random_simulation * 2]
         for spec, frb in zip(random_spectra, random_frbs):
             spec.data = frb
 
