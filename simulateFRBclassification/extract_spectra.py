@@ -150,7 +150,7 @@ if __name__ == "__main__":
     samples_per_file = args.samples_per_file
 
     files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
-    print("Number of files to sample from: %d" % len(files))
+    print("Total number of files to possibly sample from: %d" % len(files))
 
     if not files:
         raise ValueError("No files found in path " + path)
@@ -164,6 +164,7 @@ if __name__ == "__main__":
     else:
         num_files = len(files)
 
+    print("Sampling from {0} number of files".format(num_files))
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
