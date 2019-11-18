@@ -39,7 +39,7 @@ def fil2spec(fname, num_channels, spectra_array, total_samples, samples_per_file
                                             fname, '-tobs']))
 
     # generate samples_per_file random timesteps to sample from in filterbank file
-    random_timesteps = np.random.choice(np.arange(int(t_obs)), size=samples_per_file, replace=False)
+    random_timesteps = np.random.choice(np.arange(int(t_obs)), size=samples_per_file)
 
     # grab 256-bin time samples using random_timesteps
     for timestep in tqdm(random_timesteps):
@@ -164,7 +164,7 @@ if __name__ == "__main__":
     else:
         num_files = len(files)
 
-    print("Sampling from {0} number of files".format(num_files))
+    print("Randomly sampling {0} Spectra from {1} files".format(samples_per_file, num_files))
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
@@ -197,7 +197,7 @@ if __name__ == "__main__":
     random_dedispersion(spectra_samples, args.min_DM, args.max_DM)
 
     # save final array to disk
-    print("Saving arrays to " + save_name)
+    print("Saving data to " + save_name)
     np.savez(save_name, spectra_data=spectra_samples, freq=freq)
 
     print("\n\nTraining set creation complete")
