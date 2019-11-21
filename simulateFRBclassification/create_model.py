@@ -144,7 +144,7 @@ if __name__ == "__main__":
     if RFI_samples is not None:
         print('Getting number of channels from inputted RFI array')
         spectra_samples = RFI_samples['spectra_data']
-        NFREQ = spectra_samples[0].data.shape[0]
+        NFREQ = spectra_samples[0].nchans
     else:
         NFREQ = 64
 
@@ -159,24 +159,25 @@ if __name__ == "__main__":
 
     ftdata, labels = make_labels(**label_params)
 
-    if args.sim_data is not None:
-        print('Saving 10000 samples to disk as ' + args.sim_data)
-        random_simulation = np.random.randint(0, len(ftdata), 10000)
-        np.savez(args.sim_data, ftdata=ftdata[random_simulation], labels=labels[random_simulation])
-
+    # save spectra with matching labels
     if args.save_spectra is not None:
-        print('Saving 10000 samples to disk as  ' + args.save_spectra)
-        spectra = RFI_samples['spectra_data']
+        print('Saving 10000 spectra to disk as  ' + args.save_spectra)
+        # make two copies of spectra to "recreate all labeled Spectra objects
+        spectra1 = copy.deepcopy(RFI_samples['spectra_data'])
+        spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
+        spectra = np.append(spectra1, spectra2)
 
-        random_simulation = np.random.randint(0, len(RFI_samples), 10000)
-        random_spectra = copy.deepcopy(spectra[random_simulation])
+        # get a bunch of spectra and labels for simulated arrays
+        random_simulation = np.random.randint(0, len(spectra), 10000)
+        random_spectra = spectra[random_simulation]
+        random_labels = labels[random_simulation]
 
-        # get only FRBs from ftdata
-        random_frbs = ftdata[random_simulation * 2 + 1]
-        for spec, frb in zip(random_spectra, random_frbs):
-            spec.data = frb
+        # replace spectra data with itself or simulated FRB
+        random_data = ftdata[random_simulation]
+        for spec, data in zip(random_spectra, random_data):
+            spec.data = data
 
-        np.save(args.save_spectra, random_spectra)
+        np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
