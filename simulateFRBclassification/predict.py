@@ -2,37 +2,36 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, os, glob
+import argparse, sys, os, glob
 from tqdm import tqdm
-import psr2np
 import keras
 from keras.models import load_model
+from extract_spectra import filterbank, waterfall
 
-"""After taking in a directory of .ar files and a model,
-outputs probabilities that the files contain an FRB. Also 
-returns the files that have FRBs in them, and optionally 
+"""After taking in a directory of .fil files and a model,
+outputs probabilities that the files contain an FRB. Also
+returns the files that have FRBs in them, and optionally
 saves those filenames to some specified document."""
 
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-# import psrchive from Vishal's path
-import imp
-psr = imp.load_source('psrchive', '/home/vgajjar/linux64_bin/lib/python2.7/site-packages/psrchive.py')
-
+# TODO: modify extract_DM to get DM from Vishal's pipeline
 def extract_DM(fname):
     # read the ar file and extract the DM
     fpsr = psr.Archive_load(fname)
     dm = fpsr.get_dispersion_measure()
     return dm
 
+# TODO: function that will get start time of candidate file
+
 def scale_data(ftdata):
-    """Subtract each channel in 3D array by its median and 
+    """Subtract each channel in 3D array by its median and
     divide each array by its global standard deviation."""
 
     medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
     stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
-    
+
     scaled_data = (ftdata - medians) / stddev
     return scaled_data
 
@@ -42,7 +41,7 @@ if __name__ == "__main__":
     ---------------
     model_name: str
         Path to trained model used to make prediction. Should be .h5 file
-    candidate_filepath: str 
+    candidate_filepath: str
         Path to candidate file to be predicted. Should be .ar file
     NCHAN: int, optional
         Number of frequency channels (default 64) to resize psrchive files to.
@@ -58,15 +57,15 @@ if __name__ == "__main__":
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
-    
+
     args = parser.parse_args()
-    
+
     # load file path
     path = args.candidate_path
     NCHAN = args.NCHAN
 
     # get filenames of candidates
-    candidate_names = glob.glob(path + 'pulse*.ar' if path[-1] == '/' else path + '/pulse*.ar')
+    candidate_names = glob.glob(path + '*.fil' if path[-1] == '/' else path + '/*.ar')
 
     if not candidate_names:
         raise ValueError('No .ar files detected in path!')
@@ -84,22 +83,22 @@ if __name__ == "__main__":
     for i, filename in enumerate(tqdm(candidate_names)):
         # convert candidate to numpy array
         dm = extract_DM(filename)
-        data, w, freq = psr2np.psr2np(filename, NCHAN, dm)
-        
-        candidates[i, :, :] = data * w.reshape(-1, 1)
-    
-    # split array into multiples of 256 time bins, removing the remainder at the end
-    candidate_data = psr2np.chop_off(np.array(candidates))
+        start_time = # TODO: implement after figuring out how to get start time
+        raw_filterbank = filterbank.FilterbankFile(filename)
+        spectra_obj = waterfall(raw_filterbank, start=start_time,
+                                duration=0.5, dm=dm)[0]
+
+        candidates[i, :, :] = spectra_obj.data
 
     # bring each channel to zero median and each array to unit stddev
-    zscore_data = scale_data(candidate_data)
+    zscore_data = scale_data(np.array(candidates))
 
     # keep track of original filenames corresponding to each array
     duplicated_names = np.repeat(candidate_names, float(len(candidates)) / len(zscore_data))
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
-    
+
     predictions = model.predict(zscore_data[..., None], verbose=1)[:, 1]
     print(predictions)
 
@@ -112,7 +111,7 @@ if __name__ == "__main__":
         for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
             ax.imshow(data, aspect='auto')
             ax.set_title('Confidence: {}'.format(prob))
-        
+
         fig.suptitle('Top 5 Predicted FRBs')
         fig.tight_layout()
         plt.show()
