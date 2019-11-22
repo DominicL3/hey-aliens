@@ -135,9 +135,11 @@ if __name__ == "__main__":
 
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize psrchive files to')
-
     parser.add_argument('--min_DM', type=float, default=0.0, help='Minimum DM to sample')
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
+
+    parser.add_argument('--max_sampling_time', type=int, default=600,
+        help='Max amount of time (seconds) to sample Spectra from files before duplicating existing files')
 
     args = parser.parse_args()
 
@@ -146,6 +148,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
     total_samples = args.total_samples
     samples_per_file = args.samples_per_file
+    max_sampling_time = args.max_sampling_time
 
     files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
     print("Total number of files to possibly sample from: %d" % len(files))
@@ -173,8 +176,8 @@ if __name__ == "__main__":
         elapsed_time = time() - loop_start
         print("Elapsed time: {} minutes".format(np.round(elapsed_time / 60, 2)))
 
-        # end scanning if we looked through all files or takes too long (10 min)
-        if i >= len(random_files) or elapsed_time >= 600:
+        # end scanning if we looked through all files or takes too long
+        if i >= len(random_files) or elapsed_time >= max_sampling_time:
             print("\nTaking too long. Duplicating spectra...")
             duplicate_spectra(spectra_samples, total_samples) # copy spectra (dedisperse with different DM)
             break
@@ -190,7 +193,6 @@ if __name__ == "__main__":
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
     spectra_samples = np.array(spectra_samples)
-    print(spectra_samples.shape)
 
     # remove extra samples, since last file may have provided more than needed
     spectra_samples = remove_extras(spectra_samples, total_samples)
