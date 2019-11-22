@@ -125,10 +125,10 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
 
     # save the model, confusion matrix for last epoch, and validation set
-    parser.add_argument('--save_model', dest='best_model_file', type=str, default='models/best_model.h5',
+    parser.add_argument('--save_model', dest='best_model_file', type=str, default='./models/best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
-                        default='confusion_matrices/confusion_matrix.png', help='Filename to store final confusion matrix')
+                        default='./confusion_matrices/confusion_matrix.png', help='Filename to store final confusion matrix')
     parser.add_argument('--save_classifications', type=str, default=None,
                         help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
