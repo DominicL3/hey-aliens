@@ -144,7 +144,7 @@ if __name__ == "__main__":
     if RFI_samples is not None:
         print('Getting number of channels from inputted RFI array')
         spectra_samples = RFI_samples['spectra_data']
-        NFREQ = spectra_samples[0].nchans
+        NFREQ = spectra_samples[0].numchans
     else:
         NFREQ = 64
 
