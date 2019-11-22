@@ -47,7 +47,6 @@ def fil2spec(fname, num_channels, spectra_array, total_samples, samples_per_file
                                 dm=0, nbins=256, nsub=num_channels)[0]
         spectra_array.append(spectra_obj)
 
-    print('Finished scanning "{0}"'.format(raw_filterbank_file.filename))
     freq = raw_filterbank_file.frequencies
 
     return spectra_array, freq
@@ -172,10 +171,11 @@ if __name__ == "__main__":
     loop_start = time()
     while len(spectra_samples) < total_samples:
         elapsed_time = time() - loop_start
-        print("Elapsed time: {} seconds".format(elapsed_time))
+        print("Elapsed time: {} minutes".format(np.round(elapsed_time / 60, 2)))
 
         # end scanning if we looked through all files or takes too long (10 min)
         if i >= len(random_files) or elapsed_time >= 600:
+            print("\nTaking too long. Duplicating spectra...")
             duplicate_spectra(spectra_samples, total_samples) # copy spectra (dedisperse with different DM)
             break
 
