@@ -1,13 +1,12 @@
 #!/usr/bin/python
 
 import numpy as np
-import argparse
-import glob
+import argparse, sys, glob
 import subprocess
+from time import time
 from tqdm import tqdm
 
 # paths needed to use filterbank and waterfaller modules
-import sys
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
 sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 
@@ -170,9 +169,11 @@ if __name__ == "__main__":
     # extract spectra from .fil files until number of samples is reached
     spectra_samples, i = [], 0
 
+    loop_start = time()
     while len(spectra_samples) < total_samples:
-        if i >= len(random_files):
-            # choose random Spectra and copy them (will be dedispersed to a different DM)
+        # end scanning if we looked through all files or takes too long (10 min)
+        # choose random Spectra and copy them (will be dedispersed to a different DM)
+        if i >= len(random_files) or time() - loop_start >= 600:
             duplicate_spectra(spectra_samples, total_samples)
             break
 
