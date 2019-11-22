@@ -171,10 +171,12 @@ if __name__ == "__main__":
 
     loop_start = time()
     while len(spectra_samples) < total_samples:
+        elapsed_time = time() - loop_start
+        print("Elapsed time: {} seconds".format(elapsed_time))
+
         # end scanning if we looked through all files or takes too long (10 min)
-        # choose random Spectra and copy them (will be dedispersed to a different DM)
-        if i >= len(random_files) or time() - loop_start >= 600:
-            duplicate_spectra(spectra_samples, total_samples)
+        if i >= len(random_files) or elapsed_time >= 600:
+            duplicate_spectra(spectra_samples, total_samples) # copy spectra (dedisperse with different DM)
             break
 
         # pick a random filterbank file from directory
