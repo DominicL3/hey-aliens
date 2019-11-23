@@ -167,6 +167,8 @@ if __name__ == "__main__":
         spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra = np.append(spectra1, spectra2)
 
+        assert len(spectra) == len(labels), "Not the same shape"
+
         # get a bunch of spectra and labels for simulated arrays
         random_simulation = np.random.randint(0, len(spectra), 10000)
         random_spectra = spectra[random_simulation]
