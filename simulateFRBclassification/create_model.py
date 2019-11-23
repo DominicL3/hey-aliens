@@ -169,15 +169,15 @@ if __name__ == "__main__":
 
         assert len(spectra) == len(labels), "Not the same shape"
 
-        """# get a bunch of spectra and labels for simulated arrays
+        # get a bunch of spectra and labels for simulated arrays
         random_simulation = np.random.randint(0, len(spectra), size=10000)
         random_spectra = spectra[random_simulation]
         random_labels = labels[random_simulation]
 
         # replace spectra data with itself or simulated FRB
-        random_data = ftdata[random_simulation]"""
+        random_data = ftdata[random_simulation]
 
-        random_spectra, random_data, random_labels = spectra[1::2], ftdata[1::2], labels[1::2]
+        # random_spectra, random_data, random_labels = spectra[1::2], ftdata[1::2], labels[1::2]
 
         for spec, data in zip(random_spectra, random_data):
             spec.data = data
