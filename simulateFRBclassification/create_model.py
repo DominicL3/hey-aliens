@@ -161,7 +161,8 @@ if __name__ == "__main__":
 
     # save spectra with matching labels
     if args.save_spectra is not None:
-        print('Saving 10000 spectra to disk as  ' + args.save_spectra)
+        np.save(args.save_spectra, ftdata)
+        """print('Saving 10000 spectra to disk as  ' + args.save_spectra)
         # make two copies of spectra to "recreate all labeled Spectra objects
         spectra1 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
@@ -179,7 +180,7 @@ if __name__ == "__main__":
         for spec, data in zip(random_spectra, random_data):
             spec.data = data
 
-        np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)
+        np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)"""
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
