@@ -177,7 +177,7 @@ if __name__ == "__main__":
         # replace spectra data with itself or simulated FRB
         random_data = ftdata[random_simulation]"""
 
-        random_spectra, random_data = spectra[1::2], ftdata[1::2]
+        random_spectra, random_data, random_labels = spectra[1::2], ftdata[1::2], labels[1::2]
 
         for spec, data in zip(random_spectra, random_data):
             spec.data = data
