@@ -161,8 +161,7 @@ if __name__ == "__main__":
 
     # save spectra with matching labels
     if args.save_spectra is not None:
-        np.save(args.save_spectra, ftdata)
-        """print('Saving 10000 spectra to disk as  ' + args.save_spectra)
+        print('Saving 10000 spectra to disk as  ' + args.save_spectra)
         # make two copies of spectra to "recreate all labeled Spectra objects
         spectra1 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
@@ -170,17 +169,20 @@ if __name__ == "__main__":
 
         assert len(spectra) == len(labels), "Not the same shape"
 
-        # get a bunch of spectra and labels for simulated arrays
-        random_simulation = np.random.randint(0, len(spectra), 10000)
+        """# get a bunch of spectra and labels for simulated arrays
+        random_simulation = np.random.randint(0, len(spectra), size=10000)
         random_spectra = spectra[random_simulation]
         random_labels = labels[random_simulation]
 
         # replace spectra data with itself or simulated FRB
-        random_data = ftdata[random_simulation]
+        random_data = ftdata[random_simulation]"""
+
+        random_spectra, random_data = spectra[1::2], ftdata[1::2]
+
         for spec, data in zip(random_spectra, random_data):
             spec.data = data
 
-        np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)"""
+        np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays. . .')
