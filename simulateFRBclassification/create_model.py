@@ -165,7 +165,7 @@ if __name__ == "__main__":
         # make two copies of spectra to "recreate all labeled Spectra objects
         spectra1 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
-        spectra = np.append(spectra1, spectra2)
+        spectra = np.insert(spectra1, np.arange(len(spectra1)), spectra2)
 
         assert len(spectra) == len(labels), "Not the same shape"
 
