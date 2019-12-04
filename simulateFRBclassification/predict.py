@@ -37,7 +37,7 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         snr, start_time, dm, filter_power = candidate_data
         bin_width = 2 ** filter_power
         pulse_duration = tsamp * bin_width * 128 / 1e6 # proper duration (seconds) to display the pulse
-        spectra_obj = waterfall(filterbank_pulses, start=start_time, duration=pulse_duration,
+        spectra_obj = waterfall(filterbank_pulses, start=start_time, duration=0.5,
                                     dm=dm, nbins=256, nsub=num_channels)[0]
 
          # adjust downsampling rate so pulse is at least 4 bins wide
