@@ -38,9 +38,9 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         bin_width = 2 ** filter_power
         pulse_duration = tsamp * bin_width * 128 / 1e6 # proper duration (seconds) to display the pulse
         spectra_obj = waterfall(filterbank_pulses, start=start_time, duration=pulse_duration,
-                                    dm=dm, nbins=256, nsub=num_channels)[0]
+                                    dm=0, nbins=256, nsub=num_channels)[0]
 
-        """# adjust downsampling rate so pulse is at least 4 bins wide
+        # adjust downsampling rate so pulse is at least 4 bins wide
         if filter_power <= 4 and filter_power > 0 and snr > 20:
             downfact = int(bin_width/4.0) or 1
         elif filter_power > 2:
@@ -48,7 +48,8 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         else:
             downfact = 1
 
-        spectra_obj.downsample(downfact)"""
+        spectra_obj.dedisperse(dm, padval='rotate')
+        spectra_obj.downsample(downfact)
         candidate_spectra.append(spectra_obj)
 
     candidate_data = [spec.data for spec in candidate_spectra]
