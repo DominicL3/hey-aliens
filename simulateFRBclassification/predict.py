@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import argparse, sys, os, glob
+import subprocess
 from tqdm import tqdm
 import keras
 from keras.models import load_model
@@ -16,14 +17,43 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-# TODO: modify extract_DM to get DM from Vishal's pipeline
-def extract_DM(fname):
-    # read the ar file and extract the DM
-    fpsr = psr.Archive_load(fname)
-    dm = fpsr.get_dispersion_measure()
-    return dm
+def extract_data(txt_name):
+    """Read txt file containing candidate info, getting useful
+    properties like the start time and DM of each candidate in
+    the filterbank file."""
 
-# TODO: function that will get start time of candidate file
+    frb_info = np.loadtxt(txt_name, dtype={'names': ('snr','time','samp_idx','dm','filter_power','prim_beam'),
+                                    'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
+    frb_info = frb_info[['snr', 'time', 'dm', 'filter_power']] # only return relevant items
+    return frb_info
+
+def get_pulses(frb_info, filterbank_name, num_channels):
+    filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
+    tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
+
+    candidate_spectra = []
+
+    for candidate_data in tqdm(frb_info):
+        snr, start_time, dm, filter_power = candidate_data
+        bin_width = 2 ** filter_power
+        pulse_duration = tsamp * bin_width * 128 # proper duration to display the pulse
+        spectra_obj = waterfall(filterbank_pulses, start=start_time, duration=pulse_duration,
+                                    dm=dm, nbins=256, nsub=num_channels)[0]
+
+         # adjust downsampling rate so pulse is at least 4 bins wide
+        if filter_power <= 4 and filter_power > 0 and snr > 20:
+            downfact = int(bin_width/4.0) or 1
+        elif filter_power > 2:
+            downfact = int(bin_width/2.0) or 1
+        else:
+            downfact = 1
+
+        spectra_obj.downsample(downfact)
+        candidate_spectra.append(spectra_obj)
+
+    candidate_data = [spec.data for spec in candidate_spectra]
+
+    return candidate_data
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
@@ -53,7 +83,8 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
-    parser.add_argument('candidate_path', type=str, help='Path to candidate file to be predicted.')
+    parser.add_argument('pulse_data', type=str, help='Path to .txt file containing data about pulses.')
+    parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
@@ -61,40 +92,18 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # load file path
-    path = args.candidate_path
+    filterbank_candidate = args.filterbank_candidate
     NCHAN = args.NCHAN
 
-    # get filenames of candidates
-    candidate_names = glob.glob(path + '*.fil' if path[-1] == '/' else path + '/*.ar')
+    print("Getting data about FRB candidates from " + args.pulse_data)
+    frb_info = extract_data(args.pulse_data)
 
-    if not candidate_names:
-        raise ValueError('No .ar files detected in path!')
-
-    # get number of time bins to pre-allocate zero array
-    random_file =  np.random.choice(candidate_names)
-    random_dm = extract_DM(random_file)
-    random_data = psr2np.psr2np(random_file, NCHAN, random_dm)[0]
-
-    # pre-allocate array containing all candidates
-    candidates = np.zeros((len(candidate_names), NCHAN, np.shape(random_data)[-1]))
-
-    print("\nPreparing %d files for prediction" % len(candidate_names))
-
-    for i, filename in enumerate(tqdm(candidate_names)):
-        # convert candidate to numpy array
-        dm = extract_DM(filename)
-        start_time = # TODO: implement after figuring out how to get start time
-        raw_filterbank = filterbank.FilterbankFile(filename)
-        spectra_obj = waterfall(raw_filterbank, start=start_time,
-                                duration=0.5, dm=dm)[0]
-
-        candidates[i, :, :] = spectra_obj.data
+    print("Retrieving candidate spectra")
+    candidates = get_pulses(frb_info, filterbank_candidate, NCHAN)
 
     # bring each channel to zero median and each array to unit stddev
+    print("\nScaling arrays")
     zscore_data = scale_data(np.array(candidates))
-
-    # keep track of original filenames corresponding to each array
-    duplicated_names = np.repeat(candidate_names, float(len(candidates)) / len(zscore_data))
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
