@@ -150,7 +150,15 @@ if __name__ == "__main__":
     samples_per_file = args.samples_per_file
     max_sampling_time = args.max_sampling_time
 
-    files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
+    # files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
+
+    # NOTE: this is only to get spectra without any other pulses in them! Delete later!
+    with open('/datax/scratch/vgajjar/Pipeline_test_run/files_2') as f:
+        content = f.readlines()
+        # you may also want to remove whitespace characters like `\n` at the end of each line
+        content = [x.strip() for x in content]
+    files = [path + fname for fname in content]
+
     print("Total number of files to possibly sample from: %d" % len(files))
 
     if not files:
