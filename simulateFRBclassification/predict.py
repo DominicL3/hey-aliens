@@ -136,12 +136,14 @@ if __name__ == "__main__":
         frb_probs = probabilities[voted_FRB_probs]
 
         with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
-            fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
             for data, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
+                fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
                 ax[0].imshow(data, aspect='auto')
+                ax[0].set_title('Confidence: {}'.format(prob))
+
                 signal = np.sum(data, axis=0) # 1D time series of array
                 ax[1].plot(signal)
-                ax[0].set_title('Confidence: {}'.format(prob))
+
                 pdf.savefig()
 
         np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
