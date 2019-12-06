@@ -141,7 +141,7 @@ if __name__ == "__main__":
                 ax[0].imshow(data, aspect='auto')
                 signal = np.sum(data, axis=0) # 1D time series of array
                 ax[1].plot(signal)
-                ax[0].title('Confidence: {}'.format(prob))
+                ax[0].set_title('Confidence: {}'.format(prob))
                 pdf.savefig()
 
         np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
