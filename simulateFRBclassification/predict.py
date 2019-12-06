@@ -103,8 +103,9 @@ if __name__ == "__main__":
     candidates = get_pulses(frb_info, filterbank_candidate, NCHAN)
 
     # bring each channel to zero median and each array to unit stddev
-    print("\nScaling arrays")
+    print("\nScaling arrays."),
     zscore_data = scale_data(np.array(candidates))
+    print("Done scaling!")
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
