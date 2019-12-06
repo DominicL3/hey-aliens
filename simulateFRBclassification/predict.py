@@ -129,7 +129,7 @@ if __name__ == "__main__":
             ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
         fig.suptitle('Top 5 Predicted FRBs')
-        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
+        fig.tight_layout(rect=[0, 0.02, 1, 0.95])
         fig.show()
         fig.savefig(args.save_top_candidates, dpi=300)
 
