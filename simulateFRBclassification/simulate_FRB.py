@@ -110,7 +110,7 @@ class SimulatedFRB(object):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        bin_shift = np.random.randint(low=-self.max_width, high=self.max_width)
+        bin_shift = np.random.randint(low=-self.nt // 2, high=self.nt // 2)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
