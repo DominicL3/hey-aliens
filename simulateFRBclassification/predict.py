@@ -114,36 +114,48 @@ if __name__ == "__main__":
     print(predictions)
 
     sorted_predictions = np.argsort(-predictions)
-    top_pred = zscore_data[sorted_predictions]
+    top_pred_spectra = zscore_data[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
     if args.save_top_candidates:
-        fig, ax_pred = plt.subplots(nrows=5, ncols=1)
-        for data, prob, ax in zip(top_pred[:5], probabilities[:5], ax_pred):
-            ax.imshow(data, aspect='auto')
-            ax.set_title('Confidence: {}'.format(prob))
+        fig, ax_pred = plt.subplots(nrows=5, ncols=2)
+        for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
+            signal = np.sum(spec.data, axis=0) # 1D time series of array
+
+            # plot spectrogram on left and signal on right
+            ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
+                            np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
+            ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
+
+            ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
+            ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
         fig.suptitle('Top 5 Predicted FRBs')
         fig.tight_layout()
         plt.show()
-        fig.savefig(args.save_predicted_FRBs, dpi=300)
+        fig.savefig(args.save_top_candidates, dpi=300)
 
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
         print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
 
         voted_FRB_probs = probabilities > 0.5
-        predicted_frbs = top_pred[voted_FRB_probs]
+        predicted_frbs = top_pred_spectra[voted_FRB_probs]
         frb_probs = probabilities[voted_FRB_probs]
 
         with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
-            for data, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
+            for spec, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
                 fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
-                ax[0].imshow(data, aspect='auto')
-                ax[0].set_title('Confidence: {}'.format(prob))
 
-                signal = np.sum(data, axis=0) # 1D time series of array
-                ax[1].plot(signal)
+                signal = np.sum(spec.data, axis=0) # 1D time series of array
+
+                # plot spectrogram on top and signal below it
+                ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
+                                np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
+                ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
+
+                ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
+                ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
                 pdf.savefig()
 
