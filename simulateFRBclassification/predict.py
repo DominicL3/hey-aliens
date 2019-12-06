@@ -52,9 +52,7 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         # spectra_obj.downsample(downfact, trim=True)
         candidate_spectra.append(spectra_obj)
 
-    candidate_data = [spec.data for spec in candidate_spectra]
-
-    return candidate_data
+    return candidate_spectra
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
@@ -100,11 +98,11 @@ if __name__ == "__main__":
     frb_info = extract_data(args.pulse_txt_data)
 
     print("Retrieving candidate spectra")
-    candidates = get_pulses(frb_info, filterbank_candidate, NCHAN)
+    candidate_spectra = get_pulses(frb_info, filterbank_candidate, NCHAN)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
-    zscore_data = scale_data(np.array(candidates))
+    zscore_data = scale_data(np.array([spec.data for spec in candidate_spectra]))
     print("Done scaling!")
 
     # load model and predict
@@ -114,7 +112,7 @@ if __name__ == "__main__":
     print(predictions)
 
     sorted_predictions = np.argsort(-predictions)
-    top_pred_spectra = zscore_data[sorted_predictions]
+    top_pred_spectra = candidate_spectra[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
     if args.save_top_candidates:
