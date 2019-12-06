@@ -135,7 +135,7 @@ if __name__ == "__main__":
 
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
-        print('Saving all predicted FRBs to {}'.format(args.save_predicted_FRBs))
+        print('Saving all predicted FRBs to {}.pdf'.format(args.save_predicted_FRBs))
 
         voted_FRB_probs = probabilities > 0.5
         predicted_frbs = top_pred_spectra[voted_FRB_probs]
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
                 pdf.savefig()
 
-        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
         print('Saving predicted to {}.npy'.format(args.save_predicted_FRBs))
+        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
 
     print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
