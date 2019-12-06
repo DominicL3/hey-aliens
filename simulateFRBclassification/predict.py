@@ -52,7 +52,7 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         # spectra_obj.downsample(downfact, trim=True)
         candidate_spectra.append(spectra_obj)
 
-    return candidate_spectra
+    return np.array(candidate_spectra)
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
