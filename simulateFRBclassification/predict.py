@@ -116,7 +116,7 @@ if __name__ == "__main__":
     probabilities = predictions[sorted_predictions]
 
     if args.save_top_candidates:
-        fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(14, 10))
+        fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(14, 12))
         for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
             signal = np.sum(spec.data, axis=0) # 1D time series of array
 
@@ -129,7 +129,7 @@ if __name__ == "__main__":
             ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
         fig.suptitle('Top 5 Predicted FRBs')
-        fig.tight_layout()
+        fig.tight_layout(rect=[0, 0.03, 1, 0.95])
         fig.show()
         fig.savefig(args.save_top_candidates, dpi=300)
 
