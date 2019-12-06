@@ -116,7 +116,7 @@ if __name__ == "__main__":
     probabilities = predictions[sorted_predictions]
 
     if args.save_top_candidates:
-        fig, ax_pred = plt.subplots(nrows=5, ncols=2)
+        fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(8, 12))
         for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
             signal = np.sum(spec.data, axis=0) # 1D time series of array
 
