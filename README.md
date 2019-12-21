@@ -100,28 +100,23 @@ python predict.py models/rolled_spectra_model \
 
 The prediction script takes in a model name, a candidate file, and `.txt` file specifying candidate start times (among other information) and will output the probability that the candidate has an FRB in it.
 
-In this example, the model will be tested on the following candidate:
+The given file has 19 candidates in it, and several examples of the candidates are shown below. As you can see, only a few of them are true signals.
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/frb.png">
+    <img src="simulateFRBclassification/presentation_plots/candidate_frbs.png">
 </p>
 
-There is a strong pulse at around t~650 on the x-axis. Because the network was trained on arrays with only 256 columns, this candidate will be split up into four different arrays from its original size of 1024 columns.
+When using the above prediction script with the optional argument `--save_top_candidates`, the candidates that the model has the highest confidence in are saved. For our given example, this looks like
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/split_frb.png">
+    <img src="simulateFRBclassification/presentation_plots/spec_predicted.png">
 </p>
 
-As you can see, the FRB is contained in the third array. The prediction script should output something like this:
+As you can see, the CNN predicts each of these arrays to contain FRBs with absolute certainty, and from visual inspection, they do! The model does misclassify several instances of RFI as FRBs, however, so it isn't completely perfect.
 
-```bash
-Splitting each array into 4 blocks
-(4, 64, 256)
-4/4 [=============================>] - 2s
-[0.1718652  0.15840465 1.            0.18031006]
-```
+With more training data and fine-tuning of the weights on false positives, the model should improve and can be deployed on different telescope data.
 
-The CNN predicts each of the arrays to have an FRB (> 50%) in the third array with absolute certainty, while also correctly guessing that there is no FRB in the other arrays.
+This code is currently being integrated into the FRB search pipeline by Vishal Gajjar of Breakthrough Listen team at Berkeley and will hopefully be able to pick out many more fast radio bursts.
 
 ## Acknowledgments
 * Vishal Gajjar, for mentorship
