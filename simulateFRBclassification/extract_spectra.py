@@ -134,7 +134,7 @@ if __name__ == "__main__":
                         help='Filename to save frequency-time arrays')
 
     parser.add_argument('--NCHAN', type=int, default=64,
-                        help='Number of frequency channels to resize psrchive files to')
+                        help='Number of frequency channels to resize Spectra to')
     parser.add_argument('--min_DM', type=float, default=100.0, help='Minimum DM to sample')
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
 

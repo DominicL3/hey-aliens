@@ -24,31 +24,35 @@ The end goal is to be able to whittle down a large data set of proposed FRB cand
 # Usage
 
 ## Creating RFI
-The first step is creating a suitable set of RFI arrays in which to inject simulated FRBs. Given a directory to a bunch of `.ar` files corresponding to data taken from a specific telescope, the RFI will be randomly selected, dedispersed to a random dispersion measure (DM), and converted into a NumPy array.
+The first step is creating a suitable set of RFI arrays in which to inject simulated FRBs. Given a directory to a bunch of filterbank (`.fil`) files corresponding to data taken from a specific telescope, the RFI will be randomly selected, dedispersed to a random dispersion measure (DM), and converted into a NumPy array.
 
-Don't worry if you don't know what that means—here's an empirical example.
+Don't worry if you don't know what that means—here's an example.
 
-**Note: This must be run in Python 2, because `psrchive` (the software used to convert from `.ar` to `.npy`) is written for Python 2.**
+**Note: All code is written for Python 2.**
 
-```bash 
-python2 psr2np.py /datax/scratch/vgajjar/Archive_files_to_train/ --num_samples 5000 --save_name rfi.npz
+```bash
+python extract_spectra.py /mnt_blpd9/datax/incoming/vishal/ --total_samples 5000 --save_name training_data/spectra_data.npz
 ```
-What this does is find all the `.ar` files in `/datax/scratch/vgajjar/Archive_files_to_train/` and creates 5000 background samples that are characteristic of what the telescope would observe after dedispersion.
+In its given form, this command searches for all `.fil` files in `/mnt_blpd9/datax/incoming/vishal/` and extracts 5000 random background observations as Spectra objects and dedisperses them to random DMs, saving the result to `training_data/spectra_data.npz`.
 
-There are several other parameters you can choose, such as minimum/maximum DM or number of frequency channels in each array, found either in `psr2np.py` or by running `python psr2np.py --help` in the terminal.
+There are several other parameters you can choose, such as minimum/maximum DM, number of samples to take per filterbank file, or number of frequency channels, all found either in `extract_spectra.py` or by running `python extract_spectra.py --help` in the terminal.
 
 Next step: simulation!
 
-## Simulation and Training the Network
-With these backgrounds, we can now insert our simulated FRBs and teach the model how to detect them.
+## Simulating FRBs and Training the Network
+We can now insert our simulated FRBs into these backgrounds and teach the model how to detect them against regular backgrounds.
 
-**Note: This code was written in Python 3, so it is recommended to have a separate conda environment with all necessary packages on Python 3 installed.**
 ```bash
-python3 simulated_NN.py 4000 8000 --RFI_array experimental_data/rfi.npz --save_model models/first_model --save_confusion_matrix confusion_matrix.png
+python create_model.py 4000 8000 --RFI_samples training_data/spectra_data.npz \
+--save_model models/rolled_spectra_model \
+--save_spectra simulated_data/spectra_rolled \
+--save_confusion_matrix confusion_matrices/rolled_spectra_confusion_matrix.png \
 ```
-This command will take in the RFI you created and saved in `experimental_data/rfi.npz` and train a classification model, saving the best one to `models/first_model`. The confusion matrix, a metric to determine the accuracy of classifications and show the lowest confidence predictions, will be saved to `confusion_matrix.png`.
+This command is quite hefty, but most of these arguments are optional and are supplied as an example.
 
-More parameters, like the number of convolutional layers, number of epochs to train with, or how costly to penalize false negatives, can be found in `simulated_NN.py` or by calling `python3 simulated_NN.py --help`.
+As specified, this command takes in the background samples you created and saved in `training_data/spectra_data.npz` and trains a classification model to recognize simulated FRBs, saving the best model to `models/rolled_spectra_model`. Simulated data will be saved to `simulated_data/spectra_rolled`. The confusion matrix, a metric to determine the accuracy of classifications and show the lowest confidence predictions, will be saved to `confusion_matrix.png`.
+
+More parameters, like the number of convolutional layers, number of epochs to train with, or how costly to penalize false negatives, can be found in `create_model.py` or by calling `python create_model.py --help`.
 
 If you're curious about the innerworkings behind the simulation, you can take a look in this nicely compiled HTML version of a [Jupyter notebook](simulateFRBclassification/FRBclassifier_notebook.html) detailing the math and code behind generating FRBs, or in [Connor & van Leeuwen (2018)](https://arxiv.org/pdf/1803.03084.pdf), from which this work was inspired.
 
@@ -56,7 +60,7 @@ If this works out, you should start seeing output like this when training begins
 ```bash
 Epoch 5/32
 19904/20000 [============================>.] - ETA: 0s - loss: 0.1444 - acc: 0.9861 — val_recall: 0.9977091633466135 — val_precision: 0.997014034040012 - val_fscore: 0.9976824096810154
-fscore improved from -inf to 0.9977, saving model to models/first_model
+fscore improved from -inf to 0.9977, saving model to models/rolled_spectra_model
 20000/20000 [==============================] - 23s - loss: 0.1439 - acc: 0.9861 - val_loss: 0.0199 - val_acc: 0.9973
 Epoch 6/32
 19904/20000 [============================>.] - ETA: 0s - loss: 0.0699 - acc: 0.9916 — val_recall: 0.9968127490039841 — val_precision: 0.9989020860365306 - val_fscore: 0.9968929464904854
@@ -64,7 +68,7 @@ fscore (0.9969) did not improve from 0.9977
 20000/20000 [==============================] - 23s - loss: 0.0701 - acc: 0.9915 - val_loss: 0.0180 - val_acc: 0.9979
 Epoch 7/32
 19904/20000 [============================>.] - ETA: 0s - loss: 0.0765 - acc: 0.9903 — val_recall: 0.999402390438247 — val_precision: 0.9839184153755638 - val_fscore: 0.9987978468441566
-fscore improved from 0.9977 to 0.9988, saving model to models/first_model
+fscore improved from 0.9977 to 0.9988, saving model to models/rolled_spectra_model
 ```
 
 At the end of training, your output should end up something like this:
@@ -85,14 +89,16 @@ and a plot should appear like the following:
 </p>
 
 ## Prediction
-Once the model has been trained, predicting whether an `.ar` file contains an FRB is as easy as
+Once the model has been trained, predicting whether a filterbank file contains FRBs is as easy as
 
 ```bash
-python predict.py models/first_model /datax/scratch/vgajjar/Archive_files_to_test/real_frb.ar
+python predict.py models/rolled_spectra_model \
+/datax/scratch/vgajjar/Test_pipeline/Cand_for_Dominic/FRBcand \
+/mnt_blpd9/datax/incoming/spliced_guppi_57991_49905_DIAG_FRB121102_0011.gpuspec.0001.8.4chan.fil \
+--save_top_candidates predicted_FRBs/spec_predicted
 ```
-**Again, this is in Python 2, because `psrchive` needs to convert the `.ar` file into `.npy` format.** Sorry, folks!
 
-The prediction script takes in a model name and a candidate file and will output the probability that the candidate has an FRB in it.
+The prediction script takes in a model name, a candidate file, and `.txt` file specifying candidate start times (among other information) and will output the probability that the candidate has an FRB in it.
 
 In this example, the model will be tested on the following candidate:
 
