@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, sys, os, glob
+import argparse, os
 import subprocess
 from tqdm import tqdm
 import keras
@@ -22,12 +22,33 @@ def extract_data(txt_name):
     properties like the start time and DM of each candidate in
     the filterbank file."""
 
-    frb_info = np.loadtxt(txt_name, dtype={'names': ('snr','time','samp_idx','dm','filter_power','prim_beam'),
-                                    'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
-    frb_info = frb_info[['snr', 'time', 'dm', 'filter_power']] # only return relevant items
+    frb_info = np.loadtxt(txt_name, usecols=(0,1,3,4))
+
+    # check if start_time column is strictly increasing
+    start_times = frb_info[:, 1]
+    diff_start = np.diff(start_times)
+    assert (diff_start > 0).all(), "Start time column is not strictly increasing"
+
     return frb_info
 
+def save_prob_to_disk(frb_info, pred, fname):
+    """Given the original FRB candidate info and predictions
+    for each candidate, save candidate info and prediction probabilities
+    to disk in the same directory as the original .txt file."""
+
+    assert len(pred) == len(frb_info), \
+        "Number of predictions don't match number of candidates ({0} vs. {1})".format(len(pred), len(frb_info))
+
+    # append new column of predicted probabilities to candidate info
+    pred_column = pred.reshape(-1, 1)
+    FRBcand_with_probs = np.concatenate([frb_info, pred_column], axis=1)
+
+    np.savetxt(fname, FRBcand_with_probs)
+
 def get_pulses(frb_info, filterbank_name, num_channels):
+    """Uses candidate info from .txt file to extract the given pulses
+    from a filterbank file. Downsamples according to data in .txt file."""
+
     filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
     tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
 
@@ -85,10 +106,13 @@ if __name__ == "__main__":
     parser.add_argument('pulse_txt_data', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
+    help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
 
     args = parser.parse_args()
+    parser.set_defaults(supress_prob_save=False)
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
@@ -115,6 +139,12 @@ if __name__ == "__main__":
     top_pred_spectra = candidate_spectra[sorted_predictions]
     probabilities = predictions[sorted_predictions]
 
+    # save probabilities to disk along with candidate data
+    if not args.supress_prob_save:
+        FRBcand_prob_path = os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
+        save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
+
+    # save the best 5 candidates to disk along with 1D signal
     if args.save_top_candidates:
         fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(14, 12))
         for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
@@ -133,6 +163,7 @@ if __name__ == "__main__":
         fig.show()
         fig.savefig(args.save_top_candidates, dpi=300)
 
+    # save all predicted FRBs to PDF, where each page contains spectrogram and 1D signal
     if args.save_predicted_FRBs:
         from matplotlib.backends.backend_pdf import PdfPages
         print('Saving all predicted FRBs to {}.pdf'.format(args.save_predicted_FRBs))
