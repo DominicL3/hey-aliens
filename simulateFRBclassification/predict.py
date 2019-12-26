@@ -142,10 +142,13 @@ if __name__ == "__main__":
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
         FRBcand_prob_path = os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
+        print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
 
     # save the best 5 candidates to disk along with 1D signal
     if args.save_top_candidates:
+        print("Saving top 5 candidates to {0}".format(args.save_top_candidates))
+
         fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(14, 12))
         for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
             signal = np.sum(spec.data, axis=0) # 1D time series of array
