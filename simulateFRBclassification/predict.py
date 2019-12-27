@@ -22,13 +22,8 @@ def extract_data(txt_name):
     properties like the start time and DM of each candidate in
     the filterbank file."""
 
-    frb_info = np.loadtxt(txt_name, usecols=(0,1,3,4))
-
-    # check if start_time column is strictly increasing
-    start_times = frb_info[:, 1]
-    diff_start = np.diff(start_times)
-    assert (diff_start > 0).all(), "Start time column is not strictly increasing"
-
+    frb_info = np.loadtxt(txt_name, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),
+                            'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
     return frb_info
 
 def save_prob_to_disk(frb_info, pred, fname):
@@ -39,9 +34,14 @@ def save_prob_to_disk(frb_info, pred, fname):
     assert len(pred) == len(frb_info), \
         "Number of predictions don't match number of candidates ({0} vs. {1})".format(len(pred), len(frb_info))
 
-    # append new column of predicted probabilities to candidate info
-    pred_column = pred.reshape(-1, 1)
-    FRBcand_with_probs = np.concatenate([frb_info, pred_column], axis=1)
+    # create new array to hold candidate data and probabilities
+    new_dt = np.dtype(frb_info.dtype.descr + [('frb_prob', 'f4')])
+    previous_names = ['snr','time','samp_idx','dm','filter','prim_beam']
+    FRBcand_with_probs = np.zeros(frb_info.shape, dtype=new_dt)
+
+    # populate new array with candidate data and predicted probabilities
+    FRBcand_with_probs[previous_names] = frb_info[previous_names]
+    FRBcand_with_probs['frb_prob'] = pred
 
     np.savetxt(fname, FRBcand_with_probs)
 
@@ -49,12 +49,13 @@ def get_pulses(frb_info, filterbank_name, num_channels):
     """Uses candidate info from .txt file to extract the given pulses
     from a filterbank file. Downsamples according to data in .txt file."""
 
+    pred_info = frb_info[['snr', 'time', 'dm', 'filter']]
     filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
     tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
 
     candidate_spectra = []
 
-    for candidate_data in tqdm(frb_info):
+    for candidate_data in tqdm(pred_info):
         snr, start_time, dm, filter_power = candidate_data
         bin_width = 2 ** filter_power
         pulse_duration = tsamp * bin_width * 128 / 1e6 # proper duration (seconds) to display the pulse
