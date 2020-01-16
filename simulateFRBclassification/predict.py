@@ -43,7 +43,7 @@ def save_prob_to_disk(frb_info, pred, fname):
     FRBcand_with_probs[previous_names] = frb_info[previous_names]
     FRBcand_with_probs['frb_prob'] = pred
 
-    np.savetxt(fname, FRBcand_with_probs)
+    np.savetxt(fname, FRBcand_with_probs, fmt='%1.4f')
 
 def get_pulses(frb_info, filterbank_name, num_channels):
     """Uses candidate info from .txt file to extract the given pulses
@@ -101,6 +101,8 @@ if __name__ == "__main__":
         Number of frequency channels (default 64) to resize psrchive files to.
     no-FRBcandprob: flag, optional
         Whether or not to save edited FRBcand file containing pulse probabilities.
+    --FRBcandprob: str, optional
+        Path to save FRBcandprob.txt (default is same path as pulse_txt_data)
     save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
     save_predicted_FRBs: str, optional
