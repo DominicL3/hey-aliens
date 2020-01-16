@@ -43,7 +43,7 @@ def save_prob_to_disk(frb_info, pred, fname):
     FRBcand_with_probs[previous_names] = frb_info[previous_names]
     FRBcand_with_probs['frb_prob'] = pred
 
-    np.savetxt(fname, FRBcand_with_probs, fmt='%1.4f')
+    np.savetxt(fname, FRBcand_with_probs, fmt='%-12s %1.4f')
 
 def get_pulses(frb_info, filterbank_name, num_channels):
     """Uses candidate info from .txt file to extract the given pulses
