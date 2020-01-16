@@ -92,12 +92,19 @@ if __name__ == "__main__":
     ---------------
     model_name: str
         Path to trained model used to make prediction. Should be .h5 file
-    candidate_filepath: str
-        Path to candidate file to be predicted. Should be .ar file
+    pulse_txt_data: str
+        Path to .txt file that contains data about pulses within filterbank file. This
+        file should contain columns 'snr','time','samp_idx','dm','filter', and'prim_beam'.
+    filterbank_candidate: str
+        Path to candidate file to be predicted. Should be .fil file
     NCHAN: int, optional
         Number of frequency channels (default 64) to resize psrchive files to.
+    no-FRBcandprob: flag, optional
+        Whether or not to save edited FRBcand file containing pulse probabilities.
     save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
+    save_predicted_FRBs: str, optional
+        Filename to save every candidate predicted to contain an FRB.
     """
 
     # Read command line arguments
@@ -108,9 +115,9 @@ if __name__ == "__main__":
     parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
-    help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
-    parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
+                            help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
+    parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
     args = parser.parse_args()
     parser.set_defaults(supress_prob_save=False)
@@ -136,19 +143,47 @@ if __name__ == "__main__":
     predictions = model.predict(zscore_data[..., None], verbose=1)[:, 1]
     print(predictions)
 
-    sorted_predictions = np.argsort(-predictions)
-    top_pred_spectra = candidate_spectra[sorted_predictions]
-    probabilities = predictions[sorted_predictions]
-
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
         FRBcand_prob_path = os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
 
+    voted_FRB_probs = predictions > 0.5
+    predicted_frbs = candidate_spectra[voted_FRB_probs]
+    frb_probs = predictions[voted_FRB_probs]
+
+    # save all predicted FRBs to PDF, where each page contains spectrogram and 1D signal
+    if args.save_predicted_FRBs:
+        from matplotlib.backends.backend_pdf import PdfPages
+        print('Saving all predicted FRBs to {}.pdf'.format(args.save_predicted_FRBs))
+
+        with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
+            for spec, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
+                fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
+
+                signal = np.sum(spec.data, axis=0) # 1D time series of array
+
+                # plot spectrogram on top and signal below it
+                ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
+                                np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
+                ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
+
+                ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
+                ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
+
+                pdf.savefig()
+
+        print('Saving predicted FRB arrays to {}.npy'.format(args.save_predicted_FRBs))
+        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
+
     # save the best 5 candidates to disk along with 1D signal
     if args.save_top_candidates:
         print("Saving top 5 candidates to {0}".format(args.save_top_candidates))
+
+        sorted_predictions = np.argsort(-predictions)
+        top_pred_spectra = candidate_spectra[sorted_predictions]
+        probabilities = predictions[sorted_predictions]
 
         fig, ax_pred = plt.subplots(nrows=5, ncols=2, figsize=(14, 12))
         for spec, prob, ax in zip(top_pred_spectra[:5], probabilities[:5], ax_pred):
@@ -167,32 +202,4 @@ if __name__ == "__main__":
         fig.show()
         fig.savefig(args.save_top_candidates, dpi=300)
 
-    # save all predicted FRBs to PDF, where each page contains spectrogram and 1D signal
-    if args.save_predicted_FRBs:
-        from matplotlib.backends.backend_pdf import PdfPages
-        print('Saving all predicted FRBs to {}.pdf'.format(args.save_predicted_FRBs))
-
-        voted_FRB_probs = probabilities > 0.5
-        predicted_frbs = top_pred_spectra[voted_FRB_probs]
-        frb_probs = probabilities[voted_FRB_probs]
-
-        with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
-            for spec, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
-                fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
-
-                signal = np.sum(spec.data, axis=0) # 1D time series of array
-
-                # plot spectrogram on top and signal below it
-                ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
-                                np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
-                ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
-
-                ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
-                ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
-
-                pdf.savefig()
-
-        print('Saving predicted to {}.npy'.format(args.save_predicted_FRBs))
-        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
-
-    print('Number of FRBs: {}'.format(np.sum([p > 0.5 for p in predictions])))
+    print('Number of FRBs: {}'.format(np.sum(voted_FRB_probs)))
