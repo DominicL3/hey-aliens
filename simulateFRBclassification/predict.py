@@ -116,6 +116,8 @@ if __name__ == "__main__":
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
+    parser.add_argument('--FRBcandprob', type=str, default=None,
+                            help='Directory to save new FRBcand file with probabilities (default is same dir as pulse_txt_data)')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
@@ -145,7 +147,7 @@ if __name__ == "__main__":
 
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
-        FRBcand_prob_path = os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
+        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
 
