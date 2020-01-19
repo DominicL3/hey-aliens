@@ -2,11 +2,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, os
-import subprocess
+from skimage.transform import resize
+import argparse, os, subprocess
 from tqdm import tqdm
+
 import keras
 from keras.models import load_model
+
 from extract_spectra import filterbank, waterfall
 
 """After taking in a directory of .fil files and a model,
@@ -49,6 +51,7 @@ def get_pulses(frb_info, filterbank_name, num_channels):
     """Uses candidate info from .txt file to extract the given pulses
     from a filterbank file. Downsamples according to data in .txt file."""
 
+    # get FRB info from .txt file and and load in candidate file
     pred_info = frb_info[['snr', 'time', 'dm', 'filter']]
     filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
     tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
@@ -58,10 +61,10 @@ def get_pulses(frb_info, filterbank_name, num_channels):
     for candidate_data in tqdm(pred_info):
         snr, start_time, dm, filter_power = candidate_data
         bin_width = 2 ** filter_power
-        pulse_duration = tsamp * bin_width * 128 / 1e6 # proper duration (seconds) to display the pulse
-        spectra_obj = waterfall(filterbank_pulses, start=start_time - pulse_duration/2,
-                                duration=pulse_duration, dm=0, nbins=256, nsub=num_channels)[0]
+        pulse_duration = (tsamp/1e6) * bin_width * 128 # proper duration (seconds) to display the pulse
 
+        spectra_obj = waterfall(filterbank_pulses, start=start_time - pulse_duration / 2,
+                                duration=pulse_duration, dm=dm, nsub=num_channels)[0]
         # adjust downsampling rate so pulse is at least 4 bins wide
         if filter_power <= 4 and filter_power > 0 and snr > 20:
             downfact = int(bin_width/4.0) or 1
@@ -70,8 +73,10 @@ def get_pulses(frb_info, filterbank_name, num_channels):
         else:
             downfact = 1
 
-        spectra_obj.dedisperse(dm, padval='rotate')
-        # spectra_obj.downsample(downfact, trim=True)
+        # downsample and resize image to proper shape for Keras model
+        spectra_obj.downsample(downfact, trim=True)
+        spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
+
         candidate_spectra.append(spectra_obj)
 
     return np.array(candidate_spectra)
@@ -185,6 +190,7 @@ if __name__ == "__main__":
     if args.save_top_candidates:
         print("Saving top 5 candidates to {0}".format(args.save_top_candidates))
 
+        # sort probabilities high --> low to get top candidates in order
         sorted_predictions = np.argsort(-predictions)
         top_pred_spectra = candidate_spectra[sorted_predictions]
         probabilities = predictions[sorted_predictions]
