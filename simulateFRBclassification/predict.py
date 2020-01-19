@@ -2,14 +2,17 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from skimage.transform import resize
-import argparse, os, subprocess
+import argparse, os, sys, subprocess
 from tqdm import tqdm
 
 import keras
 from keras.models import load_model
 
-from extract_spectra import filterbank, waterfall
+sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
+
+from skimage.transform import resize
+from waterfaller import filterbank, waterfall
 
 """After taking in a directory of .fil files and a model,
 outputs probabilities that the files contain an FRB. Also
