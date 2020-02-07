@@ -14,6 +14,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/bin/')
 sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 sys.path.append('/home/vgajjar/sigpyproc') # sigpyproc from Vishal's path
 
@@ -102,16 +103,12 @@ def pairwise(iterable):
     return izip(a, b)
 
 def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
-    #Extract block factor plot in seconds
-    extimefact = 1.0
-
     # Total extract time Calc
     # Extract according to the DM delay
     cmd = 'dmsmear -f %f -b %f -n 2048 -d ' % (fl+(fh-fl)/2,fh-fl) + str(dm) + " -q 2>&1 "
     p = os.popen(cmd)
     cand_band_smear = p.readline().strip()
     p.close()
-    #extime = extimefact/2 + extimefact*float(cand_band_smear)
 
     # Tbin calc
     # For Filter widths startting from 2^0 to 2^12=4096
@@ -119,8 +116,10 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
     #tbin = widths[filter]
     bin_width = tint * (2 ** filter)
 
+    """Let extime be 1, change later
     extime = 2*float(cand_band_smear)
-    if extime < 1.0: extime = 1.0
+    if extime < 1.0: extime = 1.0"""
+    extime = 1.0
 
     #So that we have at least 4 bins on pulse
     if filter <= 4 and snr > 20:
