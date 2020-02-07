@@ -583,7 +583,7 @@ def main():
     else:
         with open('waterfall_candidates.pickle', 'wb') as f:
             spectra_dict = {'spectra': [spectra], 'nbinlims': [nbinlim]}
-            pickle.dump(spectra_dict, f)
+            cPickle.dump(spectra_dict, f)
 
 
 if __name__=='__main__':
