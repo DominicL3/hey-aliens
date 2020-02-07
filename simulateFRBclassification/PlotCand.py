@@ -133,8 +133,8 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
     if tint > (extime/tbin):
         tbin = int(extime/tint)
 
-        #Fbin Calc
-        fbin = int(round(math.pow(float(snr)/4.0,2)))
+    #Fbin Calc
+    fbin = int(round(math.pow(float(snr)/4.0,2)))
     if (fbin > nchan): fbin=nchan
 
     #if nchan is not power of 2, get fbin modulo of nchan
