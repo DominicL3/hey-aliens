@@ -10,10 +10,13 @@ from itertools import chain
 from os.path import basename
 from itertools import tee, izip, izip_longest
 import matplotlib
-#matplotlib.use('Agg')
-#matplotlib.use('pdf')
+
 import matplotlib.pyplot as plt
-#plt.ioff()
+
+sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
+sys.path.append('/home/vgajjar/sigpyproc') # sigpyproc from Vishal's path
+
 import psrchive as psr
 from sigpyproc.Readers import FilReader
 import subprocess as sb
