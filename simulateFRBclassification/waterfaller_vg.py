@@ -215,10 +215,10 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
         nbin = len(chan)
         x = range(nbin)
         if(nbin>4000): deg = 10
-            if(nbin<4000 and nbin>2000): deg = 8
-            if(nbin<2000 and nbin>1000): deg = 6
-            if(nbin<1000 and nbin>150): deg = 5
-            if(nbin<150): deg = 2
+        if(nbin<4000 and nbin>2000): deg = 8
+        if(nbin<2000 and nbin>1000): deg = 6
+        if(nbin<1000 and nbin>150): deg = 5
+        if(nbin<150): deg = 2
         base=np.polyfit(x,chan,deg)
         p = np.poly1d(base)
         chan[:] = chan[:] - p(x)
@@ -233,7 +233,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     """
 
     if source_name is None:
-    source_name="Unknown"
+        source_name="Unknown"
 
     #Output file
     if ofile is "unknown_cand":
@@ -276,12 +276,11 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     zerochan=1
     arrmedian=np.ones(data.numchans)
     if zerochan:
-    for ii in range(data.numchans):
-        chan = data.get_chan(ii)
-        #if 50% are zero
-        if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
-            arrmedian[ii]=0.0
-        #arrmedian=np.array(arrmedian)
+        for ii in range(data.numchans):
+            chan = data.get_chan(ii)
+            #if 50% are zero
+            if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
+                arrmedian[ii]=0.0
 
     #Additional zapping from off-pulse spectra
     extrazap=1
@@ -296,7 +295,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
         mask[masked_chan] = masked_val
         masked_chan1 = np.array(np.where(arrmedian==0))[0]
         mask[masked_chan1] = masked_val
-            data=data.masked(mask,maskval=0)
+        data=data.masked(mask,maskval=0)
 
         for i in masked_chan:
             ax_spec.axhline(data.freqs[i],alpha=0.4,color='grey')
