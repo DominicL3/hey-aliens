@@ -49,4 +49,6 @@ if __name__ == "__main__":
             fig.tight_layout()
             pdf.savefig()
 
+            fig.close()
+
     print('Saving plots to {}'.format(args.save_pdf + '.pdf'))
