@@ -220,7 +220,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                 candname = '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f.png' % (dm)
                 cmd = "python waterfaller_vg.py --show-ts " + \
                        " -t " + str(TotDisplay) + \
-                       " --colour-map=hot " + \
+                       " --colour-map=viridis " + \
                        " -T "  + str(stime) +  \
                        " -d "  + str(dm) + \
                        " --sweep-dm " + str(dm) + \
