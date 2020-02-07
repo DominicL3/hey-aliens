@@ -140,7 +140,7 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
         nbins = np.round(duration/rawdatafile.tsamp).astype('int')
 
     if dm:
-	nbinsextra = np.round((duration + dmfac * dm)/rawdatafile.tsamp).astype('int')
+        nbinsextra = np.round((duration + dmfac * dm)/rawdatafile.tsamp).astype('int')
     else:
         nbinsextra = nbins
 
@@ -192,16 +192,17 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
 
     #Orignal scale has error if chan is flagged so writting this here
     if not scaleindep:
-	std = data.data.std()
+        std = data.data.std()
     for ii in range(data.numchans):
-	chan = data.get_chan(ii)
-	median = np.median(chan)
-	if scaleindep:
-		std = chan.std()
-	if std:
-		chan[:] = (chan-median)/std
-	else:
-		chan[:] = chan
+        chan = data.get_chan(ii)
+        median = np.median(chan)
+
+    if scaleindep:
+        std = chan.std()
+    if std:
+        chan[:] = (chan-median)/std
+    else:
+        chan[:] = chan
 
     # scale data
     #data = data.scaled(scaleindep)
@@ -211,16 +212,16 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
     if width_bins > 1:
         for ii in range(data.numchans):
                 chan = data.get_chan(ii)
-		nbin = len(chan)
-		x = range(nbin)
-		if(nbin>4000): deg = 10
-    		if(nbin<4000 and nbin>2000): deg = 8
-    		if(nbin<2000 and nbin>1000): deg = 6
-    		if(nbin<1000 and nbin>150): deg = 5
-    		if(nbin<150): deg = 2
-		base=np.polyfit(x,chan,deg)
-		p = np.poly1d(base)
-		chan[:] = chan[:] - p(x)
+        nbin = len(chan)
+        x = range(nbin)
+        if(nbin>4000): deg = 10
+            if(nbin<4000 and nbin>2000): deg = 8
+            if(nbin<2000 and nbin>1000): deg = 6
+            if(nbin<1000 and nbin>150): deg = 5
+            if(nbin<150): deg = 2
+        base=np.polyfit(x,chan,deg)
+        p = np.poly1d(base)
+        chan[:] = chan[:] - p(x)
 
     return data, nbinsextra, nbins, start, source_name
 
@@ -232,11 +233,11 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     """
 
     if source_name is None:
-	source_name="Unknown"
+    source_name="Unknown"
 
     #Output file
     if ofile is "unknown_cand":
-    	title = "%s_" +  ofile + "_%.3f_%s" % (source_name,start,str(dm))
+        title = "%s_" +  ofile + "_%.3f_%s" % (source_name,start,str(dm))
     else: title=source_name + "_" + ofile
 
     # Set up axes
@@ -275,31 +276,30 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     zerochan=1
     arrmedian=np.ones(data.numchans)
     if zerochan:
-	for ii in range(data.numchans):
-		chan = data.get_chan(ii)
-		#if 50% are zero
-		if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
-			arrmedian[ii]=0.0
-    	#arrmedian=np.array(arrmedian)
+    for ii in range(data.numchans):
+        chan = data.get_chan(ii)
+        #if 50% are zero
+        if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
+            arrmedian[ii]=0.0
+        #arrmedian=np.array(arrmedian)
 
     #Additional zapping from off-pulse spectra
     extrazap=1
     zapthresh=4
     if extrazap:
-	off_spec1 = np.array(data.data[..., 0:burst_bin-window_width]) # off-pulse from left
-    	off_spec2 = np.array(data.data[...,burst_bin+window_width:nbinlim]) # off-pulse from right
-    	off_spec  = (np.mean(off_spec1,axis=1) + np.mean(off_spec2,axis=1))/2.0 # Total off-pulse
-	mask = np.zeros(data.data.shape,dtype=bool)
-	masked_val = np.ones(data.data.shape[1],dtype=bool)
-	masked_chan = np.array(np.where(off_spec>zapthresh*np.std(off_spec)))[0]
-    	mask[masked_chan] = masked_val
-	masked_chan1 = np.array(np.where(arrmedian==0))[0]
-	mask[masked_chan1] = masked_val
-    	data=data.masked(mask,maskval=0)
-	for i in masked_chan:
-		ax_spec.axhline(data.freqs[i],alpha=0.4,color='grey')
-	for i in masked_chan1:
-		ax_spec.axhline(data.freqs[i],alpha=0.4,color='grey')
+        off_spec1 = np.array(data.data[..., 0:burst_bin-window_width]) # off-pulse from left
+        off_spec2 = np.array(data.data[...,burst_bin+window_width:nbinlim]) # off-pulse from right
+        off_spec  = (np.mean(off_spec1,axis=1) + np.mean(off_spec2,axis=1))/2.0 # Total off-pulse
+        mask = np.zeros(data.data.shape,dtype=bool)
+        masked_val = np.ones(data.data.shape[1],dtype=bool)
+        masked_chan = np.array(np.where(off_spec>zapthresh*np.std(off_spec)))[0]
+        mask[masked_chan] = masked_val
+        masked_chan1 = np.array(np.where(arrmedian==0))[0]
+        mask[masked_chan1] = masked_val
+            data=data.masked(mask,maskval=0)
+
+        for i in masked_chan:
+            ax_spec.axhline(data.freqs[i],alpha=0.4,color='grey')
 
     # DM-vs-time plot
     dmvstm_array = []
@@ -319,39 +319,33 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 
     lodm = dm-FWHM_DM
     if lodm < 0:
-	lodm = 0
-	hidm = 2*dm # If low DM is zero then range should be 0 to 2*DM
+        lodm = 0
+        hidm = 2*dm # If low DM is zero then range should be 0 to 2*DM
     else:
-	hidm= dm+FWHM_DM
-    print FWHM_DM,dm,lodm,hidm
+        hidm= dm+FWHM_DM
+    print(FWHM_DM,dm,lodm,hidm)
     dmstep = (hidm-lodm)/48.0
     datacopy = copy.deepcopy(data)
     #print lodm,hidm
     for ii in np.arange(lodm,hidm,dmstep):
-    #for ii in range(400,600,10):
-	#Without this, dispersion delay with smaller DM step does not produce delay close to bin width
-	data.dedisperse(0,padval='rotate')
-	data.dedisperse(ii,padval='rotate')
-	Data = np.array(data.data[..., :nbinlim])
-	Dedisp_ts = Data.sum(axis=0)
-	dmvstm_array.append(Dedisp_ts)
+        #for ii in range(400,600,10):
+        #Without this, dispersion delay with smaller DM step does not produce delay close to bin width
+        data.dedisperse(0,padval='rotate')
+        data.dedisperse(ii,padval='rotate')
+        Data = np.array(data.data[..., :nbinlim])
+        Dedisp_ts = Data.sum(axis=0)
+        dmvstm_array.append(Dedisp_ts)
+
     dmvstm_array=np.array(dmvstm_array)
-    #print np.shape(dmvstm_array)
-    #np.save('dmvstm_1step.npz',dmvstm_array)
+
     ax_dmvstm.set_xlabel("Time (sec) ")
     ax_dmvstm.set_ylabel("DM")
-    #ax_dmvstm.imshow(dmvstm_array, aspect='auto', cmap=matplotlib.cm.cmap_d[cmap_str], origin='lower',extent=(data.starttime, data.starttime+ nbinlim*data.dt, lodm, hidm))
+
     ax_dmvstm.imshow(dmvstm_array, aspect='auto', origin='lower',extent=(data.starttime, data.starttime+ nbinlim*data.dt, lodm, hidm))
-    #cmap=matplotlib.cm.cmap_d[cmap_str])
-    #interpolation='nearest', origin='upper')
+
     plt.setp(ax_im.get_xticklabels(), visible = False)
     plt.setp(ax_ts.get_xticklabels(), visible = False)
     ax_dmvstm.set_ylim(lodm,hidm)
-    #extent=(data.starttime, data.starttime+ nbinlim*data.dt, 500, 700)
-    #plt.show()
-    #fig2 = plt.figure(2)
-    #plt.imshow(dmvstm_array,aspect='auto')
-
 
     #Plot Freq-vs-time
     data = copy.deepcopy(datacopy)
@@ -423,9 +417,9 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     text4 =  "  %.2f" % (ttest) + "(%.2f" % ((1-ttestprob)*100) + "%)"
     plt.text(1.1,0.3,text4,fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
     if prob:
-	text5 = "ML prob: " + "%.2f" % (float(prob))
-	print text5
-	plt.text(1.1,0.1,text5,fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
+        text5 = "ML prob: " + "%.2f" % (float(prob))
+        print text5
+        plt.text(1.1,0.1,text5,fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
 
     #DMvsSNR plot
     ax_dmsnr.plot(Dedisp_dmsnr,dms,color="red",lw=2)
@@ -485,43 +479,37 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
         sweepstart = data.dt*data.numspectra*sweep_posn+data.starttime
         #sweepstart = data.dt*data.numspectra + data.starttime
 
-	sty="b-"
+    sty="b-"
 
-	if FTdirection == 'nT':
-		ddm = (-1)*ddm # Negative DM
-                nfreqs = data.freqs
-	elif FTdirection == 'nF':
-                nfreqs = data.freqs[::-1]
-	elif FTdirection == 'nTnF':
-		ddm = (-1)*ddm # Negative DM
-		nfreqs = data.freqs[::-1]
-	else:
-		nfreqs = data.freqs
+    if FTdirection == 'nT':
+        ddm = (-1)*ddm # Negative DM
+        nfreqs = data.freqs
+    elif FTdirection == 'nF':
+        nfreqs = data.freqs[::-1]
+    elif FTdirection == 'nTnF':
+        ddm = (-1)*ddm # Negative DM
+        nfreqs = data.freqs[::-1]
+    else:
+        nfreqs = data.freqs
 
-	delays = psr_utils.delay_from_DM(ddm, data.freqs)
-        delays -= delays.min()
-	ndelay = (delays+sweepstart)
-        ndelay2 = (delays+sweepstart+duration)
+    delays = psr_utils.delay_from_DM(ddm, data.freqs)
+    delays -= delays.min()
+    ndelay = (delays+sweepstart)
+    ndelay2 = (delays+sweepstart+duration)
 
-	ax_orig.set_xlim(data.starttime, data.starttime + len(data.data[0])*data.dt)
-	ax_orig.set_ylim(data.freqs.min(),data.freqs.max())
-	ax_orig.plot(ndelay, nfreqs, "b-", lw=2, alpha=0.7)
-	ax_orig.plot(ndelay2, nfreqs, "b-", lw=2, alpha=0.7)
+    ax_orig.set_xlim(data.starttime, data.starttime + len(data.data[0])*data.dt)
+    ax_orig.set_ylim(data.freqs.min(),data.freqs.max())
+    ax_orig.plot(ndelay, nfreqs, "b-", lw=2, alpha=0.7)
+    ax_orig.plot(ndelay2, nfreqs, "b-", lw=2, alpha=0.7)
 
     ax_orig.imshow(ndata, aspect='auto', \
-	cmap=matplotlib.cm.cmap_d[cmap_str], \
+        cmap=matplotlib.cm.cmap_d[cmap_str], \
         interpolation='nearest', origin='upper', \
         extent=(data.starttime, data.starttime + len(data.data[0])*data.dt, \
         data.freqs.min(), data.freqs.max()))
 
-    #if interactive:
-    #    fig.suptitle("Frequency vs. Time")
-    #    fig.canvas.mpl_connect('key_press_event', \
-    #            lambda ev: (ev.key in ('q','Q') and plt.close(fig)))
-    #oname = "%.3f_%s.png" % (start,str(dm))
-
     if ofile is "unknown_cand":
-		ofile = ofile + "_%.3f_%s.png" % (start,str(dm))
+        ofile = ofile + "_%.3f_%s.png" % (start,str(dm))
 
     ttestTrsh1=3
     ttestTrsh2=1
@@ -532,17 +520,17 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     DMright = Dedisp_dmsnr_split[4]
 
     if prob >= probTrsh2:
-    	ofile = "A_" + ofile
-    	plt.text(1.1,0.2,"cat: A",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
+        ofile = "A_" + ofile
+        plt.text(1.1,0.2,"cat: A",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
     elif ttest > ttestTrsh1 and DMcent > DMleft and DMcent > DMright:
-	ofile = "B_" + ofile
-	plt.text(1.1,0.2,"cat: B",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
+        ofile = "B_" + ofile
+        plt.text(1.1,0.2,"cat: B",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
     elif ttest > ttestTrsh2 and DMcent > DMleft and DMcent > DMright:
-	plt.text(1.1,0.2,"cat: C",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
+        plt.text(1.1,0.2,"cat: C",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
         ofile = "C_" + ofile
 
     plt.savefig(ofile)
-    #plt.show()
+
     return ofile,ttest,ttestprob
 
 def main():
@@ -569,44 +557,44 @@ def main():
                             scaleindep=options.scaleindep, \
                             width_bins=options.width_bins, mask=options.mask, \
                             maskfn=options.maskfile, \
-			    csv_file=options.csv_file,\
+                            csv_file=options.csv_file,\
                             bandpass_corr=options.bandpass_corr)
 
     ofile,ttest,ttestprob = plot_waterfall(data,  start, source_name, options.duration, \
-		   dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
-                   integrate_spec=options.integrate_spec, show_cb=options.show_cb,
-                   cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
-                   sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
+                    dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
+                    integrate_spec=options.integrate_spec, show_cb=options.show_cb,
+                    cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
+                    sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
     ttestprob = "%.2f" % ((1-ttestprob)*100)
     ttest = "%.2f" % (ttest)
     # Update CSV file if file is provided
     if csv_file:
-	sourcename=rawdatafile.header['source_name']
-	src_ra=rawdatafile.header['src_raj']
-	src_dec=rawdatafile.header['src_dej']
-	tstart=rawdatafile.header['tstart']
-	fch1=rawdatafile.header['fch1']
-	nchans=rawdatafile.header['nchans']
-	bw=int(rawdatafile.header['nchans'])*rawdatafile.header['foff']
-	cat=ofile.split("_")[0]
-	snr=options.snr
-	width=options.width
-	dm=options.dm
-	if options.prob: prob=options.prob
-	else:	prob="*"
-    	df = pd.DataFrame({'PNGFILE':[ofile],'Category':[cat],'Prob':[prob],'T-test':[ttest],'T-test_prob':[ttestprob],'SNR':[snr],'WIDTH':[width],'DM':[dm],'SourceName':[sourcename],'RA':[src_ra],'DEC':[src_dec],'MJD':[tstart],'Hfreq':[fch1],'NCHANS':[nchans],'BANDWIDTH':[bw],'filename':[fn]})
+        sourcename=rawdatafile.header['source_name']
+        src_ra=rawdatafile.header['src_raj']
+        src_dec=rawdatafile.header['src_dej']
+        tstart=rawdatafile.header['tstart']
+        fch1=rawdatafile.header['fch1']
+        nchans=rawdatafile.header['nchans']
+        bw=int(rawdatafile.header['nchans'])*rawdatafile.header['foff']
+        cat=ofile.split("_")[0]
+        snr=options.snr
+        width=options.width
+        dm=options.dm
+        if options.prob: prob=options.prob
+        else:	prob="*"
+        df = pd.DataFrame({'PNGFILE':[ofile],'Category':[cat],'Prob':[prob],'T-test':[ttest],'T-test_prob':[ttestprob],'SNR':[snr],'WIDTH':[width],'DM':[dm],'SourceName':[sourcename],'RA':[src_ra],'DEC':[src_dec],'MJD':[tstart],'Hfreq':[fch1],'NCHANS':[nchans],'BANDWIDTH':[bw],'filename':[fn]})
 
-	#Column order coming out irregular, so fixing it here
-	col=['PNGFILE','Category','Prob','T-test','T-test_prob','SNR','WIDTH','DM','SourceName','RA','DEC','MJD','Hfreq','NCHANS','BANDWIDTH','filename']
-	df = df.reindex(columns=col)
+        #Column order coming out irregular, so fixing it here
+        col=['PNGFILE','Category','Prob','T-test','T-test_prob','SNR','WIDTH','DM','SourceName','RA','DEC','MJD','Hfreq','NCHANS','BANDWIDTH','filename']
+        df = df.reindex(columns=col)
 
-	if os.path.exists(csv_file) is False:
-		with open(csv_file,'w') as f:
-			df.to_csv(f,header=True,index=False)
-	else:
-		with open(csv_file,'a') as f:
-			df.to_csv(f,header=False,index=False)
+        if os.path.exists(csv_file) is False:
+            with open(csv_file,'w') as f:
+                df.to_csv(f,header=True,index=False)
+        else:
+            with open(csv_file,'a') as f:
+                df.to_csv(f,header=False,index=False)
 
 
 if __name__=='__main__':
@@ -620,13 +608,13 @@ if __name__=='__main__':
                         help="DM to use when subbanding. (Default: " \
                                 "same as --dm)", default=None)
     parser.add_option('-o', dest='ofile', default="unknown_cand", \
-			help="Output png plot file name (Default=start_dm)",type='str')
+            help="Output png plot file name (Default=start_dm)",type='str')
     parser.add_option('--width',dest='width', default=None,\
-			help="Width of the pulse (for figure only; not used anywhere)",type='str')
+            help="Width of the pulse (for figure only; not used anywhere)",type='str')
     parser.add_option('--snr',dest='snr', default=None,\
                         help="SNR of the pulse (for figure only; not used anywhere)",type='str')
     parser.add_option("--prob",dest='prob', default=None, \
-			help="Probability of that candidate from ML tool",type='float')
+            help="Probability of that candidate from ML tool",type='float')
     parser.add_option('--zerodm', dest='zerodm', action='store_true', \
                         help="If this flag is set - Turn Zerodm filter - ON  (Default: " \
                                 "OFF)", default=False)
@@ -681,7 +669,7 @@ if __name__=='__main__':
                         default=None)
     #parser.add_option("--logs", action='store', dest='csv_file', type=str, default='/home/vgajjar/PulsarSearch/example.csv',
     parser.add_option("--logs", action='store', dest='csv_file', type=str, default='',
-                	help='Update results in the input CSV file')
+                    help='Update results in the input CSV file')
 
     parser.add_option('--mask', dest='mask', action="store_true", \
                         help="Mask data using rfifind mask (Default: Don't mask).", \

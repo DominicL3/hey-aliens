@@ -1,7 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-import matplotlib as mpl
-mpl.rcParams.update({'font.size': 14})
 
 from matplotlib.backends.backend_pdf import PdfPages
 from tqdm import tqdm
