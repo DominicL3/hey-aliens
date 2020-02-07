@@ -116,10 +116,8 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
     #tbin = widths[filter]
     bin_width = tint * (2 ** filter)
 
-    """Let extime be 1, change later
     extime = 2*float(cand_band_smear)
-    if extime < 1.0: extime = 1.0"""
-    extime = 1.0
+    if extime < 1.0: extime = 1.0
 
     #So that we have at least 4 bins on pulse
     if filter <= 4 and snr > 20:
