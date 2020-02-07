@@ -100,7 +100,7 @@ if __name__ == "__main__":
     ---------------
     model_name: str
         Path to trained model used to make prediction. Should be .h5 file
-    pulse_txt_data: str
+    frb_cand_file: str
         Path to .txt file that contains data about pulses within filterbank file. This
         file should contain columns 'snr','time','samp_idx','dm','filter', and'prim_beam'.
     filterbank_candidate: str
@@ -110,7 +110,7 @@ if __name__ == "__main__":
     no-FRBcandprob: flag, optional
         Whether or not to save edited FRBcand file containing pulse probabilities.
     --FRBcandprob: str, optional
-        Path to save FRBcandprob.txt (default is same path as pulse_txt_data)
+        Path to save FRBcandprob.txt (default is same path as frb_cand_file)
     save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
     save_predicted_FRBs: str, optional
@@ -121,13 +121,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
-    parser.add_argument('pulse_txt_data', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
+    parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
     parser.add_argument('--FRBcandprob', type=str, default=None,
-                            help='Directory to save new FRBcand file with probabilities (default is same dir as pulse_txt_data)')
+                            help='Directory to save new FRBcand file with probabilities (default is same dir as frb_cand_file)')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
@@ -138,8 +138,8 @@ if __name__ == "__main__":
     filterbank_candidate = args.filterbank_candidate
     NCHAN = args.NCHAN
 
-    print("Getting data about FRB candidates from " + args.pulse_txt_data)
-    frb_info = extract_data(args.pulse_txt_data)
+    print("Getting data about FRB candidates from " + args.frb_cand_file)
+    frb_info = extract_data(args.frb_cand_file)
 
     print("Retrieving candidate spectra")
     candidate_spectra = get_pulses(frb_info, filterbank_candidate, NCHAN)
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
-        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(args.pulse_txt_data) + '/FRBcand_prob.txt'
+        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(args.frb_cand_file) + '/FRBcand_prob.txt'
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
 
