@@ -353,7 +353,9 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     data.dedisperse(dm,padval='rotate')
     nbinlim = np.int(duration/data.dt)
 
-    return data, nbinlim
+    # cut out extra bins and return spectra object
+    data.data = data.data[..., :nbinlim]
+    return data
 
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
                 cmap=matplotlib.cm.cmap_d[cmap_str], \
@@ -563,7 +565,7 @@ def main():
                             bandpass_corr=options.bandpass_corr)
 
     # Remove this for now and only save the data
-    spectra, nbinlim = plot_waterfall(data,  start, source_name, options.duration, \
+    spectra = plot_waterfall(data,  start, source_name, options.duration, \
                     dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
                     integrate_spec=options.integrate_spec, show_cb=options.show_cb,
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
@@ -572,18 +574,14 @@ def main():
     if os.path.exists("waterfall_candidates.pickle"):
         with open('waterfall_candidates.pickle', 'rb') as f:
             pickled_data = cPickle.load(f)
-        prev_spectra, prev_nbinlims = pickled_data['spectra'], pickled_data['nbinlims']
+        prev_spectra = pickled_data
         prev_spectra.append(spectra)
-        prev_nbinlims.append(nbinlim)
-
-        spectra_dict = {'spectra': prev_spectra, 'nbinlims': prev_nbinlims}
 
         with open('waterfall_candidates.pickle', 'wb') as f:
-            cPickle.dump(spectra_dict, f)
+            cPickle.dump(prev_spectra, f)
     else:
         with open('waterfall_candidates.pickle', 'wb') as f:
-            spectra_dict = {'spectra': [spectra], 'nbinlims': [nbinlim]}
-            cPickle.dump(spectra_dict, f)
+            cPickle.dump(spectra, f)
 
 
 if __name__=='__main__':
