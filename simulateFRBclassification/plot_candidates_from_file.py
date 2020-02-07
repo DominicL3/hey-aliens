@@ -33,18 +33,20 @@ if __name__ == "__main__":
 
     # plot all candidates
     with PdfPages(args.save_pdf + '.pdf') as pdf:
-        for spec in tqdm(pulse_arrays):
+        frb_times = frb_info['time']
+        for i, spec in enumerate(tqdm(pulse_arrays)):
             fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
 
             signal = np.sum(spec.data, axis=0) # 1D time series of array
             # plot spectrogram on left and signal on right
             ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
                             np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
-            ax[0].set(xlabel='time (s)', ylabel='freq (MHz)')
+            ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Time: {}'.format(frb_times[i]))
 
             ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
             ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
+            fig.tight_layout()
             pdf.savefig()
 
     print('Saving plots to {}'.format(args.save_pdf + '.pdf'))
