@@ -16,50 +16,20 @@ sys.path.append('/home/vgajjar/sigpyproc') # sigpyproc from Vishal's path
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
 from skimage.transform import resize
-
-def get_pulses(frb_info, filterbank_name, num_channels):
-    """Uses candidate info from .txt file to extract the given pulses
-    from a filterbank file. Downsamples according to data in .txt file."""
-
-    pred_info = frb_info[['snr', 'time', 'dm', 'filter']]
-    filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
-    tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
-
-    candidate_spectra = []
-
-    for candidate_data in tqdm(pred_info):
-        snr, start_time, dm, filter_power = candidate_data
-        bin_width = 2 ** filter_power
-        pulse_duration = (tsamp/1e6) * bin_width * 256 # proper duration (seconds) to display the pulse
-        print('Start time: {0} -- tsamp: {1}millis -- Duration: {2}s'.format(start_time, tsamp, pulse_duration))
-
-        spectra_obj = waterfall(filterbank_pulses, start=start_time - pulse_duration/2,
-                                duration=pulse_duration, dm=dm, nsub=num_channels)[0]
-        # adjust downsampling rate so pulse is at least 4 bins wide
-        if filter_power <= 4 and filter_power > 0 and snr > 20:
-            downfact = int(bin_width/4.0) or 1
-        elif filter_power > 2:
-            downfact = int(bin_width/2.0) or 1
-        else:
-            downfact = 1
-
-        spectra_obj.downsample(downfact, trim=True)
-        spectra_obj.data = resize(spectra_obj.data, (64, 256), mode='symmetric', anti_aliasing=False)
-
-        candidate_spectra.append(spectra_obj)
-
-    return np.array(candidate_spectra)
+from predict import extract_data, get_pulses
 
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('filterbank_name', type=str, help='Path to filterbank file with candidates to be predicted.')
-    parser.add_argument('frb_info', type=str, help='Path to .txt file containing data about pulses.')
+    parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--save_pdf', type=str, default="raw_candidates", help='Filename to save plot of top 5 candidates.')
 
     args = parser.parse_args()
-    pulse_arrays = get_pulses(args.frb_info, args.filterbank_name, args.NCHAN)
+
+    frb_info = extract_data(args.frb_cand_file)
+    pulse_arrays = get_pulses(frb_info, args.filterbank_name, args.NCHAN)
 
     # plot all candidates
     with PdfPages(args.save_pdf + '.pdf') as pdf:
