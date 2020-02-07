@@ -35,7 +35,7 @@ import spectra
 from scipy import stats
 import pandas as pd
 import os
-import pickle
+import cPickle
 
 SWEEP_STYLES = ['r-', 'b-', 'g-', 'm-', 'c-']
 
@@ -570,18 +570,18 @@ def main():
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
     if os.path.exists("waterfall_candidates.pickle"):
-        with open('waterfall_candidates.pickle', 'r') as f:
-            pickled_data = pickle.load(f)
-            prev_spectra, prev_nbinlims = pickled_data['spectra'], pickled_data['nbinlims']
-            prev_spectra.append(spectra)
-            prev_nbinlims.append(nbinlim)
+        with open('waterfall_candidates.pickle', 'rb') as f:
+            pickled_data = cPickle.load(f)
+        prev_spectra, prev_nbinlims = pickled_data['spectra'], pickled_data['nbinlims']
+        prev_spectra.append(spectra)
+        prev_nbinlims.append(nbinlim)
 
-            spectra_dict = {'spectra': prev_spectra, 'nbinlims': prev_nbinlims}
+        spectra_dict = {'spectra': prev_spectra, 'nbinlims': prev_nbinlims}
 
-        with open('waterfall_candidates.pickle', 'w') as f:
-            pickle.dump(spectra_dict, f)
+        with open('waterfall_candidates.pickle', 'wb') as f:
+            cPickle.dump(spectra_dict, f)
     else:
-        with open('waterfall_candidates.pickle', 'w') as f:
+        with open('waterfall_candidates.pickle', 'wb') as f:
             spectra_dict = {'spectra': [spectra], 'nbinlims': [nbinlim]}
             pickle.dump(spectra_dict, f)
 
