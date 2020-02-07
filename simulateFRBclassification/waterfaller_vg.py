@@ -311,7 +311,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     '''
     band = (data.freqs.max()-data.freqs.min())
     centFreq = (data.freqs.min()+band/2.0)/(10**3) # To get it in GHz
-    print width,centFreq,band
+    print(width, centFreq, band)
     #This comes from Cordes and McLaughlin (2003) Equation 13.
     FWHM_DM = 506*float(width)*pow(centFreq,3)/band
     #The candidate DM might not be exact so using a longer range
@@ -352,12 +352,14 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     #data.downsample(downsamp)
     data.dedisperse(dm,padval='rotate')
     nbinlim = np.int(duration/data.dt)
+
+    return data, nbinlim
+
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
                 cmap=matplotlib.cm.cmap_d[cmap_str], \
                 interpolation='nearest', origin='upper', \
                 extent=(data.starttime, data.starttime+ nbinlim*data.dt, \
                         data.freqs.min(), data.freqs.max()))
-    #ax_im.axvline(x=(data.starttime + nbinlim*data.dt)/2.0,ymin=data.freqs.min(),ymax=data.freqs.max(),lw=3,color='b')
     if show_cb:
         cb = ax_im.get_figure().colorbar(img)
         cb.set_label("Scaled signal intensity (arbitrary units)")
@@ -560,53 +562,28 @@ def main():
                             csv_file=options.csv_file,\
                             bandpass_corr=options.bandpass_corr)
 
-    if os.path.exists("waterfall_candidates.pickle"):
-        with open('waterfall_candidates.pickle', 'rb') as f:
-            pickled_data = pickle.load(f)
-            pickled_data.append(data)
-
-        with open('waterfall_candidates.pickle', 'wb') as f:
-            pickle.dump(pickled_data, f)
-    else:
-        with open('waterfall_candidates.pickle', 'wb') as f:
-            pickle.dump([data], f)
-
-    """ Remove this for now and only save the data
-    ofile,ttest,ttestprob = plot_waterfall(data,  start, source_name, options.duration, \
+    # Remove this for now and only save the data
+    spectra, nbinlim = plot_waterfall(data,  start, source_name, options.duration, \
                     dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
                     integrate_spec=options.integrate_spec, show_cb=options.show_cb,
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
-    ttestprob = "%.2f" % ((1-ttestprob)*100)
-    ttest = "%.2f" % (ttest)
-    # Update CSV file if file is provided
-    if csv_file:
-        sourcename=rawdatafile.header['source_name']
-        src_ra=rawdatafile.header['src_raj']
-        src_dec=rawdatafile.header['src_dej']
-        tstart=rawdatafile.header['tstart']
-        fch1=rawdatafile.header['fch1']
-        nchans=rawdatafile.header['nchans']
-        bw=int(rawdatafile.header['nchans'])*rawdatafile.header['foff']
-        cat=ofile.split("_")[0]
-        snr=options.snr
-        width=options.width
-        dm=options.dm
-        if options.prob: prob=options.prob
-        else:	prob="*"
-        df = pd.DataFrame({'PNGFILE':[ofile],'Category':[cat],'Prob':[prob],'T-test':[ttest],'T-test_prob':[ttestprob],'SNR':[snr],'WIDTH':[width],'DM':[dm],'SourceName':[sourcename],'RA':[src_ra],'DEC':[src_dec],'MJD':[tstart],'Hfreq':[fch1],'NCHANS':[nchans],'BANDWIDTH':[bw],'filename':[fn]})
+    if os.path.exists("waterfall_candidates.pickle"):
+        with open('waterfall_candidates.pickle', 'rb') as f:
+            pickled_data = pickle.load(f)
+            prev_spectra, prev_nbinlims = pickled_data['spectra'], pickled_data['nbinlims']
+            prev_spectra.append(spectra)
+            prev_nbinlims.append(nbinlim)
 
-        #Column order coming out irregular, so fixing it here
-        col=['PNGFILE','Category','Prob','T-test','T-test_prob','SNR','WIDTH','DM','SourceName','RA','DEC','MJD','Hfreq','NCHANS','BANDWIDTH','filename']
-        df = df.reindex(columns=col)
+            spectra_dict = {'spectra': prev_spectra, 'nbinlims': prev_nbinlims}
 
-        if os.path.exists(csv_file) is False:
-            with open(csv_file,'w') as f:
-                df.to_csv(f,header=True,index=False)
-        else:
-            with open(csv_file,'a') as f:
-                df.to_csv(f,header=False,index=False)"""
+        with open('waterfall_candidates.pickle', 'wb') as f:
+            pickle.dump(spectra_dict, f)
+    else:
+        with open('waterfall_candidates.pickle', 'wb') as f:
+            spectra_dict = {'spectra': [spectra], 'nbinlims': [nbinlim]}
+            pickle.dump(spectra_dict, f)
 
 
 if __name__=='__main__':
