@@ -35,6 +35,7 @@ import spectra
 from scipy import stats
 import pandas as pd
 import os
+import pickle
 
 SWEEP_STYLES = ['r-', 'b-', 'g-', 'm-', 'c-']
 
@@ -559,6 +560,18 @@ def main():
                             csv_file=options.csv_file,\
                             bandpass_corr=options.bandpass_corr)
 
+    if os.path.exists("waterfall_candidates.pickle"):
+        with open('waterfall_candidates.pickle', 'rb') as f:
+            pickled_data = pickle.load(f)
+            pickled_data.append(data)
+
+        with open('waterfall_candidates.pickle', 'wb') as f:
+            pickle.dump(pickled_data, f)
+    else:
+        with open('waterfall_candidates.pickle', 'wb') as f:
+            pickle.dump(data, f)
+
+    """ Remove this for now and only save the data
     ofile,ttest,ttestprob = plot_waterfall(data,  start, source_name, options.duration, \
                     dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
                     integrate_spec=options.integrate_spec, show_cb=options.show_cb,
@@ -593,7 +606,7 @@ def main():
                 df.to_csv(f,header=True,index=False)
         else:
             with open(csv_file,'a') as f:
-                df.to_csv(f,header=False,index=False)
+                df.to_csv(f,header=False,index=False)"""
 
 
 if __name__=='__main__':
