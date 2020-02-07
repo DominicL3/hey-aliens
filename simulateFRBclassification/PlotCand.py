@@ -218,7 +218,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                 print("Candidate inside bad-time range")
             else:
                 candname = '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f.png' % (dm)
-                cmd = "waterfaller_vg.py --show-ts " + \
+                cmd = "python waterfaller_vg.py --show-ts " + \
                        " -t " + str(TotDisplay) + \
                        " --colour-map=hot " + \
                        " -T "  + str(stime) +  \
