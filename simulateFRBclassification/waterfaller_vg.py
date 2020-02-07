@@ -569,7 +569,7 @@ def main():
             pickle.dump(pickled_data, f)
     else:
         with open('waterfall_candidates.pickle', 'wb') as f:
-            pickle.dump(data, f)
+            pickle.dump([data], f)
 
     """ Remove this for now and only save the data
     ofile,ttest,ttestprob = plot_waterfall(data,  start, source_name, options.duration, \
