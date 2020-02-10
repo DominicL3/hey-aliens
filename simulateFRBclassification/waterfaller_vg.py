@@ -234,7 +234,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     """
 
     if source_name is None:
-    source_name="Unknown"
+        source_name="Unknown"
 
     #Output file
     if ofile is "unknown_cand":
@@ -277,12 +277,12 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     zerochan=1
     arrmedian=np.ones(data.numchans)
     if zerochan:
-    for ii in range(data.numchans):
-        chan = data.get_chan(ii)
-        #if 50% are zero
-        if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
-            arrmedian[ii]=0.0
-        #arrmedian=np.array(arrmedian)
+        for ii in range(data.numchans):
+            chan = data.get_chan(ii)
+            #if 50% are zero
+            if len(chan)-np.count_nonzero(chan)>0.5*len(chan):
+                arrmedian[ii]=0.0
+            #arrmedian=np.array(arrmedian)
 
     #Additional zapping from off-pulse spectra
     extrazap=1
@@ -297,7 +297,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
         mask[masked_chan] = masked_val
         masked_chan1 = np.array(np.where(arrmedian==0))[0]
         mask[masked_chan1] = masked_val
-            data=data.masked(mask,maskval=0)
+        data=data.masked(mask,maskval=0)
 
         for i in masked_chan:
             ax_spec.axhline(data.freqs[i],alpha=0.4,color='grey')
@@ -456,16 +456,16 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 
     if FTdirection == 'nT':
         ndata = data.data[...,::-1]
-        print "Will be flipped in Time"
+        print("Will be flipped in Time")
     elif FTdirection == 'nF':
         ndata = data.data[::-1,...]
-        print "Will be flipped in freq"
+        print("Will be flipped in freq")
     elif FTdirection == 'nTnF':
         ndata = data.data[::-1,::-1]
-        print "Will be flipped in time and freq"
+        print("Will be flipped in time and freq")
     else:
         ndata = data.data
-        print "No flip"
+        print("No flip")
 
     # Sweeping it up
     for ii, sweep_dm in enumerate(sweep_dms):
