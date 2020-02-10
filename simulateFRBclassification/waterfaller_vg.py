@@ -310,7 +310,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     '''
     band = (data.freqs.max()-data.freqs.min())
     centFreq = (data.freqs.min()+band/2.0)/(10**3) # To get it in GHz
-    print width,centFreq,band
+    print(width,centFreq,band)
     #This comes from Cordes and McLaughlin (2003) Equation 13.
     FWHM_DM = 506*float(width)*pow(centFreq,3)/band
     #The candidate DM might not be exact so using a longer range
