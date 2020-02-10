@@ -216,10 +216,10 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
         nbin = len(chan)
         x = range(nbin)
         if(nbin>4000): deg = 10
-        if(nbin<4000 and nbin>2000): deg = 8
-        if(nbin<2000 and nbin>1000): deg = 6
-        if(nbin<1000 and nbin>150): deg = 5
-        if(nbin<150): deg = 2
+            if(nbin<4000 and nbin>2000): deg = 8
+            if(nbin<2000 and nbin>1000): deg = 6
+            if(nbin<1000 and nbin>150): deg = 5
+            if(nbin<150): deg = 2
         base=np.polyfit(x,chan,deg)
         p = np.poly1d(base)
         chan[:] = chan[:] - p(x)
