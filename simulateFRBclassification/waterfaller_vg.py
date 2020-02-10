@@ -571,8 +571,8 @@ def main():
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
-     with open(options.ofile + '.pickle', 'wb') as f:
-         cPickle.dump(spectra, f)
+    with open(options.ofile + '.pickle', 'wb') as f:
+        cPickle.dump(spectra, f)
 
 
 if __name__=='__main__':
