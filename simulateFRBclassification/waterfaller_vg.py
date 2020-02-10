@@ -21,6 +21,9 @@ import matplotlib.pyplot as plt
 import matplotlib.cm
 import numpy as np
 
+sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
+
 import psr_utils
 import rfifind
 
