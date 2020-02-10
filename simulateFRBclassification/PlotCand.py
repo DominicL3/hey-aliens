@@ -15,13 +15,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
+sys.path.append('/home/vgajjar/linux64_bin/bin/')
 sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 sys.path.append('/home/vgajjar/sigpyproc') # sigpyproc from Vishal's path
-sys.path.append('/home/vgajjar/linux64_bin/bin/')
 
 import psrchive as psr
 from sigpyproc.Readers import FilReader
-import subprocess as     sb
+import subprocess as sb
 import shlex
 import time as tt
 import pandas as pd
