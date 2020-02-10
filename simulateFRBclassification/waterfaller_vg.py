@@ -354,8 +354,8 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     nbinlim = np.int(duration/data.dt)
 
     # cut out extra bins and return spectra object
-    data.data = data.data[..., :nbinlim]
-    return data
+    # data.data = data.data[..., :nbinlim]
+    # return data
 
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
                 cmap=matplotlib.cm.cmap_d[cmap_str], \
@@ -422,7 +422,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     plt.text(1.1,0.3,text4,fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
     if prob:
         text5 = "ML prob: " + "%.2f" % (float(prob))
-        print text5
+        print(text5)
         plt.text(1.1,0.1,text5,fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
 
     #DMvsSNR plot
@@ -571,8 +571,8 @@ def main():
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
-    with open('spectra_' + options.ofile + '.pickle', 'wb') as f:
-        cPickle.dump(spectra, f)
+    '''with open('spectra_' + options.ofile + '.pickle', 'wb') as f:
+        cPickle.dump(spectra, f)'''
 
 
 if __name__=='__main__':
