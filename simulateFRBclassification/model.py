@@ -6,8 +6,8 @@ from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import recall_score, precision_score, fbeta_score
 
 """Build a two-dimensional convolutional neural network
-    with a binary classifier. Can be used for, e.g.,
-    freq-time dynamic spectra of pulsars, dm-time intensity array."""
+    with a binary classifier. Can be used for freq-time dynamic spectra of pulsars
+    or dm-time intensity array."""
 
 def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                      nfreq=64, ntime=256, epochs=32, n_dense1=256, n_dense2=128,
