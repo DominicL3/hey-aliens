@@ -571,17 +571,8 @@ def main():
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
-    if os.path.exists("waterfall_candidates.pickle"):
-        with open('waterfall_candidates.pickle', 'rb') as f:
-            pickled_data = cPickle.load(f)
-        prev_spectra = pickled_data
-        prev_spectra.append(spectra)
-
-        with open('waterfall_candidates.pickle', 'wb') as f:
-            cPickle.dump(prev_spectra, f)
-    else:
-        with open('waterfall_candidates.pickle', 'wb') as f:
-            cPickle.dump(spectra, f)
+     with open(options.ofile + '.pickle', 'wb') as f:
+         cPickle.dump(spectra, f)
 
 
 if __name__=='__main__':

@@ -168,13 +168,13 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
     return tbin,fbin,extime,frac,cand_band_smear
 
 def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,kill_chans,source_name,nchan):
-    parallel=0
+    parallel=1
     if(frb_cands.size >= 1 and noplot is not True):
         if(frb_cands.size>1):
             frb_cands = np.sort(frb_cands)
             frb_cands[:] = frb_cands[::-1]
         if(frb_cands.size==1): frb_cands = [frb_cands]
-        cmd = "rm *.png *.ps *.pdf"
+        cmd = "rm *.png *.ps *.pdf *.pickle"
         print(cmd)
         os.system(cmd)
         cmd_array=[]
