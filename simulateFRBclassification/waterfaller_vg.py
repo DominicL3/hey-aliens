@@ -533,7 +533,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
         plt.text(1.1,0.2,"cat: C",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
         ofile = "C_" + ofile
 
-    plt.savefig(ofile)
+    # plt.savefig(ofile)
 
     return ofile,ttest,ttestprob
 
@@ -571,7 +571,7 @@ def main():
                     cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
                     sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
 
-    with open(options.ofile + '.pickle', 'wb') as f:
+    with open('spectra_' + options.ofile + '.pickle', 'wb') as f:
         cPickle.dump(spectra, f)
 
 
