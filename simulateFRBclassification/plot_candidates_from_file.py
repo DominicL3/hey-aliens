@@ -7,9 +7,6 @@ import subprocess
 
 # import waterfaller and filterbank from Vishal's path
 import os, sys, argparse
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
-sys.path.append('/home/vgajjar/sigpyproc') # sigpyproc from Vishal's path
 
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
