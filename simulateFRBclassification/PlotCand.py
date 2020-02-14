@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # A separate function to extract and plot
-# heimdall candidate 
-# This script is a modified version of the heimdall plotting scipt 'trans_freq_time.py' 
+# heimdall candidate
+# This script is a modified version of the heimdall plotting scipt 'trans_freq_time.py'
 
 import os,sys,math
 import numpy as np
@@ -27,7 +27,7 @@ def find_nearidx(array,val):
 
 def grouper(array,n,fillvalue=None):
 	args = [iter(array)]*n
-	return izip_longest(*args, fillvalue=fillvalue)	
+	return izip_longest(*args, fillvalue=fillvalue)
 
 def exeparallel(cmd_array):
      '''
@@ -39,11 +39,11 @@ def exeparallel(cmd_array):
 
      for grpcmd in grouper(cmd_array,ncmd):
 		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
-     		cmd = ' & '.join(grpcmd1)									
+     		cmd = ' & '.join(grpcmd1)
 		print cmd
 		#proc=sb.Popen(cmd,stdout=sb.PIPE,shell=True)
 		proc=sb.Popen(cmd,shell=True)
-		while proc.poll()==None: continue 
+		while proc.poll()==None: continue
         	#os.system(cmd)
 
 def dedispblock(ar,lodm,hidm):
@@ -65,7 +65,7 @@ def dedispblock(ar,lodm,hidm):
         time = np.nanmean(data1[:,:],axis=0)
         toplot.append(time)
 
-    tbin = float(fpsr.integration_length()/fpsr.get_nbin())        
+    tbin = float(fpsr.integration_length()/fpsr.get_nbin())
     taxis = np.arange(0,fpsr.integration_length(),tbin)
     taxis=taxis*1000 #Get to msec
     toplot = np.array(toplot)
@@ -83,17 +83,17 @@ def negDMplot(ar,FTdirection,nchan):
     ds = np.multiply(ds, w[np.newaxis,:,np.newaxis]) # Apply it
     ds[:,idx,:] = np.nan
     data = ds[0,:,:]
-    if FTdirection == 'nT': 
+    if FTdirection == 'nT':
     	ndata = data[...,::-1]
 	print "Will be flipped in Time"
-    elif FTdirection == 'nF': 
+    elif FTdirection == 'nF':
 	ndata = data[::-1,...]
-	print "Will be flipped in freq" 
-    elif FTdirection == 'nTnF': 
+	print "Will be flipped in freq"
+    elif FTdirection == 'nTnF':
 	ndata = data[::-1,::-1]
 	print "Will be flipped in time and freq"
-    else: 
-	ndata = data 
+    else:
+	ndata = data
 	print "No flip"
     return ndata
 
@@ -108,33 +108,33 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
         extimefact = 1.0
 
         # Total extract time Calc
-        # Extract according to the DM delay    
+        # Extract according to the DM delay
         cmd = 'dmsmear -f %f -b %f -n 2048 -d ' % (fl+(fh-fl)/2,fh-fl) + str(dm) + " -q 2>&1 "
         p = os.popen(cmd)
         cand_band_smear = p.readline().strip()
         p.close()
         #extime = extimefact/2 + extimefact*float(cand_band_smear)
-	
+
         # Tbin calc
         # For Filter widths startting from 2^0 to 2^12=4096
         #widths = [2048,2048,2048,1024,1024,512,512,256,256,128,128,64,32]
         #tbin = widths[filter]
         bin_width = tint * (2 ** filter)
 
-	extime = 2*float(cand_band_smear) 
+	extime = 2*float(cand_band_smear)
         if extime < 1.0: extime = 1.0
-	
+
 	#So that we have at least 4 bins on pulse
 	if filter <= 4 and snr > 20:
 	        tbin = 4.0*int(extime / bin_width)
 	else:
 		tbin = 2.0*int(extime / bin_width)
-	
+
         if tbin < 16:
             tbin = 16
 
 	if tint > (extime/tbin):
-	   tbin = int(extime/tint)	
+	   tbin = int(extime/tint)
 
         #Fbin Calc
         fbin = int(round(math.pow(float(snr)/4.0,2)))
@@ -151,7 +151,7 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
 
 	if fbin > 512:
             #fbin = 512
-	    i=0 
+	    i=0
             while nchan%(512-i): i+=1
             fbin=512-i
 
@@ -161,7 +161,7 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
 	    i=0
             while nchan%(16+i): i+=1
             fbin=i+16
-	
+
 	#print "fbin " + str(fbin)
 
         #fbin_base2 = int(round(math.log(fbin,2)))
@@ -169,19 +169,19 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
 
 	'''
 	if(nchan%float(fbin)):
-		# If the fbin is not modulo of number of channel, we select closed modulo nchan		
-		fbin = nchan/2**np.argmin([abs(float(fbin)-nchan/2**i) for i in range(0,10)]) 
+		# If the fbin is not modulo of number of channel, we select closed modulo nchan
+		fbin = nchan/2**np.argmin([abs(float(fbin)-nchan/2**i) for i in range(0,10)])
 	'''
 
 	bins_per_plot=1024.0
-	
+
         # Fraction of extraction to plot each time calc (we expect pulse to be in first half)
         if tbin>bins_per_plot:
-            frac = np.linspace(0,0.5,np.ceil(tbin/bins_per_plot)) 
+            frac = np.linspace(0,0.5,np.ceil(tbin/bins_per_plot))
         else:
-            frac = np.array([0,0.5]) 
+            frac = np.array([0,0.5])
 
-        return tbin,fbin,extime,frac,cand_band_smear 
+        return tbin,fbin,extime,frac,cand_band_smear
 
 def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,kill_chans,source_name,nchan,mask_file,smooth,zerodm,csv_file):
 	parallel=1
@@ -190,7 +190,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                                 frb_cands = np.sort(frb_cands)
                                 frb_cands[:] = frb_cands[::-1]
                         if(frb_cands.size==1): frb_cands = [frb_cands]
-                        cmd = "rm *.png *.ps *.pdf"
+                        cmd = "rm *.png *.ps *.pdf *.pickle"
 			print cmd
                         os.system(cmd)
 			cmd_array=[]
@@ -200,7 +200,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                                 filter = frb['filter']
                                 width = tint * (2 ** filter)*(10**3) # Width in msec
                                 snr = frb['snr']
-				if len(frb)>6: prob = frb['FRBprob']					
+				if len(frb)>6: prob = frb['FRBprob']
 				else: prob = ""
 
 				#print "here"
@@ -212,26 +212,26 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 				elif filter > 2:
 					downfact = int(bin_width/2.0)
 			        else:
-			                downfact = 1		
+			                downfact = 1
 				if downfact == 0: downfact = 1
-				 	
-				#print fbin,filter,bin_width,downfact	
+
+				#print fbin,filter,bin_width,downfact
 				#stime = time-(extimeplot*0.1) # Go back data
-                                #stime = time - float(cand_band_smear) 
+                                #stime = time - float(cand_band_smear)
 				#TotDisplay = (downfact*bin_width)*tint*128 # To display 256 times the pulse width in the plot
 				#print TotDisplay
 
 				TotDisplay = (width/10**3)*128 #Roughly 128 times the pulse width window for display
-	
+
 				stime = time-(TotDisplay/2.0)
-				
+
 				if smooth: smooth_bins  = int(smooth*(bin_width)) # As downsampling is done after the smoothing, we do not need to multiplie downsample here
 				else: smooth_bins = 0
-	
+
                                 if(stime<0): stime = 0
                                 if(stime+extime>=Ttot): extime=Ttot-stime
                                 if(any(l<=time<=u for (l,u) in kill_time_range) or extime < 0.0):
-					print "Candidate inside bad-time range"	
+					print "Candidate inside bad-time range"
 				else:
 					candname = '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f.png' % (dm)
 					cmd = "waterfaller_vg.py --show-ts " + \
@@ -247,26 +247,26 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					       " --width-bins " + str(smooth_bins) + \
 					       " --snr " + str(snr) + \
 					       " --width " + str(width) + " " + \
- 					       fil_file 
-					if mask_file: cmd = cmd + " --maskfile  " + str(mask_file) 
+ 					       fil_file
+					if mask_file: cmd = cmd + " --maskfile  " + str(mask_file)
 					if zerodm: cmd = cmd + " --zerodm "
 					if csv_file: cmd = cmd + " --logs " + str(csv_file)
-					if prob: cmd = cmd + " --prob " + str(prob)	
-					#os.system(cmd) 						
-					if parallel: 
+					if prob: cmd = cmd + " --prob " + str(prob)
+					#os.system(cmd)
+					if parallel:
 						cmd_array.append(cmd)
-					else: 
+					else:
 						print cmd
-						os.system(cmd)					
+						os.system(cmd)
 					#df=pd.DataFrame({'PNGFILE':[candname],'filename':[fil_file]})
 					#if csv_file: csvdata = csvdata.append(df)
-		  	if parallel: 
+		  	if parallel:
 				exeparallel(cmd_array)
 				open('cand_plot_commands','wb').write('\n'.join(i for i in cmd_array))
-			#if csv_file: csvdata.to_csv(csv_file)		
-			tt.sleep(2)	
-			print "Plotting Done"	
-			
+			#if csv_file: csvdata.to_csv(csv_file)
+			tt.sleep(2)
+			print "Plotting Done"
+
 			#cmd = "gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=%s_frb_cand.pdf *.png" % (source_name)
 			#cmd = "convert [A-Z]*.png 0*.png %s_frb_cand.pdf" % (source_name)
 		        #print cmd
@@ -274,7 +274,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 	else:
 		print "No candidate found"
                 return
-	
+
 #python waterfaller_vg.py -T 16.22 -d 600 --show-ts  -t 0.06  --sweep-posn 0.2 /mnt_blpd9/datax/incoming/spliced_guppi_57991_49905_DIAG_FRB121102_0011.gpuspec.0001.8.4chan.fil --colour-map=hot --width-bins 1 -s 64
 
 def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,kill_chans,source_name,nchan,mask_file):
@@ -289,7 +289,7 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
                         if(frb_cands.size==1): frb_cands = [frb_cands]
 			cmd = "rm *.png *.ps *.pdf"
 			print cmd
-			os.system(cmd)	
+			os.system(cmd)
                         for indx,frb in enumerate(frb_cands):
                                 time = frb['time']
                                 dm = frb['dm']
@@ -299,9 +299,9 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
 
                                 tbin,fbin,extime,frac,cand_band_smear=plotParaCalc(snr,filter,dm,fl,fh,tint,nchan)
                                 #print tbin,fbin,extime,frac
-        
+
                                 stime = time-(extimeplot*0.1) # Go back data
-				#stime = time - float(cand_band_smear)	
+				#stime = time - float(cand_band_smear)
 
                                 if(stime<0): stime = 0
 				if(stime+extime>=Ttot): extime=Ttot-stime
@@ -310,7 +310,7 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
                                         print "Candidate inside bad-time range"
                                 else:
                                         if(indx<1000):
-                                                candname = '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f.pdf' % (dm) 
+                                                candname = '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f.pdf' % (dm)
                                                 cmd = "dspsr -cepoch=start -N %s" % (source_name) + \
                                                         " -b " + str(tbin) +   \
                                                         " -S " + str(stime) +  \
@@ -318,30 +318,30 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
                                                         " -T " + str(extime) + \
                                                         " -D " + str(dm) + \
                                                         " -O " + candname + " -e ar " + \
-                                                        fil_file  
-                                                print cmd        
-                                                os.system(cmd)                 
+                                                        fil_file
+                                                print cmd
+                                                os.system(cmd)
                                                 # If kill_chans, do first manual and then an automatic smoothing for remaining channels
                                                 temp = ""
                                                 if kill_chans:
-                                                    for k in kill_chans: 
+                                                    for k in kill_chans:
 						    	if(k!=2048): temp = temp +" "+str(k)
                                                     cmd = "paz -z \"" + temp       + "\" -m %s.ar" % (candname)
                                                     print cmd
                                                     os.system(cmd)
-						    cmd = "paz -r -b -L -m %s.ar" % (candname) 	
+						    cmd = "paz -r -b -L -m %s.ar" % (candname)
                                                     os.system(cmd)
 
                                                 cmd = "pam --setnchn %d -m %s.ar" % (fbin,candname)
                                                 print cmd
                                                 os.system(cmd)
 
-						# Correct the variable baseline, this script writes out .norm files 	
+						# Correct the variable baseline, this script writes out .norm files
 						#Commenting out here for C-band analysis
 						#cmd = "running_mean_sub %s.ar" % (candname)
 						cmd="cp %s.ar %s.norm" % (candname,candname)
 						os.system(cmd)
-                                                
+
                                                 ar = candname + ".norm"
 
                                                 lodm = int(dm-(dm*0.15))
@@ -377,7 +377,7 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
         	                                        plt.rcParams["figure.figsize"] = (20,8)
                 	                                plt.rcParams.update({'font.size':22})
                         	                        #plt.set_cmap('gray')
-							fig1 = plt.figure(1)	 
+							fig1 = plt.figure(1)
 							ax1 = fig1.add_subplot(1,1,1)
                                 	                ax1.set_xlabel("Time (msec)")
                                 	                ax1.set_ylabel("DM")
@@ -388,14 +388,14 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
                                 	                lh = taxis[lhi]
                                 	                ax1.imshow(toplot[:,lti:lhi],extent=[lt,lh,lodm,hidm],origin='lower',aspect='auto')
                                 	                pngfile = candname + ".dmspace_%.2f.png" % (i)
-							fig1.savefig(pngfile,format='png',bbox_inches='tight')	
-							#Negative DM plots if required      
+							fig1.savefig(pngfile,format='png',bbox_inches='tight')
+							#Negative DM plots if required
                                         	        FTdirection = source_name.split("_")[0]
                                         	        if FTdirection in ['nT','nF','nTnF']:
-								print "Will be plotting original axis direction" 
+								print "Will be plotting original axis direction"
 								fig2 = plt.figure(2)
 								ax2=fig2.add_subplot(1,1,1)
-								ax2.set_xlabel("Time (msec)")	
+								ax2.set_xlabel("Time (msec)")
                                         	                ndata=negDMplot(ar,FTdirection,fbin)
 								ax2.set_ylabel("Frequency (channels)")
 								ax2.imshow(ndata[:,lti:lhi],extent=[lt,lh,0,fbin],aspect='auto',interpolation='none')
@@ -403,10 +403,10 @@ def extractPlotCand_old(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_rang
 								fig2.savefig(npngfile,format='png',bbox_inches='tight')
 								cmd = "convert -rotate 90 %s_%.2f.ps +append \( -trim -resize 560x700 %s +append \) -append \( -trim -resize 560x700 %s +append \) -append %s_%.2f.pdf" % (candname,i,npngfile,pngfile,candname,i)
                                                         	os.system(cmd)
-							else:	
+							else:
         	                                            	cmd = "convert -rotate 90 %s_%.2f.ps +append \( -trim -resize 560x700 %s +append \) -append %s_%.2f.pdf" % (candname,i,pngfile,candname,i)
                 	                                    	os.system(cmd)
-		        cmd = "gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=%s_frb_cand.pdf *sec*DM*.pdf" % (source_name) 
+		        cmd = "gs -sDEVICE=pdfwrite -dNOPAUSE -dBATCH -dSAFER -sOutputFile=%s_frb_cand.pdf *sec*DM*.pdf" % (source_name)
                         print cmd
                         os.system(cmd)
                 else:
@@ -417,7 +417,7 @@ if __name__ == "__main__":
 
     fil_file = str(sys.argv[1]) # Filterbank file
     FinalList = str(sys.argv[2]) # Final list of candidate (output of FRB_detector_Fast.py)
-     
+
     frb_cands = np.loadtxt(FinalList,dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
 
     #uGMRT
@@ -428,12 +428,12 @@ if __name__ == "__main__":
     fh = 1500
     noplot=0
     tint=0.000163
-    Ttot = 80 # Total length of the file        
+    Ttot = 80 # Total length of the file
     kill_time_range=[]
     kill_chans=[]
     nchan = 2048
     source_name="Fake"
-    
+
     f = FilReader(fil_file)
     nchan = f.header['nchans']
     fch1 = f.header['fch1']
