@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, os, sys, glob
+import argparse, os, sys, glob, time
 from tqdm import tqdm
 import cPickle
 
@@ -144,6 +144,7 @@ if __name__ == "__main__":
     print("Getting data about FRB candidates from " + frb_cand_file)
     frb_cand_info = extract_spectra(filterbank_candidate, frb_cand_file)
 
+    time.sleep(10)
     print("Retrieving candidate spectra")
     candidate_spectra = get_pulses('.', NCHAN)
 
