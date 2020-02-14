@@ -358,7 +358,6 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     nbinlim = np.int(duration/data.dt)
 
     # pickle Spectra objects for prediction
-    print('Yes, I finally get chosen!')
     data.data = data.data[..., :nbinlim]
     with open(ofile + '.pickle', 'wb') as f:
         cPickle.dump(data, f)

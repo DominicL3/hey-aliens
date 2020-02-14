@@ -8,10 +8,8 @@ from tqdm import tqdm
 import keras
 from keras.models import load_model
 
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
-
 from skimage.transform import resize
+import PlotCand_dom
 from waterfaller import filterbank, waterfall
 
 """After taking in a directory of .fil files and a model,
@@ -22,14 +20,26 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_data(txt_name):
-    """Read txt file containing candidate info, getting useful
-    properties like the start time and DM of each candidate in
-    the filterbank file."""
+def extract_spectra(fil_file, cand_list):
+    # load filterbank file and candidate list
+    f = PlotCand_dom.FilReader(fil_file)
+    frb_cands = np.loadtxt(cand_list, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
 
-    frb_info = np.loadtxt(txt_name, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),
-                            'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
-    return frb_info
+    # other parameters
+    noplot = 1
+    nchan = f.header['nchans']
+    fch1 = f.header['fch1']
+    foff = f.header['foff']
+    fl = fch1 + (foff*nchan)
+    fh = fch1
+    tint = f.header['tsamp']
+    Ttot = f.header['tobs']
+    kill_time_range, kill_chans = [], []
+    source_name = f.header['source_name']
+    mask_file, smooth, zerodm, csv_file = [], [], [], [] # last arguments are missing
+
+    PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
+                            source_name, nchan, mask_file, smooth, zerodm, csv_file)
 
 def save_prob_to_disk(frb_info, pred, fname):
     """Given the original FRB candidate info and predictions
@@ -50,39 +60,28 @@ def save_prob_to_disk(frb_info, pred, fname):
 
     np.savetxt(fname, FRBcand_with_probs, fmt='%-12s')
 
-def get_pulses(frb_info, filterbank_name, num_channels):
-    """Uses candidate info from .txt file to extract the given pulses
-    from a filterbank file. Downsamples according to data in .txt file."""
+def get_pulses(dir_spectra, num_channels, delete_spectra=True):
+    """Imports *ALL SPECTRA* in given directory and appends them to one list.
+    Spectra are assumed to be in .pickle files which are subsequently deleted
+    after being imported."""
 
-    # get FRB info from .txt file and and load in candidate file
-    pred_info = frb_info[['snr', 'time', 'dm', 'filter']]
-    filterbank_pulses = filterbank.FilterbankFile(filterbank_name)
-    tsamp = float(subprocess.check_output(['/usr/local/sigproc/bin/header', filterbank_name, '-tsamp']))
-
+    # get all pickled Spectra and prepare array to hold them in memory
+    pickled_spectra = np.sort(glob('{}/*sec_DM*.pickle'.format(dir_spectra)))
     candidate_spectra = []
 
-    for candidate_data in tqdm(pred_info):
-        snr, start_time, dm, filter_power = candidate_data
-        bin_width = 2 ** filter_power
-        pulse_duration = (tsamp/1e6) * bin_width * 256 # proper duration (seconds) to display the pulse
+    # add each Spectra to array
+    for spec_file in tqdm(pickled_spectra):
+        print(spec_file)
+        with open(spec_file, 'rb') as f:
+            spectra_obj = cPickle.load(f)
+            spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
+            candidate_spectra.append(spectra_obj)
 
-        spectra_obj = waterfall(filterbank_pulses, start=start_time - pulse_duration / 2,
-                                duration=pulse_duration, dm=dm, nsub=num_channels)[0]
-        # adjust downsampling rate so pulse is at least 4 bins wide
-        if filter_power <= 4 and filter_power > 0 and snr > 20:
-            downfact = int(bin_width/4.0) or 1
-        elif filter_power > 2:
-            downfact = int(bin_width/2.0) or 1
-        else:
-            downfact = 1
+    # remove all pickle files matching this format
+    if delete_spectra:
+        os.system('rm {}/*sec_DM*.pickle'.format(dir_spectra))
 
-        # downsample and resize image to proper shape for Keras model
-        spectra_obj.downsample(downfact, trim=True)
-        spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
-
-        candidate_spectra.append(spectra_obj)
-
-    return np.array(candidate_spectra)
+    return candidate_spectra
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
@@ -136,13 +135,14 @@ if __name__ == "__main__":
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
+    frb_cand_file = args.frb_cand_file
     NCHAN = args.NCHAN
 
-    print("Getting data about FRB candidates from " + args.frb_cand_file)
-    frb_info = extract_data(args.frb_cand_file)
+    print("Getting data about FRB candidates from " + frb_cand_file)
+    extract_spectra(filterbank_candidate, frb_cand_file)
 
     print("Retrieving candidate spectra")
-    candidate_spectra = get_pulses(frb_info, filterbank_candidate, NCHAN)
+    candidate_spectra = get_pulses('.', NCHAN)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
-        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(args.frb_cand_file) + '/FRBcand_prob.txt'
+        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
 
