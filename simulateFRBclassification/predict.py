@@ -41,6 +41,8 @@ def extract_spectra(fil_file, cand_list):
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
                             source_name, nchan, mask_file, smooth, zerodm, csv_file)
 
+    return frb_cands
+
 def save_prob_to_disk(frb_info, pred, fname):
     """Given the original FRB candidate info and predictions
     for each candidate, save candidate info and prediction probabilities
@@ -139,7 +141,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     print("Getting data about FRB candidates from " + frb_cand_file)
-    extract_spectra(filterbank_candidate, frb_cand_file)
+    frb_cand_info = extract_spectra(filterbank_candidate, frb_cand_file)
 
     print("Retrieving candidate spectra")
     candidate_spectra = get_pulses('.', NCHAN)
@@ -159,7 +161,7 @@ if __name__ == "__main__":
     if not args.supress_prob_save:
         FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
-        save_prob_to_disk(frb_info, predictions, FRBcand_prob_path)
+        save_prob_to_disk(frb_cand_info, predictions, FRBcand_prob_path)
 
     voted_FRB_probs = predictions > 0.5
     predicted_frbs = candidate_spectra[voted_FRB_probs]
