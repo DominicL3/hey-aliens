@@ -167,6 +167,7 @@ if __name__ == "__main__":
         save_prob_to_disk(frb_cand_info, predictions, FRBcand_prob_path)
 
     voted_FRB_probs = predictions > 0.5
+    print(voted_FRB_probs)
     predicted_frbs = candidate_spectra[voted_FRB_probs]
     frb_probs = predictions[voted_FRB_probs]
 
