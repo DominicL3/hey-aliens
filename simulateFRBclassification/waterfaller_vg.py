@@ -566,6 +566,7 @@ def main():
                          "extension. (Only '.fits' and '.fil' "
                          "are supported.)")
 
+    print("OH BABY WE'RE GETTING STARTED")
     data, bins, nbins, start, source_name = waterfall(rawdatafile, options.start, \
                             options.duration, dm=options.dm,\
                             nbins=options.nbins, nsub=options.nsub,\
