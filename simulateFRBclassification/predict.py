@@ -85,7 +85,7 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=False):
     if delete_spectra:
         os.system('rm {}/*sec_DM*.pickle'.format(dir_spectra))
 
-    return np.array(candidate_spectra)
+    return pickled_spectra, np.array(candidate_spectra)
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
@@ -147,7 +147,7 @@ if __name__ == "__main__":
 
     time.sleep(10)
     print("Retrieving candidate spectra")
-    candidate_spectra = get_pulses('.', NCHAN)
+    spectra_paths, candidate_spectra = get_pulses('.', NCHAN)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
@@ -168,6 +168,7 @@ if __name__ == "__main__":
 
     voted_FRB_probs = predictions > 0.5
     print(voted_FRB_probs)
+    frb_filenames = spectra_paths[voted_FRB_probs]
     predicted_frbs = candidate_spectra[voted_FRB_probs]
     frb_probs = predictions[voted_FRB_probs]
 
@@ -177,7 +178,9 @@ if __name__ == "__main__":
         print('Saving all predicted FRBs to {}.pdf'.format(args.save_predicted_FRBs))
 
         with PdfPages(args.save_predicted_FRBs + '.pdf') as pdf:
-            for spec, prob in tqdm(zip(predicted_frbs, frb_probs), total=len(predicted_frbs)):
+            for spec, prob, name in tqdm(zip(predicted_frbs, frb_probs, frb_filenames), total=len(predicted_frbs)):
+                frb_name = os.path.basename(name)
+
                 fig, ax = plt.subplots(nrows=2, ncols=1, figsize=(8, 6))
 
                 signal = np.sum(spec.data, axis=0) # 1D time series of array
@@ -185,7 +188,7 @@ if __name__ == "__main__":
                 # plot spectrogram on top and signal below it
                 ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
                                 np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
-                ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
+                ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='{0}\nConfidence: {1}'.format(frb_name, prob))
 
                 ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
                 ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
