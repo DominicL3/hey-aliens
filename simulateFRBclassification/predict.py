@@ -70,6 +70,7 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=True):
 
     # get all pickled Spectra and prepare array to hold them in memory
     pickled_spectra = np.sort(glob.glob('{}/*sec_DM*.pickle'.format(dir_spectra)))
+    print('Spectra found at ' + pickled_spectra)
     candidate_spectra = []
 
     # add each Spectra to array
