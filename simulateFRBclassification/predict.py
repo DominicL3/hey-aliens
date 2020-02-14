@@ -2,8 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import argparse, os, sys, subprocess
+import argparse, os, sys, glob
 from tqdm import tqdm
+import cPickle
 
 import keras
 from keras.models import load_model
@@ -68,7 +69,7 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=True):
     after being imported."""
 
     # get all pickled Spectra and prepare array to hold them in memory
-    pickled_spectra = np.sort(glob('{}/*sec_DM*.pickle'.format(dir_spectra)))
+    pickled_spectra = np.sort(glob.glob('{}/*sec_DM*.pickle'.format(dir_spectra)))
     candidate_spectra = []
 
     # add each Spectra to array
