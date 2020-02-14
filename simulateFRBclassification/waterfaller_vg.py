@@ -358,7 +358,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
     data.data = data.data[..., :nbinlim]
     import cPickle
     with open(ofile + '.pickle', 'wb') as f:
-        ex_spec = cPickle.dump(data)
+        cPickle.dump(data, f)
 
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
                 cmap=matplotlib.cm.cmap_d[cmap_str], \
