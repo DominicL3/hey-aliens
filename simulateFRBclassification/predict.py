@@ -63,7 +63,7 @@ def save_prob_to_disk(frb_info, pred, fname):
 
     np.savetxt(fname, FRBcand_with_probs, fmt='%-12s')
 
-def get_pulses(dir_spectra, num_channels, delete_spectra=True):
+def get_pulses(dir_spectra, num_channels, delete_spectra=False):
     """Imports *ALL SPECTRA* in given directory and appends them to one list.
     Spectra are assumed to be in .pickle files which are subsequently deleted
     after being imported."""
