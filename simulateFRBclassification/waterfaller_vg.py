@@ -359,9 +359,8 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 
     # pickle Spectra objects for prediction
     data.data = data.data[..., :nbinlim]
-    with open(ofile + 'DINGLEOBJ.pickle', 'wb') as f:
+    with open(ofile + '.pickle', 'wb') as f:
         cPickle.dump(data, f)
-        print('Yeah, I just dumped data to {}'.format(ofile + 'DINGLEOBJ.pickle'))
 
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
                 cmap=matplotlib.cm.cmap_d[cmap_str], \
@@ -566,7 +565,6 @@ def main():
                          "extension. (Only '.fits' and '.fil' "
                          "are supported.)")
 
-    print("OH BABY WE'RE GETTING STARTED")
     data, bins, nbins, start, source_name = waterfall(rawdatafile, options.start, \
                             options.duration, dm=options.dm,\
                             nbins=options.nbins, nsub=options.nsub,\
