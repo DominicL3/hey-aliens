@@ -85,7 +85,7 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=False):
     if delete_spectra:
         os.system('rm {}/*sec_DM*.pickle'.format(dir_spectra))
 
-    return candidate_spectra
+    return np.array(candidate_spectra)
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
