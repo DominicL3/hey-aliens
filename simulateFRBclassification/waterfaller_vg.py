@@ -31,6 +31,9 @@ from scipy import stats
 import pandas as pd
 import os
 
+import cPickle
+
+
 SWEEP_STYLES = ['r-', 'b-', 'g-', 'm-', 'c-']
 
 def get_mask(rfimask, startsamp, N):
@@ -356,7 +359,6 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 
     # pickle Spectra objects for prediction
     data.data = data.data[..., :nbinlim]
-    import cPickle
     with open(ofile + '.pickle', 'wb') as f:
         cPickle.dump(data, f)
 
