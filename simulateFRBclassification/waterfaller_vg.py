@@ -359,7 +359,7 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 
     # pickle Spectra objects for prediction
     data.data = data.data[..., :nbinlim]
-    with open(ofile + '.pickle', 'wb') as f:
+    with open(ofile + 'DINGLEOBJ.pickle', 'wb') as f:
         cPickle.dump(data, f)
 
     img = ax_im.imshow(data.data[..., :nbinlim], aspect='auto', \
