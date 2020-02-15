@@ -3,7 +3,7 @@ import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
-from sklearn.metrics import recall_score, precision_score, fbeta_score
+from sklearn.metrics import precision_recall_fscore_support
 from keras.callbacks import ModelCheckpoint
 
 
@@ -105,9 +105,8 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             y_true = self.validation_data[1]
             y_true = np.argmax(y_true, axis=1)
 
-            recall = recall_score(y_true, y_pred)
-            precision = precision_score(y_true, y_pred)
-            fscore = fbeta_score(y_true, y_pred, beta=5) # favor recall over precision
+            # calculate score of each epoch
+            recall, precision, fscore, support = precision_recall_fscore_support(y_true, y_pred, beta=1.0)
 
             print(" - val_recall: {0} - val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
 

@@ -75,7 +75,6 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=False):
 
     # add each Spectra to array
     for spec_file in tqdm(pickled_spectra):
-        print(spec_file)
         with open(spec_file, 'rb') as f:
             spectra_obj = cPickle.load(f)
             spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
