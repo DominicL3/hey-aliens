@@ -4,6 +4,8 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import recall_score, precision_score, fbeta_score
+from keras.callbacks.callbacks import ModelCheckpoint
+
 
 """Build a two-dimensional convolutional neural network
     with a binary classifier. Can be used for freq-time dynamic spectra of pulsars
@@ -118,10 +120,13 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
                     print("fscore ({0}) did not improve from {1}".format(np.round(fscore, 4), np.round(self.best, 4)))
             return
 
+    # NOTE: loss callback implemented, remove if it doesn't work
+    loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
+
     # save best model according to validation accuracy
     model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
               class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
-              callbacks=[FscoreCallback(saved_model_name)])
+              callbacks=[loss_callback])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
