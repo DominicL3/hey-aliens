@@ -98,7 +98,6 @@ if __name__ == "__main__":
                                                                        Only valid if generating Gaussian noise; overwritten\
                                                                        if background files are provided')
 
-    parser.add_argument('--sim_data', type=str, default=None, help='Filename to save simulation data')
     parser.add_argument('--save_spectra', type=str, default=None, help='Filename to save Spectra objects with injected FRBs')
 
     # option to input RFI array
