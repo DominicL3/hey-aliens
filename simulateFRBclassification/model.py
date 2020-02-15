@@ -4,7 +4,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import recall_score, precision_score, fbeta_score
-from keras.callbacks.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint
 
 
 """Build a two-dimensional convolutional neural network
