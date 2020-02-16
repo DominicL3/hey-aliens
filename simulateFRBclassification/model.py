@@ -4,7 +4,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
 from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import precision_recall_fscore_support
-from keras.callbacks import ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, TensorBoard
 
 
 """Build a two-dimensional convolutional neural network
@@ -106,7 +106,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
             y_true = np.argmax(y_true, axis=1)
 
             # calculate score of each epoch
-            recall, precision, fscore, support = precision_recall_fscore_support(y_true, y_pred, beta=1.0)
+            recall, precision, fscore = precision_recall_fscore_support(y_true, y_pred, beta=1.0)[:-1]
 
             print(" - val_recall: {0} - val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
 
@@ -121,11 +121,12 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # NOTE: loss callback implemented, remove if it doesn't work
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
+    tensorboard_cb = TensorBoard(histogram_freq=1, write_graph=False, update_freq='epoch')
 
     # save best model according to validation accuracy
     model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
               class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
-              callbacks=[loss_callback])
+              callbacks=[loss_callback, tensorboard_cb])
 
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
