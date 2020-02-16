@@ -35,7 +35,7 @@ if __name__ == "__main__":
             signal = np.sum(spec.data, axis=0) # 1D time series of array
             # plot spectrogram on left and signal on right
             ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
-                            np.min(spec.freqs), np.max(spec.freqs)], origin='lower', aspect='auto')
+                            np.min(spec.freqs), np.max(spec.freqs)], aspect='auto')
             ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Time: {}'.format(frb_times[i]))
 
             ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
