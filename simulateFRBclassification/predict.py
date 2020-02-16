@@ -186,7 +186,7 @@ if __name__ == "__main__":
 
                 # plot spectrogram on top and signal below it
                 ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
-                                np.min(spec.freqs), np.max(spec.freqs)], aspect='auto')
+                                np.min(spec.freqs), np.max(spec.freqs)], origin='upper', aspect='auto')
                 ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='{0}\nConfidence: {1}'.format(frb_name, prob))
 
                 ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 
             # plot spectrogram on left and signal on right
             ax[0].imshow(spec.data, extent=[spec.starttime, spec.starttime + len(signal)*spec.dt,
-                            np.min(spec.freqs), np.max(spec.freqs)], aspect='auto')
+                            np.min(spec.freqs), np.max(spec.freqs)], origin='upper', aspect='auto')
             ax[0].set(xlabel='time (s)', ylabel='freq (MHz)', title='Confidence: {}'.format(prob))
 
             ax[1].plot(np.linspace(spec.starttime, spec.starttime + len(signal)*spec.dt, len(signal)), signal)
