@@ -146,7 +146,7 @@ if __name__ == "__main__":
 
     time.sleep(10)
     print("Retrieving candidate spectra")
-    spectra_paths, candidate_spectra = get_pulses('.', NCHAN)
+    spectra_paths, candidate_spectra = get_pulses('.', NCHAN, delete_spectra=True)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
