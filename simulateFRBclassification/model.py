@@ -121,7 +121,7 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
 
     # NOTE: loss callback implemented, remove if it doesn't work
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
-    tensorboard_cb = TensorBoard(histogram_freq=0, write_graph=False, update_freq='epoch')
+    tensorboard_cb = TensorBoard(histogram_freq=0, write_graph=False)
 
     # save best model according to validation accuracy
     model.fit(x=train_data, y=train_labels, validation_data=(eval_data, eval_labels),
