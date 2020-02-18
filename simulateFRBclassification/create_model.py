@@ -104,14 +104,14 @@ if __name__ == "__main__":
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
 
     # parameters for convolutional layers
-    parser.add_argument('--num_conv_layers', type=int, default=4, help='Number of convolutional layers to train with. Careful when setting this,\
+    parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with. Careful when setting this,\
                         the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
     parser.add_argument('--filter_size', type=int, default=32,
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
     # parameters for dense layers
-    parser.add_argument('--n_dense1', type=int, default=128, help='Number of neurons in first dense layer')
-    parser.add_argument('--n_dense2', type=int, default=64, help='Number of neurons in second dense layer')
+    parser.add_argument('--n_dense1', type=int, default=64, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense2', type=int, default=32, help='Number of neurons in second dense layer')
 
     # parameters for signal-to-noise ratio of FRB
     parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
