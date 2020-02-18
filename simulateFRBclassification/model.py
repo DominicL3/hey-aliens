@@ -2,7 +2,7 @@ import numpy as np
 import keras
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Flatten
-from keras.layers import Conv2D, AveragePooling2D
+from keras.layers import Conv2D, MaxPooling2D
 from sklearn.metrics import precision_recall_fscore_support
 from keras.callbacks import ModelCheckpoint, TensorBoard
 
@@ -60,13 +60,13 @@ def construct_conv2d(train_data, train_labels, eval_data, eval_labels,
     # create filter_size convolution filters, each of size 2x2
     # max pool to reduce the dimensionality
     model.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(nfreq, ntime, 1)))
-    model.add(AveragePooling2D(pool_size=(2, 2)))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
     for layer_number in np.arange(num_conv_layers - 1):
         filter_size *= 2
         model.add(Conv2D(filter_size, (2, 2), activation='relu'))
-        model.add(AveragePooling2D(pool_size=(2, 2)))
+        model.add(MaxPooling2D(pool_size=(2, 2)))
 
     # flatten all neurons
     model.add(Flatten())
