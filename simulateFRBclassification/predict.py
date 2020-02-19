@@ -64,6 +64,9 @@ def save_prob_to_disk(frb_info, pred, fname):
     FRBcand_with_probs[previous_names] = frb_info[previous_names]
     FRBcand_with_probs['frb_prob'] = pred
 
+    # re-sort by sample index
+    FRBcand_with_probs.sort(order='samp_idx')
+
     np.savetxt(fname, FRBcand_with_probs, fmt='%-12s')
 
 def get_pulses(dir_spectra, num_channels, delete_spectra=False):
