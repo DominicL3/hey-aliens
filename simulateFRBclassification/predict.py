@@ -21,7 +21,7 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_spectra(fil_file, cand_list):
+def extract_candidates(fil_file, cand_list, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
     frb_cands = np.loadtxt(cand_list, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
@@ -40,7 +40,7 @@ def extract_spectra(fil_file, cand_list):
     mask_file, smooth, zerodm, csv_file = [], [], [], [] # last arguments are missing
 
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
-                            source_name, nchan, mask_file, smooth, zerodm, csv_file)
+                            source_name, nchan, mask_file, smooth, zerodm, csv_file, save_png)
 
     return frb_cands
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
     NCHAN = args.NCHAN
 
     print("Getting data about FRB candidates from " + frb_cand_file)
-    frb_cand_info = extract_spectra(filterbank_candidate, frb_cand_file)
+    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file)
 
     time.sleep(10)
     print("Retrieving candidate spectra")

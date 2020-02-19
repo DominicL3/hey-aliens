@@ -224,8 +224,9 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
 
 def plot_waterfall(data, start, source_name, duration, dm,ofile,
                    integrate_ts=False, integrate_spec=False, show_cb=False,
-                   cmap_str="gist_yarg", sweep_dms=[], sweep_posns=[],
-                   ax_im=None, ax_ts=None, ax_spec=None, interactive=True, downsamp=1,nsub=None,subdm=None,width=None, snr=None, csv_file=None,prob=None):
+                   cmap_str="gist_yarg", sweep_dms=[], sweep_posns=[], ax_im=None,
+                   ax_ts=None, ax_spec=None, interactive=True, downsamp=1, nsub=None,
+                   subdm=None,width=None, snr=None, csv_file=None,prob=None, save_png=False):
     """ I want a docstring too!
     """
 
@@ -545,7 +546,8 @@ def plot_waterfall(data, start, source_name, duration, dm,ofile,
 	plt.text(1.1,0.2,"cat: C",fontsize=12,ha='center', va='center', transform=ax_ts.transAxes)
         ofile = "C_" + ofile
 
-    # plt.savefig(ofile)
+    if save_png:
+        plt.savefig(ofile)
     #plt.show()
     return ofile,ttest,ttestprob
 
@@ -580,7 +582,9 @@ def main():
 		   dm=options.dm,ofile=options.ofile, integrate_ts=options.integrate_ts, \
                    integrate_spec=options.integrate_spec, show_cb=options.show_cb,
                    cmap_str=options.cmap, sweep_dms=options.sweep_dms, \
-                   sweep_posns=options.sweep_posns, downsamp=options.downsamp,width=options.width,snr=options.snr,csv_file=options.csv_file,prob=options.prob)
+                   sweep_posns=options.sweep_posns, downsamp=options.downsamp, \
+                   width=options.width,snr=options.snr,csv_file=options.csv_file, \
+                   prob=options.prob, save_png=options.save_png)
 
     ttestprob = "%.2f" % ((1-ttestprob)*100)
     ttest = "%.2f" % (ttest)
@@ -703,6 +707,9 @@ if __name__=='__main__':
                         help="The name of a valid matplotlib colour map." \
                                 "(Default: gist_yarg.)", \
                         default='gist_yarg')
+    parser.add_option('--save_png', dest='save_png', action='store_true', \
+                        help="Save waterfall plot to disk." \
+                        default=False)
     options, args = parser.parse_args()
 
     if not hasattr(options, 'start'):

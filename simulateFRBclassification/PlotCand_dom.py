@@ -183,7 +183,7 @@ def plotParaCalc(snr,filter,dm,fl,fh,tint,nchan):
 
         return tbin,fbin,extime,frac,cand_band_smear
 
-def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,kill_chans,source_name,nchan,mask_file,smooth,zerodm,csv_file):
+def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,kill_chans,source_name,nchan,mask_file,smooth,zerodm,csv_file,save_png):
 	parallel=1
 	if(frb_cands.size >= 1 and noplot is not True):
 			if(frb_cands.size>1):
@@ -252,6 +252,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					if zerodm: cmd = cmd + " --zerodm "
 					if csv_file: cmd = cmd + " --logs " + str(csv_file)
 					if prob: cmd = cmd + " --prob " + str(prob)
+                                        if save_png: cmd = cmd + " --save_png "
 					#os.system(cmd)
 					if parallel:
 						cmd_array.append(cmd)
