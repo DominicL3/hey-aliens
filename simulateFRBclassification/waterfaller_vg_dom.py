@@ -708,7 +708,7 @@ if __name__=='__main__':
                                 "(Default: gist_yarg.)", \
                         default='gist_yarg')
     parser.add_option('--save_png', dest='save_png', action='store_true', \
-                        help="Save waterfall plot to disk." \
+                        help="Save waterfall plot to disk.", \
                         default=False)
     options, args = parser.parse_args()
 
