@@ -52,6 +52,9 @@ def save_prob_to_disk(frb_info, pred, fname):
     assert len(pred) == len(frb_info), \
         "Number of predictions don't match number of candidates ({0} vs. {1})".format(len(pred), len(frb_info))
 
+    # sort original FRBcand file by SNR to be consistent with prediction order
+    frb_info.sort(order='snr')
+
     # create new array to hold candidate data and probabilities
     new_dt = np.dtype(frb_info.dtype.descr + [('frb_prob', 'f4')])
     previous_names = ['snr','time','samp_idx','dm','filter','prim_beam']
