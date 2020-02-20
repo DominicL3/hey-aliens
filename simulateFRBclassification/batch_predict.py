@@ -11,11 +11,17 @@ with open(txt_file) as f:
     fil_files = f.readlines()
     fil_files = [x.strip() for x in fil_files] # remove whitespace characters
 
-# predict on each file
+# get paths to FRBcand files in each SPANDAK-outputted directory
+FRBcand_paths = []
 for fil_file in fil_files:
     mjd = sp.check_output(["header", fil_file, "-tstart"]).strip()
+    split = mjd.split('.') # split mjd and get first 4 decimal places
 
-    # split mjd and get first 4 decimal places
-    split = mjd.split('.')
-    spandak_dir = 'BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]
-    print(spandak_dir)
+    # combine everything to get directory to predict files
+    spandak_dir = dir_predict + 'BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]
+    path_to_FRBcand = spandak_dir + '/FRBcand'
+    print(path_to_FRBcand)
+
+    FRBcand_paths.append(path_to_FRBcand)
+
+print(FRBcand_paths)
