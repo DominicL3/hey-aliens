@@ -200,9 +200,6 @@ if __name__ == "__main__":
 
                 pdf.savefig()
 
-        print('Saving predicted FRB arrays to {}.npy'.format(args.save_predicted_FRBs))
-        np.save(args.save_predicted_FRBs + '.npy', predicted_frbs)
-
     # save the best 5 candidates to disk along with 1D signal
     if args.save_top_candidates:
         print("Saving top 5 candidates to {0}".format(args.save_top_candidates))
