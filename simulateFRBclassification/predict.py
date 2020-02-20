@@ -199,6 +199,7 @@ if __name__ == "__main__":
                 ax[1].set(xlabel='time (s)', ylabel='flux (Janksy)')
 
                 pdf.savefig()
+                plt.close(fig)
 
     # save the best 5 candidates to disk along with 1D signal
     if args.save_top_candidates:
