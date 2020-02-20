@@ -27,4 +27,4 @@ for i, fil_file in enumerate(fil_files):
     # execute the command
     print('Predicting on file {0} / {1}'.format(i, len(fil_files)))
     print(cmd + '\n')
-    proc = sp.call(cmd, shell=True)
+    proc = sp.call(cmd)
