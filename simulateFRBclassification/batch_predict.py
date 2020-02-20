@@ -1,5 +1,4 @@
 #!/usr/bin/python
-from PlotCand_dom import exeparallel
 import subprocess as sp
 
 txt_file = '/datax/scratch/vgajjar/Test_pipeline/A00_Cband_files'
@@ -12,7 +11,6 @@ with open(txt_file) as f:
     fil_files = [x.strip() for x in fil_files] # remove whitespace characters
 
 # set up commands to predict
-cmd_array = [] # run in parallel
 for i, fil_file in enumerate(fil_files):
     mjd = sp.check_output(["header", fil_file, "-tstart"]).strip()
     split = mjd.split('.') # split mjd and get first 4 decimal places
@@ -29,6 +27,3 @@ for i, fil_file in enumerate(fil_files):
     print('Predicting on file {0} / {1}'.format(i, len(fil_files)))
     print(cmd + '\n')
     proc = sp.Popen(cmd, shell=True)
-
-exeparallel(cmd_array)
-open('cmd_batch_predictions.txt','wb').write('\n'.join(i for i in cmd_array))
