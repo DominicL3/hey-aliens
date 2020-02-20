@@ -21,10 +21,8 @@ for fil_file in fil_files:
     spandak_dir = dir_predict + 'BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]
     path_to_FRBcand = spandak_dir + '/FRBcand'
 
-    cmd = "python predict.py " + \
-        model + ' ' \
-        fil_file + ' ' \
-        path_to_FRBcand + ' ' + \
-        " --save_predicted_FRBs predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]) + \
+    cmd = "python predict.py" + \
+        " {0} {1} {2} ".format(model, fil_file, path_to_FRBcand) + \
+        "--save_predicted_FRBs predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]) + \
 
     print(cmd + '\n')
