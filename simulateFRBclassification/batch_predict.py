@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import os
+from PlotCand_dom import exeparallel
 import subprocess as sp
 
 txt_file = '/datax/scratch/vgajjar/Test_pipeline/A00_Cband_files'
@@ -11,8 +11,8 @@ with open(txt_file) as f:
     fil_files = f.readlines()
     fil_files = [x.strip() for x in fil_files] # remove whitespace characters
 
-# get paths to FRBcand files in each SPANDAK-outputted directory
-FRBcand_paths = []
+# set up commands to predict
+cmd_array = [] # run in parallel
 for fil_file in fil_files:
     mjd = sp.check_output(["header", fil_file, "-tstart"]).strip()
     split = mjd.split('.') # split mjd and get first 4 decimal places
@@ -25,4 +25,8 @@ for fil_file in fil_files:
         " {0} {1} {2} ".format(model, fil_file, path_to_FRBcand) + \
         "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
 
+    cmd_array.append(cmd)
     print(cmd + '\n')
+
+exeparallel(cmd_array)
+open('cmd_batch_predictions.txt','wb').write('\n'.join(i for i in cmd_array))
