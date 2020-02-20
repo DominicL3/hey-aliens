@@ -7,7 +7,7 @@ with open(txt_file) as f:
     fil_files = f.readlines()
 
 
-MJDs = [sp.Popen(["header", fil_file, "-tstart"], stdout=sp.PIPE, shell=True)
+MJDs = [sp.Popen(["header", fil_file, "-tstart"], stdout=sp.PIPE, shell=True).communicate()
             for fil_file in fil_files]
 
 print(MJDs)
