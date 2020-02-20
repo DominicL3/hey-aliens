@@ -21,7 +21,8 @@ for i, fil_file in enumerate(fil_files):
 
     cmd = "python predict.py" + \
         " {0} {1} {2} ".format(model, fil_file, path_to_FRBcand) + \
-        "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
+        "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]) + \
+        " --no-FRBcandprob"
 
     # execute the command
     print('Predicting on file {0} / {1}'.format(i, len(fil_files)))
