@@ -36,7 +36,7 @@ into numpy arrays that this program can inject FRBs into."""
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-def make_labels(num_samples=0, SNRmin=5, SNR_sigma=1.0, SNRmax=15, background_files=None,
+def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=15, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800,
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     parser.add_argument('--n_dense2', type=int, default=32, help='Number of neurons in second dense layer')
 
     # parameters for signal-to-noise ratio of FRB
-    parser.add_argument('--SNRmin', type=float, default=5.0, help='Minimum SNR for FRB signal')
+    parser.add_argument('--SNRmin', type=float, default=8.0, help='Minimum SNR for FRB signal')
     parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
     parser.add_argument('--SNRmax', type=float, default=15.0, help='Maximum SNR of FRB signal')
 
