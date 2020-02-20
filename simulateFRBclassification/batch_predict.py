@@ -20,8 +20,11 @@ for fil_file in fil_files:
     # combine everything to get directory to predict files
     spandak_dir = dir_predict + 'BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]
     path_to_FRBcand = spandak_dir + '/FRBcand'
-    print(path_to_FRBcand)
 
-    FRBcand_paths.append(path_to_FRBcand)
+    cmd = "python predict.py " + \
+        model + ' ' \
+        fil_file + ' ' \
+        path_to_FRBcand + ' ' + \
+        " --save_predicted_FRBs predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]) + \
 
-print(FRBcand_paths)
+    print(cmd + '\n')
