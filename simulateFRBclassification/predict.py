@@ -167,7 +167,11 @@ if __name__ == "__main__":
 
     # save probabilities to disk along with candidate data
     if not args.supress_prob_save:
-        FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt' or os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
+        if not args.FRBcandprob:
+            FRBcand_prob_path = os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
+        else:
+            FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt'
+
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_cand_info, predictions, FRBcand_prob_path)
 
