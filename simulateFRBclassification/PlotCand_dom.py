@@ -235,7 +235,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					print "Candidate inside bad-time range"
 				else:
                                         # place candidate in directory with FRBcand file, labeling with index, timestamp, and DM
-					candname = os.path.dirname(frbcand_dir) + '%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f' % (dm)
+					candname = os.path.dirname(frbcand_dir) + '/%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f' % (dm)
 					cmd = "python /home/dleduc/hey-aliens/simulateFRBclassification/waterfaller_vg_dom.py --show-ts " + \
 					       " -t " + str(TotDisplay) + \
 				 	       " --colour-map=viridis " + \
@@ -255,7 +255,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					if csv_file: cmd = cmd + " --logs " + str(csv_file)
 					if prob: cmd = cmd + " --prob " + str(prob)
                                         if save_png: cmd = cmd + " --save_png "
-					#os.system(cmd)
+					os.system("rm {0}/*.pickle".format(os.path.dirname(frbcand_dir)))
 					if parallel:
 						cmd_array.append(cmd)
 					else:
