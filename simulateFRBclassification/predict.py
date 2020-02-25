@@ -40,7 +40,7 @@ def extract_candidates(fil_file, cand_list, save_png=False):
     mask_file, smooth, zerodm, csv_file = [], [], [], [] # last arguments are missing
 
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
-                            source_name, nchan, mask_file, smooth, zerodm, csv_file, save_png)
+                            source_name, nchan, mask_file, smooth, zerodm, csv_file, save_png, cand_list)
 
     return frb_cands
 
@@ -152,7 +152,7 @@ if __name__ == "__main__":
 
     time.sleep(10)
     print("Retrieving candidate spectra")
-    spectra_paths, candidate_spectra = get_pulses('.', NCHAN, delete_spectra=False)
+    spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, delete_spectra=True)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
