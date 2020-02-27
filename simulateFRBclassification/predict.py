@@ -69,7 +69,7 @@ def save_prob_to_disk(frb_info, pred, fname):
 
     np.savetxt(fname, FRBcand_with_probs, fmt='%-12s')
 
-def get_pulses(dir_spectra, num_channels, delete_spectra=False):
+def get_pulses(dir_spectra, num_channels, keep_spectra=False):
     """Imports *ALL SPECTRA* in given directory and appends them to one list.
     Spectra are assumed to be in .pickle files which are subsequently deleted
     after being imported."""
@@ -87,7 +87,7 @@ def get_pulses(dir_spectra, num_channels, delete_spectra=False):
             candidate_spectra.append(spectra_obj)
 
     # remove all pickle files matching this format
-    if delete_spectra:
+    if not keep_spectra:
         os.system('rm {}/*sec_DM*.pickle'.format(dir_spectra))
 
     return pickled_spectra, np.array(candidate_spectra)
@@ -134,15 +134,15 @@ if __name__ == "__main__":
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
-    parser.add_argument('--delete_spectra', dest='delete_spectra', action='store_true',
-                            help='Delete spectra pickle files after creating and using them.')
+    parser.add_argument('--keep_spectra', dest='delete_spectra', action='store_true',
+                            help='Keep spectra pickle files after creating and using them. Default is to delete.')
     parser.add_argument('--FRBcandprob', type=str, default=None,
                             help='Directory to save new FRBcand file with probabilities (default is same dir as frb_cand_file)')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
     args = parser.parse_args()
-    parser.set_defaults(supress_prob_save=False, delete_spectra=True)
+    parser.set_defaults(supress_prob_save=False, keep_spectra=False)
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
@@ -154,7 +154,7 @@ if __name__ == "__main__":
 
     time.sleep(10)
     print("Retrieving candidate spectra")
-    spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, delete_spectra=delete_spectra)
+    spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, keep_spectra=args.keep_spectra)
 
     # bring each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
