@@ -134,7 +134,7 @@ if __name__ == "__main__":
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
-    parser.add_argument('--keep_spectra', dest='delete_spectra', action='store_true',
+    parser.add_argument('--keep_spectra', dest='keep_spectra', action='store_true',
                             help='Keep spectra pickle files after creating and using them. Default is to delete.')
     parser.add_argument('--FRBcandprob', type=str, default=None,
                             help='Directory to save new FRBcand file with probabilities (default is same dir as frb_cand_file)')
