@@ -15,6 +15,4 @@ simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
 *.np*
 debugging plots/
 waterfaller_functions
-waterfaller_functions
-waterfaller_functions
-simulateFRBclassification/make_fetch_csv.py
+fetch_functions/*
