@@ -85,11 +85,11 @@ def construct_time_cnn(ntime, num_conv_layers=4, filter_size=32):
 
     return time_cnn
 
-def multi_input_model(train_ftdata, train_time_data, train_labels,
-                        eval_ftdata, eval_time_data, eval_labels,
-                        epochs=32, num_conv_layers=4, filter_size=32,
-                        n_dense1=256, n_dense2=128, batch_size=32,
-                        weight_FRB=2, saved_model_name='best_model.h5')
+def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
+                            eval_ftdata, eval_time_data, eval_labels,
+                            epochs=32, num_conv_layers=4, filter_size=32,
+                            n_dense1=256, n_dense2=128, batch_size=32,
+                            weight_FRB=2, saved_model_name='best_model.h5')
     """
     Parameters:
     ----------
