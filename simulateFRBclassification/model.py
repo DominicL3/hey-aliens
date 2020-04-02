@@ -171,5 +171,3 @@ def multi_input_model(train_ftdata, train_time_data, train_labels,
     # one last evaluation for the final model (usually not the best)
     score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
     print(score)
-
-    return model, score
