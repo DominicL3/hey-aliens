@@ -223,8 +223,8 @@ if __name__ == "__main__":
     start_time = time()
 
     # Fit convolutional neural network to the training data
-    fit_multi_input_model(train_data=train_ftdata, train_labels=train_labels_keras,
-                            eval_data=eval_ftdata, eval_labels=eval_labels_keras,
+    fit_multi_input_model(train_ftdata, train_time_data, train_labels_keras,
+                            eval_ftdata, eval_time_data, eval_labels_keras,
                             nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
