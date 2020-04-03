@@ -14,7 +14,7 @@ from keras.models import load_model
 # simulate FRB, create a model, and helper functions for training
 from simulate_FRB import SimulatedFRB
 from training_utils import *
-from model import construct_conv2d
+from model import fit_multi_input_model
 
 # import waterfaller and filterbank from Vishal's path
 sys.path.append('/usr/local/lib/python2.7/dist-packages/')
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
     parser.add_argument('--SNRmax', type=float, default=30.0, help='Maximum SNR of FRB signal')
 
-    parser.add_argument('--weight_FRB', type=float, default=10.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
+    parser.add_argument('--weight_FRB', type=float, default=2.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
@@ -182,28 +182,33 @@ if __name__ == "__main__":
 
         np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)
 
+    # compute time series for every spectrogram in ftdata
+    print('Getting time series for each sample...'),
+    time_series = compute_time_series(ftdata)
+    print('All time series computed!\n')
+
     # bring each channel to zero median and each array to unit stddev
-    print('Scaling arrays. . .')
+    print('Scaling arrays...'),
     ftdata = scale_data(ftdata)
-    print('Done scaling!')
+    print('Done scaling!\n')
 
-    num_data, nfreq, ntime = ftdata.shape
-    print(num_data, nfreq, ntime)
-    print(labels)
-
-    # Get 4D vector for Keras
+    # add extra dimension to vectors for Keras
     ftdata = ftdata[..., None]
+    time_series = time_series[..., None]
 
     NTRAIN = int(len(labels) * 0.5)
 
-    ind = np.arange(num_data)
+    ind = np.arange(len(ftdata))
     np.random.shuffle(ind)
 
     # split indices into training and evaluation set
     ind_train = ind[:NTRAIN]
     ind_eval = ind[NTRAIN:]
 
-    train_data_freq, eval_data_freq = ftdata[ind_train], ftdata[ind_eval]
+    # split examples into training and test set based on randomized indices
+    print('Splitting data into training and validation sets')
+    train_ftdata, eval_ftdata = ftdata[ind_train], ftdata[ind_eval]
+    train_time_data, eval_time_data = time_series[ind_train], time_series[ind_eval]
 
     train_labels, eval_labels = labels[ind_train], labels[ind_eval]
 
@@ -214,27 +219,28 @@ if __name__ == "__main__":
     # used to enable saving the model
     os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
+    print('Training model')
     start_time = time()
 
     # Fit convolutional neural network to the training data
-    score = construct_conv2d(train_data=train_data_freq, train_labels=train_labels_keras,
-                            eval_data=eval_data_freq, eval_labels=eval_labels_keras,
+    fit_multi_input_model(train_data=train_ftdata, train_labels=train_labels_keras,
+                            eval_data=eval_ftdata, eval_labels=eval_labels_keras,
                             nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
                             weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
 
     # load the best model saved to test out confusion matrix
-    model_freq_time = load_model(best_model_name, compile=True)
-    y_pred_prob = model_freq_time.predict(eval_data_freq)[:, 1]
-    y_pred_freq_time = np.round(y_pred_prob)
+    model = load_model(best_model_name, compile=True)
+    y_pred_prob = model.predict([eval_ftdata, eval_time_data])[:, 1]
+    y_pred = np.round(y_pred_prob)
 
     print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60, 2)))
 
     # print out scores of various metrics
-    accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred_freq_time)
+    accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred)
 
-    TP, FP, TN, FN = get_classification_results(eval_labels, y_pred_freq_time)
+    TP, FP, TN, FN = get_classification_results(eval_labels, y_pred)
 
     if results_file is not None:
         print("Saving classification results to {0}".format(results_file))
@@ -243,25 +249,25 @@ if __name__ == "__main__":
     # get lowest confidence selection for each category
     if TP.size:
         TPind = TP[np.argmin(y_pred_prob[TP])]  # Min probability True positive candidate
-        TPdata = eval_data_freq[..., 0][TPind]
+        TPdata = eval_ftdata[..., 0][TPind]
     else:
         TPdata = np.zeros((NFREQ, NTIME))
 
     if FP.size:
         FPind = FP[np.argmax(y_pred_prob[FP])]  # Max probability False positive candidate
-        FPdata = eval_data_freq[..., 0][FPind]
+        FPdata = eval_ftdata[..., 0][FPind]
     else:
         FPdata = np.zeros((NFREQ, NTIME))
 
     if FN.size:
         FNind = FN[np.argmax(y_pred_prob[FN])]  # Max probability False negative candidate
-        FNdata = eval_data_freq[..., 0][FNind]
+        FNdata = eval_ftdata[..., 0][FNind]
     else:
         FNdata = np.zeros((NFREQ, NTIME))
 
     if TN.size:
         TNind = TN[np.argmin(y_pred_prob[TN])]  # Min probability True negative candidate
-        TNdata = eval_data_freq[..., 0][TNind]
+        TNdata = eval_ftdata[..., 0][TNind]
     else:
         TNdata = np.zeros((NFREQ, NTIME))
 

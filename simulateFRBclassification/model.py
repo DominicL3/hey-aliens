@@ -1,17 +1,21 @@
 import numpy as np
 import keras
-from keras.models import Sequential
+from keras.models import Model, Sequential
 from keras.layers import Dense, Dropout, Flatten, concatenate
-from keras.layers import Conv2D, AveragePooling2D
+from keras.layers import Conv1D, AveragePooling1D, Conv2D, AveragePooling2D
+
 from sklearn.metrics import precision_recall_fscore_support
 from keras.callbacks import ModelCheckpoint, TensorBoard
 
 
-"""Build a two-dimensional convolutional neural network
-    with a binary classifier. Can be used for freq-time dynamic spectra of pulsars
-    or dm-time intensity array."""
+"""Build a multi-input convolutional neural network for binary classification.
+First branch takes in frequency-time data and is run through a 2D CNN, while the
+second branch runs the time series of the frequency-time data through a 1D CNN.
 
-def construct_conv2d(nfreq, ntime, num_conv_layers=4, filter_size=32):
+Both network outputs are then concatenated and connected to 2 dense layers,
+culminating in a softmax layer predicting the probability of classification."""
+
+def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
     """
     Parameters:
     ----------
@@ -49,7 +53,7 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=4, filter_size=32):
 
     return cnn_2d
 
-def construct_time_cnn(ntime, num_conv_layers=4, filter_size=32):
+def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
     """
     Parameters:
     ----------
@@ -87,9 +91,10 @@ def construct_time_cnn(ntime, num_conv_layers=4, filter_size=32):
 
 def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             eval_ftdata, eval_time_data, eval_labels,
-                            epochs=32, num_conv_layers=4, filter_size=32,
-                            n_dense1=256, n_dense2=128, batch_size=32,
-                            weight_FRB=2, saved_model_name='best_model.h5')
+                            nfreq=64, ntime=256, epochs=32,
+                            num_conv_layers=2, filter_size=32,
+                            n_dense1=64, n_dense2=32, batch_size=32,
+                            weight_FRB=2, saved_model_name='best_model.h5'):
     """
     Parameters:
     ----------
@@ -169,5 +174,5 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                 epochs=epochs, callbacks=[loss_callback, tensorboard_cb])
 
     # one last evaluation for the final model (usually not the best)
-    score = model.evaluate(eval_data, eval_labels, batch_size=batch_size)
+    score = model.evaluate([eval_ftdata, eval_time_data], eval_labels, batch_size=batch_size)
     print(score)
