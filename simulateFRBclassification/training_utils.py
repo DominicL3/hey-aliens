@@ -23,6 +23,24 @@ def scale_data(ftdata):
     scaled_data = (ftdata - medians) / stddev
     return scaled_data
 
+def compute_time_series(ftdata, scale=True):
+    """Get the 1D time series representations of all signals in ftdata.
+    Assumes ftdata is a 3D array of shape (num_samples, nfreq, ntime).
+
+    If scale=True, also subtract each time series by its median and
+    divide by its standard deviation."""
+
+    time_series = np.sum(ftdata, axis=1) # sum up frequency channels for all samples
+
+    if scale:
+        # standardize each sample to zero median, unit standard deviation
+        # better for neural networks to learn in
+        medians = np.median(time_series, axis=1).reshape(-1, 1)
+        stddev = np.std(time_series, axis=1).reshape(-1, 1)
+        time_series = (time_series - medians) / stddev
+
+    return time_series
+
 def get_classification_results(y_true, y_pred):
     """ Take true labels (y_true) and model-predicted
     label (y_pred) for a binary classifier, and return
