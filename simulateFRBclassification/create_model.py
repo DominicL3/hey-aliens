@@ -49,12 +49,15 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
 
     if background_files is not None:
         # extract data from background files
+        print('Converting Spectra to numpy arrays')
         backgrounds = spec2np(background_files)
         freq_RFI = background_files['freq']
 
         # change frequency range of simulated pulse based on incoming RFI files
+        print('Computing reference frequency and bandwidth from given Spectra')
         FRB_parameters['f_ref'] = np.median(freq_RFI)
         FRB_parameters['bandwidth'] = np.ptp(freq_RFI)
+        print('Reference frequency (Hz): {0}, Bandwidth (Hz): {1}'.format(FRB_parameters['f_ref'], FRB_parameters['bandwidth']))
 
         # set number of samples to iterate over all backgrounds
         num_samples = len(backgrounds)
