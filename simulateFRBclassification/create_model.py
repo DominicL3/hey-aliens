@@ -156,6 +156,7 @@ if __name__ == "__main__":
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma,
                     'SNRmax': args.SNRmax, 'background_files': RFI_samples, 'FRB_parameters': frb_params}
 
+    print('Simulating FRBs from given RFI samples')
     ftdata, labels = make_labels(**label_params)
 
     # save spectra with matching labels
@@ -168,7 +169,8 @@ if __name__ == "__main__":
 
         assert len(spectra) == len(labels), "Not the same shape"
 
-        # get a bunch of spectra and labels for simulated arrays
+        # get a subset of spectra and labels for simulated arrays
+        # saving *all* spectra would blow up the hard disk
         rand_idx = np.random.randint(0, len(spectra), size=10000)
         random_spectra = spectra[rand_idx]
 
