@@ -145,8 +145,7 @@ if __name__ == "__main__":
     # set number of frequency channels to simulate
     if RFI_samples is not None:
         print('Getting number of channels from inputted RFI array')
-        spectra_samples = RFI_samples['spectra_data']
-        NFREQ = spectra_samples[0].numchans
+        NFREQ = RFI_samples['spectra_data'][0].numchans
     else:
         NFREQ = 64
 
@@ -180,12 +179,11 @@ if __name__ == "__main__":
         # replace spectra data with itself or simulated FRB
         random_data, random_labels = ftdata[rand_idx], labels[rand_idx]
 
-        # random_spectra, random_data, random_labels = spectra[1::2], ftdata[1::2], labels[1::2]
-
         for spec, data in zip(random_spectra, random_data):
             spec.data = data
 
         np.savez(args.save_spectra, spectra=random_spectra, labels=random_labels)
+        del spectra1, spectra2 # remove from memory after usage
 
     # compute time series for every spectrogram in ftdata
     print('Getting time series for each sample...'),
