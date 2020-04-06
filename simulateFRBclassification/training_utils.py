@@ -2,6 +2,7 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 import numpy as np
+from tqdm import trange
 
 """Helper functions for training neural network, including
 data preprocessing and computing training results."""
@@ -15,13 +16,19 @@ def spec2np(spec_npz):
 
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
-    divide each array by its global standard deviation."""
+    divide each array by its global standard deviation. Perform
+    this standardization in chunks to avoid a memory overload."""
 
-    medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
-    stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
+    N = 10000
+    for i in trange(int(np.ceil(len(ftdata)/float(N)))):
+        ftdata_chunk = ftdata[i*N:(i + 1) * N]
+        medians = np.median(ftdata_chunk, axis=-1)[:, :, np.newaxis]
+        stddev = np.std(ftdata_chunk.reshape(len(ftdata_chunk), -1), axis=-1)[:, np.newaxis, np.newaxis]
 
-    scaled_data = (ftdata - medians) / stddev
-    return scaled_data
+        scaled_ftdata = (ftdata_chunk - medians) / stddev
+        ftdata[i*N:(i + 1) * N] = scaled_ftdata
+
+    return ftdata
 
 def compute_time_series(ftdata, scale=True):
     """Get the 1D time series representations of all signals in ftdata.
