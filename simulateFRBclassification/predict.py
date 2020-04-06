@@ -4,12 +4,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 import argparse, os, sys, glob, time
 from tqdm import tqdm
+from skimage.transform import resize
 import cPickle
 
 import keras
 from keras.models import load_model
 
-from skimage.transform import resize
+from training_utils import scale_data, compute_time_series
 import PlotCand_dom
 from waterfaller import filterbank, waterfall
 
@@ -92,16 +93,6 @@ def get_pulses(dir_spectra, num_channels, keep_spectra=False):
 
     return pickled_spectra, np.array(candidate_spectra)
 
-def scale_data(ftdata):
-    """Subtract each channel in 3D array by its median and
-    divide each array by its global standard deviation."""
-
-    medians = np.median(ftdata, axis=-1)[:, :, np.newaxis]
-    stddev = np.std(ftdata.reshape(len(ftdata), -1), axis=-1)[:, np.newaxis, np.newaxis]
-
-    scaled_data = (ftdata - medians) / stddev
-    return scaled_data
-
 if __name__ == "__main__":
     """
     Parameters
@@ -156,15 +147,27 @@ if __name__ == "__main__":
     print("Retrieving candidate spectra")
     spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, keep_spectra=args.keep_spectra)
 
-    # bring each channel to zero median and each array to unit stddev
+    # retrieve freq-time data from each spectra
+    ftdata = np.array([spec.data for spec in candidate_spectra])
+
+    # compute time series for every spectrogram in ftdata
+    print('Getting time series for each sample...'),
+    time_series = compute_time_series(ftdata)
+    print('All time series computed!\n')
+
+    # scale each channel to zero median and each array to unit stddev
     print("\nScaling arrays."),
-    zscore_data = scale_data(np.array([spec.data for spec in candidate_spectra]))
+    scale_data(ftdata)
     print("Done scaling!")
+
+    # add extra dimension to vectors for Keras
+    ftdata = ftdata[..., None]
+    time_series = time_series[..., None]
 
     # load model and predict
     model = load_model(args.model_name, compile=True)
 
-    predictions = model.predict(zscore_data[..., None], verbose=1)[:, 1]
+    predictions = model.predict([ftdata, time_series], verbose=1)[:, 1]
     print(predictions)
 
     # save probabilities to disk along with candidate data
