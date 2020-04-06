@@ -2,7 +2,7 @@
 import subprocess as sp
 
 txt_file = '/datax/scratch/vgajjar/Test_pipeline/A00_Cband_files'
-model = '/datax/scratch/dleduc/models/conv2_averagePooling_weight2_optimizeLoss.h5'
+model = '/datax/scratch/dleduc/models/multi_input_1_SNRmin6.h5'
 dir_predict = '/datax/scratch/dleduc/spandak_experiments/'
 
 # read every file in A00_Cband_files
@@ -23,7 +23,7 @@ try:
         cmd = "python predict.py" + \
             " {0} {1} {2} ".format(model, fil_file, path_to_FRBcand) + \
             "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4]) + \
-            " --no-FRBcandprob --keep_spectra"
+            " --no-FRBcandprob"
 
         # execute the command
         print('Predicting on file {0} / {1}'.format(i+1, len(fil_files)))
