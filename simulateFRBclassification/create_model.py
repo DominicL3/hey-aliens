@@ -187,7 +187,7 @@ if __name__ == "__main__":
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays...'),
-    ftdata = scale_data(ftdata)
+    scale_data(ftdata)
     print('Done scaling!\n')
 
     # compute time series for every spectrogram in ftdata

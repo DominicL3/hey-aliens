@@ -28,8 +28,6 @@ def scale_data(ftdata):
         scaled_ftdata = (ftdata_chunk - medians) / stddev
         ftdata[i*N:(i + 1) * N] = scaled_ftdata
 
-    return ftdata
-
 def compute_time_series(ftdata, scale=True):
     """Get the 1D time series representations of all signals in ftdata.
     Assumes ftdata is a 3D array of shape (num_samples, nfreq, ntime).
