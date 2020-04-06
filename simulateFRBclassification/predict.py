@@ -123,7 +123,7 @@ if __name__ == "__main__":
     parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
-    parser.add_argument('--no-FRBcandprob', dest='supress_prob_save', action='store_true',
+    parser.add_argument('--no-FRBcandprob', dest='suppress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
     parser.add_argument('--keep_spectra', dest='keep_spectra', action='store_true',
                             help='Keep spectra pickle files after creating and using them. Default is to delete.')
@@ -133,7 +133,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
     args = parser.parse_args()
-    parser.set_defaults(supress_prob_save=False, keep_spectra=False)
+    parser.set_defaults(suppress_prob_save=False, keep_spectra=False)
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
@@ -171,7 +171,7 @@ if __name__ == "__main__":
     print(predictions)
 
     # save probabilities to disk along with candidate data
-    if not args.supress_prob_save:
+    if not args.suppress_prob_save:
         if not args.FRBcandprob:
             FRBcand_prob_path = os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
         else:
