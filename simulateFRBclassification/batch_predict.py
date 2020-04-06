@@ -11,8 +11,9 @@ with open(txt_file) as f:
     fil_files = [x.strip() for x in fil_files] # remove whitespace characters
 
 # set up commands to predict
-try:
-    for i, fil_file in enumerate(fil_files):
+
+for i, fil_file in enumerate(fil_files):
+    try:
         mjd = sp.check_output(["header", fil_file, "-tstart"]).strip()
         split = mjd.split('.') # split mjd and get first 4 decimal places
 
@@ -30,5 +31,8 @@ try:
         print(cmd + '\n')
         proc = sp.call(cmd, shell=True)
 
-except KeyboardInterrupt:
-    proc.kill()
+    except sp.CalledProcessError:
+        continue
+
+    except KeyboardInterrupt:
+        proc.kill()
