@@ -1,9 +1,9 @@
 #!/usr/bin/python
 import subprocess as sp
 
-txt_file = '/datax/scratch/vgajjar/Test_pipeline/A00_Cband_files'
+txt_file = '/datax/scratch/dleduc/2spandak_2experiment/A00_Cband_files_edited'
 model = '/datax/scratch/dleduc/models/multi_input_1_SNRmin6.h5'
-dir_predict = '/datax/scratch/dleduc/spandak_experiments/'
+dir_predict = '/datax/scratch/dleduc/2spandak_2experiment/'
 
 # read every file in A00_Cband_files
 with open(txt_file) as f:
