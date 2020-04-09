@@ -255,7 +255,6 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					if csv_file: cmd = cmd + " --logs " + str(csv_file)
 					if prob: cmd = cmd + " --prob " + str(prob)
                                         if save_png: cmd = cmd + " --save_png "
-					os.system("rm {0}/*.pickle".format(os.path.dirname(frbcand_dir)))
 					if parallel:
 						cmd_array.append(cmd)
 					else:
