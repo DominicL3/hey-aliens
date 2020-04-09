@@ -1,9 +1,16 @@
 #!/usr/bin/python
 import subprocess as sp
+import sys
 
-txt_file = '/datax/scratch/dleduc/2spandak_2experiment/A00_Cband_files_edited'
-model = '/datax/scratch/dleduc/models/multi_input_1_SNRmin6.h5'
-dir_predict = '/datax/scratch/dleduc/2spandak_2experiment/'
+"""Run predict.py on a bunch of files at once. Takes in a text file
+containing the paths to filterbank files to predict on, as well as
+the directory dir_predict that houses the FRBcand file and where the
+FRBcand_prob.txt file will be saved to."""
+
+if len(sys.argv) != 4:
+    raise ValueError("Invalid number of arguments")
+else:
+    txt_file, model, dir_predict = str(sys.argv)[1:]
 
 # read every file in A00_Cband_files
 with open(txt_file) as f:
