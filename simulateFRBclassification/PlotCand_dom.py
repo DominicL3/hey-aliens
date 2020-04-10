@@ -50,11 +50,15 @@ def exeparallel(cmd_array):
                         # continue
         	#os.system(cmd)
 
+     cp_polls = np.array([cp.poll() for cp in child_processes])
      # blocks further execution until all child processes have finished
-     for p in child_processes:
-             while p.poll() is None:
-                     print("Still working....")
-                     tt.sleep(2)
+     while (child_processes == None).any():
+        process_number = np.arange(1, len(child_processes) + 1)
+        working_processes = process_number[child_processes == None]
+        print('[exeparallel] Process {} still working...'.format(working_processes))
+
+        tt.sleep(2)
+        cp_polls = np.array([cp.poll() for cp in child_processes]) # poll again
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
