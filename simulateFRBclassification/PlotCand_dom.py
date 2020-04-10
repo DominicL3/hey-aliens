@@ -52,17 +52,8 @@ def exeparallel(cmd_array):
 
      for proc in child_processes:
                 out, err = proc.communicate()
-                print("PROOCESS_ERROR: {}".format(err))
+                print("[exeparallel] ERRORS: {}".format(err))
                 tt.sleep(0.1)
-     '''cp_polls = np.array([cp.poll() for cp in child_processes])
-     # blocks further execution until all child processes have finished
-     while (cp_polls == None).any():
-        process_number = np.arange(1, len(child_processes) + 1)
-        working_processes = process_number[cp_polls == None]
-        print('[exeparallel] Process {} still working...'.format(working_processes))
-
-        tt.sleep(2)
-        cp_polls = np.array([cp.poll() for cp in child_processes]) # poll again'''
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
