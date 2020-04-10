@@ -38,38 +38,23 @@ def exeparallel(cmd_array):
      if ncmd>len(cmd_array): ncmd=len(cmd_array)
 
      child_processes = [] # list holding all processes spawned by subprocess
-     cmd_idx = 0 # index to track commands
-     # for grpcmd in grouper(cmd_array,ncmd):
-     while cmd_idx < len(cmd_array) and ncmd > 0:
-             cmd = cmd_array[cmd_idx]
+     for grpcmd in grouper(cmd_array,ncmd):
+		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
+     		cmd = ' & '.join(grpcmd1)
+		print cmd
 
-             print(cmd)
-             proc = sb.Popen(cmd, shell=True)
-             child_processes.append(proc)
-
-             ncmd -= 1
-             print("There are {} possible processes left".format(ncmd))
-             cmd_idx += 1
-
-             if ncmd == 0:
-                # blocks further execution until all child processes have finished
-                for proc_idx, p in enumerate(child_processes):
-                        while p.poll() is None: # hopefully at least one is None, otherwise this will fail
-                                print("Still working....")
-                                tt.sleep(2)
-                        else:
-                                ncmd += 1
-                                child_processes.pop(proc_idx)
-                                print("There are {} possible processes left".format(ncmd))
-
-
-		# grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
-     		# cmd = ' & '.join(grpcmd1)
-
+		proc = sb.Popen(cmd, shell=True)
+                child_processes.append(proc)
 
 		# while proc.poll() == None:
                         # continue
         	#os.system(cmd)
+
+     # blocks further execution until all child processes have finished
+     for p in child_processes:
+             while p.poll() is None:
+                     print("Still working....")
+                     tt.sleep(2)
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
