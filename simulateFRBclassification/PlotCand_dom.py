@@ -52,7 +52,7 @@ def exeparallel(cmd_array):
 
      cp_polls = np.array([cp.poll() for cp in child_processes])
      # blocks further execution until all child processes have finished
-     while (child_processes == None).any():
+     while (cp_polls == None).any():
         process_number = np.arange(1, len(child_processes) + 1)
         working_processes = process_number[child_processes == None]
         print('[exeparallel] Process {} still working...'.format(working_processes))
