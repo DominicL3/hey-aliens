@@ -54,7 +54,7 @@ def exeparallel(cmd_array):
      # blocks further execution until all child processes have finished
      while (cp_polls == None).any():
         process_number = np.arange(1, len(child_processes) + 1)
-        working_processes = process_number[child_processes == None]
+        working_processes = process_number[cp_polls == None]
         print('[exeparallel] Process {} still working...'.format(working_processes))
 
         tt.sleep(2)
