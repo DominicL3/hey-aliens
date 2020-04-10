@@ -41,6 +41,8 @@ def exeparallel(cmd_array):
      for grpcmd in grouper(cmd_array,ncmd):
 		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
      		cmd = ' & '.join(grpcmd1)
+                cmd = shlex.split(cmd) # tokenize long string of commands into individual args
+
 		print cmd
 		proc = sb.Popen(cmd)
                 child_processes.append(proc)
