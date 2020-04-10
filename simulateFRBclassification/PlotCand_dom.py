@@ -42,7 +42,7 @@ def exeparallel(cmd_array):
 		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
      		cmd = ' & '.join(grpcmd1)
 		print cmd
-		proc = sb.Popen(cmd, shell=True)
+		proc = sb.Popen(cmd, stdout=PIPE, stderr=PIPE)
                 child_processes.append(proc)
 
 		while proc.poll() == None: continue
