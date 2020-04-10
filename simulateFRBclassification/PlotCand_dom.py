@@ -40,7 +40,7 @@ def exeparallel(cmd_array):
      child_processes = [] # list holding all processes spawned by subprocess
      cmd_idx = 0 # index to track commands
      # for grpcmd in grouper(cmd_array,ncmd):
-     while cmd_idx <= len(cmd_array) and ncmd > 0:
+     while cmd_idx < len(cmd_array) and ncmd > 0:
              cmd = cmd_array[cmd_idx]
 
              print(cmd)
@@ -53,12 +53,13 @@ def exeparallel(cmd_array):
 
              if ncmd == 0:
                 # blocks further execution until all child processes have finished
-                for p in child_processes:
+                for proc_idx, p in enumerate(child_processes):
                         while p.poll() is None: # hopefully at least one is None, otherwise this will fail
                                 print("Still working....")
                                 tt.sleep(2)
                         else:
                                 ncmd += 1
+                                child_processes.pop(proc_idx)
                                 print("There are {} possible processes left".format(ncmd))
 
 
