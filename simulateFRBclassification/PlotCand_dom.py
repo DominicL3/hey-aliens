@@ -42,14 +42,15 @@ def exeparallel(cmd_array):
 		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
      		cmd = ' & '.join(grpcmd1)
 		print cmd
-		proc = sb.Popen(cmd, stdout=sb.PIPE, stderr=sb.PIPE)
+		proc = sb.Popen(cmd)
                 child_processes.append(proc)
 
-		while proc.poll() == None: continue
+		# while proc.poll() == None: continue
         	#os.system(cmd)
 
      # blocks further execution until all child processes have finished
-     [p.wait() for p in child_processes]
+     for p in child_processes:
+             p.wait()
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
