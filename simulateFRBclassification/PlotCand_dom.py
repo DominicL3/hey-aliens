@@ -47,12 +47,14 @@ def exeparallel(cmd_array):
 		proc = sb.Popen(cmd)
                 child_processes.append(proc)
 
-		# while proc.poll() == None: continue
+		while proc.poll() == None:
+                        continue
         	#os.system(cmd)
 
      # blocks further execution until all child processes have finished
      for p in child_processes:
              p.wait()
+             tt.sleep(0.1)
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
