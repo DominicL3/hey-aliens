@@ -53,6 +53,7 @@ def exeparallel(cmd_array):
      for proc in child_processes:
                 out, err = proc.communicate()
                 proc.wait()
+                tt.sleep(5)
      '''cp_polls = np.array([cp.poll() for cp in child_processes])
      # blocks further execution until all child processes have finished
      while (cp_polls == None).any():
