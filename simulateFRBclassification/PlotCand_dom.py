@@ -46,8 +46,8 @@ def exeparallel(cmd_array):
 		proc = sb.Popen(cmd, shell=True)
                 child_processes.append(proc)
 
-		# while proc.poll() == None:
-                        # continue
+		while proc.poll() == None:
+                        continue
         	#os.system(cmd)
 
      cp_polls = np.array([cp.poll() for cp in child_processes])
