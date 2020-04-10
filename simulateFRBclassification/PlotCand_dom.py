@@ -37,14 +37,19 @@ def exeparallel(cmd_array):
      ncmd=20 #Number of commands to execute simultaneously
      if ncmd>len(cmd_array): ncmd=len(cmd_array)
 
+     child_processes = [] # list holding all processes spawned by subprocess
      for grpcmd in grouper(cmd_array,ncmd):
 		grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
      		cmd = ' & '.join(grpcmd1)
 		print cmd
-		#proc=sb.Popen(cmd,stdout=sb.PIPE,shell=True)
-		proc=sb.Popen(cmd,shell=True)
-		while proc.poll()==None: continue
+		proc = sb.Popen(cmd, shell=True)
+                child_processes.append(proc)
+
+		while proc.poll() == None: continue
         	#os.system(cmd)
+
+     # blocks further execution until all child processes have finished
+     [p.wait() for p in child_processes]
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)

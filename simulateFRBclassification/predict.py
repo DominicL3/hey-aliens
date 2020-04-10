@@ -143,7 +143,6 @@ if __name__ == "__main__":
     print("Getting data about FRB candidates from " + frb_cand_file)
     frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file)
 
-    time.sleep(10)
     print("Retrieving candidate spectra")
     spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, keep_spectra=args.keep_spectra)
 
