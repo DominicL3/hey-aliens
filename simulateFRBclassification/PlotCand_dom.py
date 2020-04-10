@@ -39,23 +39,24 @@ def exeparallel(cmd_array):
 
      child_processes = [] # list holding all processes spawned by subprocess
      # for grpcmd in grouper(cmd_array,ncmd):
-     for cmd in cmd_array:
-                assert ncmd >= 0
-                if ncmd > 0:
-                        print cmd
+     while cmd_number <= len(cmd_array) and ncmd > 0:
+             cmd = cmd_array[cmd_number]
 
-                        proc = sb.Popen(cmd, shell=True)
-                        ncmd -= 1
+             print(cmd)
+             proc = sb.Popen(cmd, shell=True)
+             child_processes.append(proc)
 
-                        child_processes.append(proc)
-                else:
-                        # blocks further execution until all child processes have finished
-                        for p in child_processes:
-                                while p.poll() is None:
-                                        print("Still working....")
-                                        tt.sleep(2)
-                                else:
-                                        ncmd += 1
+             ncmd -= 1
+             cmd_number += 1
+
+             if ncmd == 0:
+                # blocks further execution until all child processes have finished
+                for p in child_processes:
+                        while p.poll() is None:
+                                print("Still working....")
+                                tt.sleep(2)
+                        else:
+                                ncmd += 1
 
 
 		# grpcmd1 = list(filter(None,grpcmd)) #Remove None elements from the groups
