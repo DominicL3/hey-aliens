@@ -37,9 +37,9 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
 
     cnn_2d = Sequential()
 
-    # create filter_size convolution filters, each of size 2x2
+    # create filter_size convolution filters, each of size 3x3
     # max pool to reduce the dimensionality
-    cnn_2d.add(Conv2D(filter_size, (2, 2), activation='relu', input_shape=(nfreq, ntime, 1)))
+    cnn_2d.add(Conv2D(filter_size, (3, 3), activation='relu', input_shape=(nfreq, ntime, 1)))
     cnn_2d.add(AveragePooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
@@ -72,10 +72,11 @@ def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
     """
 
     time_cnn = Sequential()
+    filter_size = filter_size // 2 # time series doesn't need as many filters 2D CNN
 
     # create filter_size convolution filters, each of size 2x2
     # average pool to reduce the dimensionality
-    time_cnn.add(Conv1D(filter_size, 2, activation='relu', input_shape=(ntime, 1)))
+    time_cnn.add(Conv1D(filter_size, 3, activation='relu', input_shape=(ntime, 1)))
     time_cnn.add(AveragePooling1D(pool_size=2))
 
     # repeat and double the filter size for each convolutional block to make this DEEP

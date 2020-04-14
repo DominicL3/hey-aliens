@@ -7,7 +7,7 @@ temporal scattering. @source liamconnor"""
 
 class SimulatedFRB(object):
     def __init__(self, shape=(64, 256), f_low=800, f_high=2000, f_ref=1350,
-                bandwidth=1500, max_width=3, tau=0.1):
+                bandwidth=1500, max_width=4, tau=0.1):
         assert isinstance(shape, tuple) and len(shape) == 2, "Array shape must 2D tuple of integers"
         self.shape = shape
 
@@ -45,7 +45,7 @@ class SimulatedFRB(object):
     def gaussian_profile(self):
         """Model pulse as a normalized Gaussian."""
         t = np.linspace(-self.nt // 2, self.nt // 2, self.nt)
-        g = np.exp(-(t / np.random.randint(1, self.max_width))**2)
+        g = np.exp(-(t / np.random.randint(1, self.max_width + 1))**2)
 
         if not np.all(g > 0):
             g += 1e-18
