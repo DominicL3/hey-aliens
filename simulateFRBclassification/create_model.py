@@ -186,12 +186,12 @@ if __name__ == "__main__":
         del spectra1, spectra2 # remove from memory after usage
 
     # compute time series for every spectrogram in ftdata
-    print('Getting time series for each sample...'),
+    print('Getting time series for each sample...')
     time_series = compute_time_series(ftdata)
     print('All time series computed!\n')
 
     # bring each channel to zero median and each array to unit stddev
-    print('Scaling arrays...'),
+    print('Scaling arrays...')
     scale_data(ftdata)
     print('Done scaling!\n')
 
