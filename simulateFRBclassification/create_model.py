@@ -121,7 +121,7 @@ if __name__ == "__main__":
     parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
     parser.add_argument('--SNRmax', type=float, default=30.0, help='Maximum SNR of FRB signal')
 
-    parser.add_argument('--weight_FRB', type=float, default=2.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
+    parser.add_argument('--weight_FRB', type=float, default=5.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
