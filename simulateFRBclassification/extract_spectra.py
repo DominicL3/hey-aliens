@@ -1,14 +1,10 @@
 #!/usr/bin/python
 
 import numpy as np
-import argparse, sys, glob
+import argparse, glob
 import subprocess
 from time import time
 from tqdm import tqdm
-
-# paths needed to use filterbank and waterfaller modules
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
 
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
