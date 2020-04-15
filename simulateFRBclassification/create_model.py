@@ -164,7 +164,8 @@ if __name__ == "__main__":
     # save spectra with matching labels
     if args.save_spectra is not None:
         print('Saving 10000 spectra to disk as  ' + args.save_spectra)
-        # make two copies of spectra to "recreate all labeled Spectra objects
+        # duplicate each spectra to "recreate" all labeled Spectra objects
+        # one Spectra with nothing, one with simulated FRB in it
         spectra1 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra2 = copy.deepcopy(RFI_samples['spectra_data'])
         spectra = np.insert(spectra1, np.arange(len(spectra1)), spectra2)
