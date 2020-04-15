@@ -170,7 +170,8 @@ if __name__ == "__main__":
         num_files = len(files)
 
     print("Randomly sampling {0} Spectra from {1} files".format(samples_per_file, num_files))
-    random_files = np.random.choice(files, size=num_files, replace=False)
+    # NOTE: should be replace=False, but only True because there are only 38 non-pulse files
+    random_files = np.random.choice(files, size=num_files, replace=True)
 
     # extract spectra from .fil files until number of samples is reached
     spectra_samples, i = [], 0
