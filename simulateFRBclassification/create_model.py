@@ -276,6 +276,7 @@ if __name__ == "__main__":
         TNdata = np.zeros((NFREQ, NTIME))
 
     # plot the confusion matrix and display
+    plt.ioff()
     plt.subplot(221)
     plt.gca().set_title('TP: {}'.format(conf_mat[0][0]))
     plt.imshow(TPdata, aspect='auto', interpolation='none')
