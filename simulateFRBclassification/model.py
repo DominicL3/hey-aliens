@@ -15,7 +15,7 @@ second branch runs the time series of the frequency-time data through a 1D CNN.
 Both network outputs are then concatenated and connected to 2 dense layers,
 culminating in a softmax layer predicting the probability of classification."""
 
-def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
+def construct_conv2d(nfreq, ntime, num_conv_layers=2, num_filters=32):
     """
     Parameters:
     ----------
@@ -26,7 +26,7 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to pooling layers,
         otherwise Keras will throw an error)
-    filter_size : int
+    num_filters : int
         Number of filters in first convolutional layer, doubles after each convolutional block.
 
     Returns
@@ -37,15 +37,15 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
 
     cnn_2d = Sequential()
 
-    # create filter_size convolution filters, each of size 3x3
+    # create num_filters convolution filters, each of size 3x3
     # max pool to reduce the dimensionality
-    cnn_2d.add(Conv2D(filter_size, (3, 3), activation='relu', input_shape=(nfreq, ntime, 1)))
+    cnn_2d.add(Conv2D(num_filters, (3, 3), activation='relu', input_shape=(nfreq, ntime, 1)))
     cnn_2d.add(AveragePooling2D(pool_size=(2, 2)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
     for layer_number in np.arange(num_conv_layers - 1):
-        filter_size *= 2
-        cnn_2d.add(Conv2D(filter_size, (2, 2), activation='relu'))
+        num_filters *= 2
+        cnn_2d.add(Conv2D(num_filters, (2, 2), activation='relu'))
         cnn_2d.add(AveragePooling2D(pool_size=(2, 2)))
 
     # flatten all neurons
@@ -53,7 +53,7 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, filter_size=32):
 
     return cnn_2d
 
-def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
+def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
     """
     Parameters:
     ----------
@@ -62,7 +62,7 @@ def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to pooling layers,
         otherwise Keras will throw an error)
-    filter_size : int
+    num_filters : int
         Number of filters in first convolutional layer, doubles after each convolutional block.
 
     Returns
@@ -72,17 +72,17 @@ def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
     """
 
     time_cnn = Sequential()
-    filter_size = filter_size // 2 # time series doesn't need as many filters 2D CNN
+    num_filters = num_filters // 2 # time series doesn't need as many filters 2D CNN
 
-    # create filter_size convolution filters, each of size 2x2
+    # create num_filters convolution filters, each of size 2x2
     # average pool to reduce the dimensionality
-    time_cnn.add(Conv1D(filter_size, 3, activation='relu', input_shape=(ntime, 1)))
+    time_cnn.add(Conv1D(num_filters, 3, activation='relu', input_shape=(ntime, 1)))
     time_cnn.add(AveragePooling1D(pool_size=2))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
     for layer_number in np.arange(num_conv_layers - 1):
-        filter_size *= 2
-        time_cnn.add(Conv1D(filter_size, 2, activation='relu'))
+        num_filters *= 2
+        time_cnn.add(Conv1D(num_filters, 2, activation='relu'))
         time_cnn.add(AveragePooling1D(pool_size=2))
 
     # flatten all neurons
@@ -93,7 +93,7 @@ def construct_time_cnn(ntime, num_conv_layers=2, filter_size=32):
 def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             eval_ftdata, eval_time_data, eval_labels,
                             nfreq=64, ntime=256, epochs=32,
-                            num_conv_layers=2, filter_size=32,
+                            num_conv_layers=2, num_filters=32,
                             n_dense1=64, n_dense2=32, batch_size=32,
                             weight_FRB=2, saved_model_name='best_model.h5'):
     """
@@ -112,7 +112,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to max pooling layers,
         otherwise Keras will throw an error)
-    filter_size : int
+    num_filters : int
         Number of filters in first convolutional layer, doubles after each convolutional block.
     n_dense1 : int
         Number of neurons in first hidden layer
@@ -135,8 +135,8 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     """
 
     # construct each individual network
-    cnn_2d = construct_conv2d(nfreq, ntime, num_conv_layers=num_conv_layers, filter_size=filter_size)
-    time_cnn = construct_time_cnn(ntime, num_conv_layers=num_conv_layers, filter_size=filter_size)
+    cnn_2d = construct_conv2d(nfreq, ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
+    time_cnn = construct_time_cnn(ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
 
     # use output of models as input to final set of layers
     combined_input = concatenate([cnn_2d.output, time_cnn.output])

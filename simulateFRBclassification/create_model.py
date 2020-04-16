@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with. Careful when setting this,\
                         the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
-    parser.add_argument('--filter_size', type=int, default=32,
+    parser.add_argument('--num_filters', type=int, default=32,
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
     # parameters for dense layers
@@ -230,7 +230,7 @@ if __name__ == "__main__":
     fit_multi_input_model(train_ftdata, train_time_data, train_labels_keras,
                             eval_ftdata, eval_time_data, eval_labels_keras,
                             nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
-                            num_conv_layers=args.num_conv_layers, filter_size=args.filter_size,
+                            num_conv_layers=args.num_conv_layers, num_filters=args.num_filters,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
                             weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
 
