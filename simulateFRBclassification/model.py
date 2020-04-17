@@ -1,6 +1,6 @@
 import numpy as np
 import keras
-from keras.models import Model, Sequential
+from keras.models import Model, Sequential, load_model
 from keras.layers import Dense, Dropout, Flatten, concatenate
 from keras.layers import Conv1D, AveragePooling1D, Conv2D, AveragePooling2D
 
@@ -95,7 +95,8 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             nfreq=64, ntime=256, epochs=32,
                             num_conv_layers=2, num_filters=32,
                             n_dense1=64, n_dense2=32, batch_size=32,
-                            weight_FRB=2, saved_model_name='best_model.h5'):
+                            weight_FRB=2, saved_model_name='best_model.h5',
+                            previous_model_to_train=None):
     """
     Parameters:
     ----------
@@ -134,28 +135,33 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
         Accuracy, the fraction of predictions that are correct
     """
 
-    # construct each individual network
-    cnn_2d = construct_conv2d(nfreq, ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
-    time_cnn = construct_time_cnn(ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
+    if previous_model_to_train is None:
+        # construct each individual network
+        cnn_2d = construct_conv2d(nfreq, ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
+        time_cnn = construct_time_cnn(ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
 
-    # use output of models as input to final set of layers
-    combined_input = concatenate([cnn_2d.output, time_cnn.output])
+        # use output of models as input to final set of layers
+        combined_input = concatenate([cnn_2d.output, time_cnn.output])
 
-    # run through two fully connected layers
-    fc_1 = Dense(n_dense1, activation='relu')(combined_input)
-    dropout_1 = Dropout(0.4)(fc_1)
+        # run through two fully connected layers
+        fc_1 = Dense(n_dense1, activation='relu')(combined_input)
+        dropout_1 = Dropout(0.4)(fc_1)
 
-    fc_2 = Dense(n_dense2, activation='relu')(dropout_1)
-    dropout_2 = Dropout(0.3)(fc_2)
+        fc_2 = Dense(n_dense2, activation='relu')(dropout_1)
+        dropout_2 = Dropout(0.3)(fc_2)
 
-    # predict what the should be
-    pred_layer = Dense(2, activation="softmax")(dropout_2)
+        # predict what the should be
+        pred_layer = Dense(2, activation="softmax")(dropout_2)
 
-    # final model accepts freq-time data for Conv2D input and
-    # 1D time series data for the Conv1D input
-    # predictions will output a scalar for each pair of ftdata/time series samples
+        # final model accepts freq-time data for Conv2D input and
+        # 1D time series data for the Conv1D input
+        # predictions will output a scalar for each pair of ftdata/time series samples
 
-    model = Model(inputs=[cnn_2d.input, time_cnn.input], outputs=pred_layer)
+        model = Model(inputs=[cnn_2d.input, time_cnn.input], outputs=pred_layer)
+    else:
+        # load in previously saved model to continue training
+        print("Loading in previous model: " + previous_model_to_train)
+        model = load_model(previous_model_to_train, compile=False)
 
     # optimize using Adam
     model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])

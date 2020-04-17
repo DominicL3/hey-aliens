@@ -127,6 +127,8 @@ if __name__ == "__main__":
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
 
     # save the model, confusion matrix for last epoch, and validation set
+    parser.add_argument('--previous_model', type=str, default=None,
+                        help='Path to previous model, will be trained on new simulated data.')
     parser.add_argument('--save_model', dest='best_model_file', type=str, default='./models/best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
@@ -137,6 +139,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Read archive files and extract data arrays
+    previous_model_name = args.previous_model
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.conf_mat
     results_file = args.save_classifications
@@ -232,7 +235,8 @@ if __name__ == "__main__":
                             nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, num_filters=args.num_filters,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
-                            weight_FRB=args.weight_FRB, saved_model_name=best_model_name)
+                            weight_FRB=args.weight_FRB, saved_model_name=best_model_name,
+                            previous_model_to_train=previous_model_name)
 
     # load the best model saved to test out confusion matrix
     model = load_model(best_model_name, compile=True)
