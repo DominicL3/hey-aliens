@@ -57,7 +57,7 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
         print('Reference frequency (Hz): {0}, Bandwidth (Hz): {1}'.format(FRB_parameters['f_ref'], FRB_parameters['bandwidth']))
 
         # set number of samples to iterate over all backgrounds
-        background_spectra = background_files['spectra']
+        background_spectra = background_files['spectra_data']
         num_samples = len(background_spectra)
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
