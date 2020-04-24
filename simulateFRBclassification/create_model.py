@@ -50,7 +50,7 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
     if background_files is not None:
         # extract data from background files
         print('Converting Spectra to numpy arrays')
-        backgrounds = spec2np(background_files)
+        backgrounds, spec_DMs = spec2np(background_files, FRB_parameters['shape'])
         freq_RFI = background_files['freq']
 
         # change frequency range of simulated pulse based on incoming RFI files
@@ -72,7 +72,7 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
             # get background and weights from the given array
             background_RFI = backgrounds[sim]
 
-            # inject FRB into real noise array and append label the noise as RFI
+            # inject FRB into real noise array
             event.simulateFRB(background=background_RFI, SNRmin=SNRmin,
                               SNR_sigma=SNR_sigma, SNRmax=SNRmax)
 

@@ -150,13 +150,12 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
         fc_2 = Dense(n_dense2, activation='relu')(dropout_1)
         dropout_2 = Dropout(0.3)(fc_2)
 
-        # predict what the should be
+        # predict what the label should be
         pred_layer = Dense(2, activation="softmax")(dropout_2)
 
         # final model accepts freq-time data for Conv2D input and
         # 1D time series data for the Conv1D input
         # predictions will output a scalar for each pair of ftdata/time series samples
-
         model = Model(inputs=[cnn_2d.input, time_cnn.input], outputs=pred_layer)
     else:
         # load in previously saved model to continue training
