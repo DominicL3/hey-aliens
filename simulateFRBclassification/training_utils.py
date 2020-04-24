@@ -7,25 +7,6 @@ from tqdm import trange
 """Helper functions for training neural network, including
 data preprocessing and computing training results."""
 
-def spec2np(spec_npz, spec_shape):
-    """Read in previously saved file containing Spectra objects and
-    frequencies and retrieve data, placing it all into one 3D numpy array.
-    Also get each spectra's DM and place into separate length-n 1D array"""
-
-    spectra_list = spec_npz['spectra_data']
-    num_spec = len(spectra_list)
-
-    # preallocate arrays for spectra data and DMs
-    spectra_data = np.zeros([num_spec, *spec_shape])
-    spectra_DMs = np.zeros(num_spec)
-
-    # extract data and DM for each Spectra object in spectra_list
-    for i in np.arange(num_spec):
-        spec = spectra_list[i]
-        spectra_data[:, :, i] = spec.data
-        spectra_DMs[i] = spec.dm
-    return spectra_data, spectra_DMs
-
 def perturb_dm(spec_original, frb_freqtime):
     """Shift background RFI and injected FRB by a small, randomly sampled
     percentage of the original DM to match cases when Heimdall would fail
