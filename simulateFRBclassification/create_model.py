@@ -48,9 +48,6 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
     labels = []
 
     if background_files is not None:
-        # extract data from background files
-        print('Converting Spectra to numpy arrays')
-        backgrounds, spec_DMs = spec2np(background_files, FRB_parameters['shape'])
         freq_RFI = background_files['freq']
 
         # change frequency range of simulated pulse based on incoming RFI files
@@ -60,7 +57,8 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
         print('Reference frequency (Hz): {0}, Bandwidth (Hz): {1}'.format(FRB_parameters['f_ref'], FRB_parameters['bandwidth']))
 
         # set number of samples to iterate over all backgrounds
-        num_samples = len(backgrounds)
+        background_spectra = background_files['spectra']
+        num_samples = len(background_spectra)
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
     for sim in trange(num_samples):
@@ -69,12 +67,15 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
         if background_files is None:
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
-            # get background and weights from the given array
-            background_RFI = backgrounds[sim]
+            # get spectra and extract data from background file
+            spec = background_spectra[sim]
+            data = spec.data
 
             # inject FRB into real noise array
-            event.simulateFRB(background=background_RFI, SNRmin=SNRmin,
-                              SNR_sigma=SNR_sigma, SNRmax=SNRmax)
+            event.simulateFRB(background=data, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
+
+            # perturb DM and save to final simulated FRB object
+            event.simulatedFRB = perturb_dm(spec, event.simulatedFRB)
 
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)

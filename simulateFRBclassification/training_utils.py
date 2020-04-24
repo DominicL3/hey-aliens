@@ -26,6 +26,24 @@ def spec2np(spec_npz, spec_shape):
         spectra_DMs[i] = spec.dm
     return spectra_data, spectra_DMs
 
+def perturb_dm(spec_original, frb_freqtime):
+    """Shift background RFI and injected FRB by a small, randomly sampled
+    percentage of the original DM to match cases when Heimdall would fail
+    to reproduce the exact optimal DM. Shift percentage is normally distributed
+    around a mean of 0 and a standard deviation of 0.05 percent."""
+
+    # compute small amount to perturb DM
+    dm = spec_original.dm
+    shifted_dm = dm * (1 + np.random.normal(scale=0.05))
+
+    # replace original data with injected FRB data
+    # disperse FRB data by small amount found above
+    spec_original.data = frb_freqtime
+    spec_original.dedisperse(shifted_dm, padval='rotate')
+
+    # return the FRB after being dispersed slightly
+    return spec_original.data
+
 def scale_data(ftdata):
     """Subtract each channel in 3D array by its median and
     divide each array by its global standard deviation. Perform
