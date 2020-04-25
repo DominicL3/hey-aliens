@@ -20,7 +20,7 @@ def perturb_dm(spec_original, frb_freqtime):
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
     spec_original.data = frb_freqtime
-    # spec_original.dedisperse(shifted_dm, padval='rotate')
+    spec_original.dedisperse(shifted_dm, padval='rotate')
 
     # return the FRB after being dispersed slightly
     return spec_original.data
