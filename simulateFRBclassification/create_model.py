@@ -68,14 +68,14 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
             # get spectra and extract data from background file
-            spec = background_spectra[sim]
+            spec = copy.deepcopy(background_spectra[sim]) # copy to avoid modifying original object
             data = spec.data
 
             # inject FRB into real noise array
             event.simulateFRB(background=data, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
 
             # perturb DM and save to final simulated FRB object
-            event.simulatedFRB = perturb_dm(spec, np.copy(event.simulatedFRB))
+            event.simulatedFRB = perturb_dm(spec, event.simulatedFRB)
 
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)
