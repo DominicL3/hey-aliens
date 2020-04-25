@@ -15,7 +15,7 @@ def perturb_dm(spec_original, frb_freqtime):
 
     # compute small amount to perturb DM
     dm = spec_original.dm
-    shifted_dm = dm * (1 + np.random.normal(scale=0.02))
+    shifted_dm = dm * (1 + np.random.normal(scale=0.01))
 
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
