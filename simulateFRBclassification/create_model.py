@@ -204,7 +204,7 @@ if __name__ == "__main__":
     ftdata = ftdata[..., None]
     time_series = time_series[..., None]
 
-    NTRAIN = int(len(labels) * 0.5)
+    NTRAIN = int(len(labels) * 0.75) # 70% train, 30% validation
 
     ind = np.arange(len(ftdata))
     np.random.shuffle(ind)
