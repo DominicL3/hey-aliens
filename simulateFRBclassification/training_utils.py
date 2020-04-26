@@ -5,7 +5,9 @@ import numpy as np
 from tqdm import trange
 
 """Helper functions for training neural network, including
-data preprocessing and computing training results."""
+data preprocessing and computing training results.
+
+Credit to Liam Connor: https://github.com/liamconnor/single_pulse_ml"""
 
 def perturb_dm(spec_original, frb_freqtime):
     """Shift background RFI and injected FRB by a small, randomly sampled

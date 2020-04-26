@@ -53,7 +53,7 @@ def exeparallel(cmd_array):
      for proc in child_processes:
                 out, err = proc.communicate()
                 print("[exeparallel] ERRORS: {}".format(err))
-                tt.sleep(0.1)
+                tt.sleep(0.5)
 
 def dedispblock(ar,lodm,hidm):
     fpsr = psr.Archive_load(ar)
