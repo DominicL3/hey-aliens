@@ -109,16 +109,17 @@ class FscoreCallback(Callback):
             y_true = np.argmax(y_true, axis=1)
 
             # computr precision, recall, and fscore on validation set
-            precision, recall, fscore = precision_recall_fscore_support(y_true, y_pred, beta=1)[:-1]
+            precision, recall, fscore = precision_recall_fscore_support(y_true, y_pred, beta=5)[:-1]
 
             print(" — val_recall: {0} — val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
 
             if epoch > 3:
+                best_fscore = np.round(self.best, 4)
                 if fscore > self.best:
-                    print(f'fscore improved from {np.round(self.best, 4)} to {np.round(fscore, 4)}, saving model to {self.filepath}')
+                    print("fscore improved from {0} to {1}".format(np.round(fscore, 4)))
                     self.best = fscore
                 else:
-                    print(f"fscore did not improve from {np.round(self.best, 4)}")
+                    print("fscore did not improve from {0}".format(best_fscore))
             return
 
 def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
