@@ -5,7 +5,7 @@ from keras.layers import Dense, Dropout, Flatten, concatenate
 from keras.layers import Conv1D, MaxPooling1D, Conv2D, MaxPooling2D
 
 from sklearn.metrics import precision_recall_fscore_support
-from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 
 
 """Build a multi-input convolutional neural network for binary classification.
@@ -174,13 +174,16 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     # cut learning rate in half if validation loss doesn't improve in 5 epochs
     reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=1)
 
+    # stop training if validation loss doesn't improve after 15 epochs
+    early_stop_callback = EarlyStopping(monitor='val_loss', patience=15, verbose=1, restore_best_weights=True)
+
     # fit model using frequency-time training data and
     # time series training data, and evaluate on validation set
     # on every epoch, saving best model according to validation accuracy
     model.fit(x=[train_ftdata, train_time_data], y=train_labels,
                 validation_data=([eval_ftdata, eval_time_data], eval_labels),
-                class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size,
-                epochs=epochs, callbacks=[loss_callback, reduce_lr_callback])
+                class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
+                callbacks=[loss_callback, reduce_lr_callback, early_stop_callback])
 
     # one last evaluation for the final model (usually not the best)
     score = model.evaluate([eval_ftdata, eval_time_data], eval_labels, batch_size=batch_size)
