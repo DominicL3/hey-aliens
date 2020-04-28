@@ -246,8 +246,8 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 				else:
                                         # place candidate in directory with FRBcand file, labeling with index, timestamp, and DM
 					candname = os.path.dirname(frbcand_dir) + '/%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f' % (dm)
+                                        # NOTE: originally had arg " -t " + str(TotDisplay) + \
 					cmd = "python /home/dleduc/hey-aliens/simulateFRBclassification/waterfaller_vg_dom.py --show-ts " + \
-					       # " -t " + str(TotDisplay) + \
                                                " -n " + str(num_pred_time) + \
 				 	       " --colour-map=viridis " + \
 					       " -T "  + str(stime) +  \
