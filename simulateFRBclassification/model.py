@@ -111,7 +111,7 @@ class FscoreCallback(Callback):
             # computr precision, recall, and fscore on validation set
             precision, recall, fscore = precision_recall_fscore_support(y_true, y_pred, beta=1)[:-1]
 
-            print(f" — val_recall: {recall} — val_precision: {precision} - val_fscore: {fscore}")
+            print(" — val_recall: {0} — val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
 
             if epoch > 3:
                 if fscore > self.best:
