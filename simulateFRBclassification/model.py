@@ -102,6 +102,12 @@ class FscoreCallback(Callback):
         def on_epoch_end(self, epoch, logs={}):
             self.epoch += 1
 
+            print("Length of validation data: " + str(len(self.validation_data)))
+            print("val[0]: {0}".format(self.validation_data[0]))
+            print("val[1]: {0}".format(self.validation_data[1]))
+            print("val[2]: {0}".format(self.validation_data[2]))
+
+
             y_pred = np.asarray(self.model.predict(self.validation_data[0]))
             y_pred = np.argmax(y_pred, axis=1)
 
