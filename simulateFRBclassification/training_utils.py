@@ -13,11 +13,11 @@ def perturb_dm(spec_original, frb_freqtime):
     """Shift background RFI and injected FRB by a small, randomly sampled
     percentage of the original DM to match cases when Heimdall would fail
     to reproduce the exact optimal DM. Shift percentage is normally distributed
-    around a mean of 0 and a standard deviation of 2%."""
+    around a mean of 0 and a standard deviation of 0.05% of the original DM."""
 
     # compute small amount to perturb DM
     dm = spec_original.dm
-    shifted_dm = dm * (1 + np.random.normal(scale=0.01))
+    shifted_dm = dm * (1 + np.random.normal(scale=0.005))
 
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
