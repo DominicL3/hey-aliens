@@ -106,6 +106,7 @@ if __name__ == "__main__":
 
     # option to input RFI array
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
+    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins for each array')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -154,7 +155,7 @@ if __name__ == "__main__":
         NFREQ = 64
 
     print('Number of frequency channels: {}'.format(NFREQ))
-    NTIME = 256
+    NTIME = args.NTIME
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
