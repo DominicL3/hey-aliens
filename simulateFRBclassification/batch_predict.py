@@ -32,7 +32,7 @@ for i, fil_file in enumerate(fil_files):
         # save pngs of predicted FRBs to disk and FRBcand_prob.txt to same folder as
         # wherever the FRBcand file is (probably spandak_dir)
         cmd = "python predict.py" + \
-            " {0} {1} {2} --thresh {3} ".format(fil_file, path_to_FRBcand, model, thresh) + \
+            " {0} {1} {2} --thresh {3} --keep_spectra ".format(fil_file, path_to_FRBcand, model, thresh) + \
             "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
 
         # execute the command
