@@ -175,7 +175,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=1)
 
     # stop training if validation loss doesn't improve after 15 epochs
-    early_stop_callback = EarlyStopping(monitor='val_loss', patience=15, verbose=1, restore_best_weights=True)
+    early_stop_callback = EarlyStopping(monitor='val_loss', patience=15, verbose=1)
 
     # fit model using frequency-time training data and
     # time series training data, and evaluate on validation set
