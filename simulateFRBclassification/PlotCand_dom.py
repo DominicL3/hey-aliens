@@ -200,7 +200,8 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                                 frb_cands = np.sort(frb_cands)
                                 frb_cands[:] = frb_cands[::-1]
                         if(frb_cands.size==1): frb_cands = [frb_cands]
-                        cmd = "rm *.png *.ps *.pdf *.pickle"
+                        # remove pre-existing files already in prediction directory
+                        cmd = "rm {0}/*.png {0}/*.ps {0}/*.pdf {0}/*.pickle".format(frbcand_dir)
 			print cmd
                         os.system(cmd)
 			cmd_array=[]
