@@ -7,7 +7,7 @@ from tqdm import tqdm
 from skimage.transform import resize
 import cPickle
 
-import keras
+from keras.layers import average
 from keras.models import load_model
 
 from training_utils import scale_data, compute_time_series
@@ -93,6 +93,25 @@ def get_pulses(dir_spectra, num_channels, keep_spectra=False):
 
     return pickled_spectra, np.array(candidate_spectra)
 
+def create_ensemble(model_names):
+    """Create ensemble of Keras models. The predictions from each model
+    are averaged to get one final probability for each test example. This
+    reduces variance, assuming each of the models tests a different hypothesis,
+    i.e. each of the models is not exactly the same."""
+
+    individual_outputs = []
+    for name in model_names:
+        m = load_model(name, compile=True)
+        # get prediction outputs from each model
+        individual_outputs.append(m.outputs[0])
+
+    # average all predictions
+    ensemble_out = average(individual_outputs)
+    # construct ensemble model with old inputs and averaged outputs
+    ensemble_model = Model(inputs=m.inputs, outputs=ensemble_out)
+
+    return ensemble_model
+
 if __name__ == "__main__":
     """
     Parameters
@@ -119,9 +138,11 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('model_name', type=str, help='Path to trained model used to make prediction.')
     parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
+    parser.add_argument('model_names', nargs='+', type=str,
+                            help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
+
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
     parser.add_argument('--no-FRBcandprob', dest='suppress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
@@ -139,6 +160,7 @@ if __name__ == "__main__":
     filterbank_candidate = args.filterbank_candidate
     frb_cand_file = args.frb_cand_file
     NCHAN = args.NCHAN
+    model_names = args.model_names # either single model or list of models to ensemble predict
 
     print("Getting data about FRB candidates from " + frb_cand_file)
     frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file)
@@ -164,8 +186,11 @@ if __name__ == "__main__":
     ftdata = ftdata[..., None]
     time_series = time_series[..., None]
 
-    # load model and predict
-    model = load_model(args.model_name, compile=True)
+    # load model(s) and predict
+    if len(model_names) == 1:
+        model = load_model(model_names[0], compile=True)
+    else:
+        model = create_ensemble(model_names)
 
     predictions = model.predict([ftdata, time_series], verbose=1)[:, 1]
     print(predictions)

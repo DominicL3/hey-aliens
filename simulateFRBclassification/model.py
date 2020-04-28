@@ -199,6 +199,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     print("\nBatch size: %d" % batch_size)
     print("Epochs: %d" % epochs)
 
+    # save model with lowest validation loss
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
     fscore_callback = FscoreCallback(saved_model_name) # monitor fscore and precision/recall
 
