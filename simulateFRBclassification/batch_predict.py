@@ -7,10 +7,10 @@ containing the paths to filterbank files to predict on, as well as
 the directory dir_predict that houses the FRBcand file and where the
 FRBcand_prob.txt file will be saved to."""
 
-if len(sys.argv) != 4:
+if len(sys.argv) != 5:
     raise ValueError("Invalid number of arguments")
 else:
-    txt_file, dir_predict, model = sys.argv[1:]
+    txt_file, dir_predict, model, thresh = sys.argv[1:]
 
 # read every file in A00_Cband_files
 with open(txt_file) as f:
@@ -32,7 +32,7 @@ for i, fil_file in enumerate(fil_files):
         # save pngs of predicted FRBs to disk and FRBcand_prob.txt to same folder as
         # wherever the FRBcand file is (probably spandak_dir)
         cmd = "python predict.py" + \
-            " {0} {1} {2} ".format(fil_file, path_to_FRBcand, model) + \
+            " {0} {1} {2} --thresh {3}".format(fil_file, path_to_FRBcand, model, thresh) + \
             "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
 
         # execute the command
