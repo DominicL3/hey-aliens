@@ -144,6 +144,7 @@ if __name__ == "__main__":
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
 
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--thresh', type=float, default=0.5, help='Threshold probability to admit whether example is FRB or RFI.')
     parser.add_argument('--no-FRBcandprob', dest='suppress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
     parser.add_argument('--keep_spectra', dest='keep_spectra', action='store_true',
@@ -205,8 +206,11 @@ if __name__ == "__main__":
         print("Saving probabilities to {0}".format(FRBcand_prob_path))
         save_prob_to_disk(frb_cand_info, predictions, FRBcand_prob_path)
 
-    voted_FRB_probs = predictions > 0.5
+    # threshold predictions to choose FRB/RFI
+    voted_FRB_probs = predictions > args.thresh
     print(voted_FRB_probs)
+
+    # get paths to predicted FRBs and their probabilities
     frb_filenames = spectra_paths[voted_FRB_probs]
     predicted_frbs = candidate_spectra[voted_FRB_probs]
     frb_probs = predictions[voted_FRB_probs]
