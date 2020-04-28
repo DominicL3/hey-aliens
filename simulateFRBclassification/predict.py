@@ -22,7 +22,7 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_candidates(fil_file, cand_list, save_png=False):
+def extract_candidates(fil_file, cand_list, NCHAN, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
     frb_cands = np.loadtxt(cand_list, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
@@ -30,6 +30,7 @@ def extract_candidates(fil_file, cand_list, save_png=False):
     # other parameters
     noplot = 1
     nchan = f.header['nchans']
+    num_pred_channels = NCHAN
     fch1 = f.header['fch1']
     foff = f.header['foff']
     fl = fch1 + (foff*nchan)
@@ -41,7 +42,7 @@ def extract_candidates(fil_file, cand_list, save_png=False):
     mask_file, smooth, zerodm, csv_file = [], [], [], [] # last arguments are missing
 
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
-                            source_name, nchan, mask_file, smooth, zerodm, csv_file, save_png, cand_list)
+                            source_name, nchan, num_pred_channels, mask_file, smooth, zerodm, csv_file, save_png, cand_list)
 
     return frb_cands
 
@@ -84,7 +85,8 @@ def get_pulses(dir_spectra, num_channels, keep_spectra=False):
     for spec_file in tqdm(pickled_spectra):
         with open(spec_file, 'rb') as f:
             spectra_obj = cPickle.load(f)
-            spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
+            # resize image to correct size for neural network prediction
+            # spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
             candidate_spectra.append(spectra_obj)
 
     # remove all pickle files matching this format
@@ -164,7 +166,7 @@ if __name__ == "__main__":
     model_names = args.model_names # either single model or list of models to ensemble predict
 
     print("Getting data about FRB candidates from " + frb_cand_file)
-    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file)
+    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN)
 
     time.sleep(10) # give some leeway for extraction in background to finish
     print("Retrieving candidate spectra")

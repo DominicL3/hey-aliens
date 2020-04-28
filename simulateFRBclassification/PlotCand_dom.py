@@ -215,7 +215,8 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 
 				#print "here"
                                 tbin,fbin,extime,frac,cand_band_smear=plotParaCalc(snr,filter,dm,fl,fh,tint,nchan)
-				bin_width = (2 ** filter)
+				fbin = num_pred_channels
+                                bin_width = (2 ** filter)
 				#So that we have at least 4 bins on pulse
 			        if filter <= 4 and filter > 0 and snr > 20:
 			                downfact = int(bin_width/4.0)
@@ -231,7 +232,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 				#TotDisplay = (downfact*bin_width)*tint*128 # To display 256 times the pulse width in the plot
 				#print TotDisplay
 
-				TotDisplay = (width/10**3)*128 #Roughly 128 times the pulse width window for display
+				TotDisplay = (width/10**3)*256 #Roughly 256 times the pulse width window for display
 
 				stime = time-(TotDisplay/2.0)
 
