@@ -10,7 +10,7 @@ FRBcand_prob.txt file will be saved to."""
 if len(sys.argv) != 4:
     raise ValueError("Invalid number of arguments")
 else:
-    txt_file, model, dir_predict = sys.argv[1:]
+    txt_file, dir_predict, model = sys.argv[1:]
 
 # read every file in A00_Cband_files
 with open(txt_file) as f:
