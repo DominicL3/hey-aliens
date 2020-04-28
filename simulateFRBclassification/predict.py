@@ -87,7 +87,7 @@ def get_pulses(dir_spectra, num_channels, keep_spectra=False):
             spectra_obj = cPickle.load(f)
             print("File {0} has shape {1}".format(spec_file, spectra_obj.data.shape))
             # resize image to correct size for neural network prediction
-            # spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
+            spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
             candidate_spectra.append(spectra_obj)
 
     # remove all pickle files matching this format
