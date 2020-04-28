@@ -220,8 +220,8 @@ def waterfall(rawdatafile, start, duration, dm=None, nbins=None, nsub=None,\
 		p = np.poly1d(base)
 		chan[:] = chan[:] - p(x)
 
+    print("start bin: {0}, nbinsextra: {1}".format(start_bin, nbinsextra))
     print("nbins is {}".format(nbins))
-    print("nbinsextra is {}".format(nbinsextra))
 
     return data, nbinsextra, nbins, start, source_name
 
