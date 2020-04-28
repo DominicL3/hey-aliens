@@ -5,7 +5,7 @@ from keras.layers import Dense, Dropout, Flatten, concatenate
 from keras.layers import Conv1D, MaxPooling1D, Conv2D, MaxPooling2D
 
 from sklearn.metrics import precision_recall_fscore_support
-from keras.callbacks import Callback, ModelCheckpoint
+from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau
 
 
 """Build a multi-input convolutional neural network for binary classification.
@@ -90,44 +90,6 @@ def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
 
     return time_cnn
 
-class FscoreCallback(Callback):
-        """Custom metric that will save the model with the highest validation recall as
-        training progresses. Will also print out validation precision for good measure."""
-        def __init__(self, filepath):
-            self.filepath = filepath
-            self.epoch = 0
-            self.best = -np.inf
-
-        # calculate recall and precision after every epoch
-        def on_epoch_end(self, epoch, logs={}):
-            self.epoch += 1
-
-            print("Length of validation data: " + str(len(self.validation_data)))
-            print("val[0]: {0}".format(self.validation_data[0]))
-            print("val[1]: {0}".format(self.validation_data[1]))
-            print("val[2]: {0}".format(self.validation_data[2]))
-
-
-            y_pred = np.asarray(self.model.predict(self.validation_data[0]))
-            y_pred = np.argmax(y_pred, axis=1)
-
-            y_true = self.validation_data[1]
-            y_true = np.argmax(y_true, axis=1)
-
-            # computr precision, recall, and fscore on validation set
-            precision, recall, fscore = precision_recall_fscore_support(y_true, y_pred, beta=5)[:-1]
-
-            print(" - val_recall: {0} - val_precision: {1} - val_fscore: {2}".format(recall, precision, fscore))
-
-            if epoch > 3:
-                best_fscore = np.round(self.best, 4)
-                if fscore > self.best:
-                    print("fscore improved from {0} to {1}".format(best_fscore, np.round(fscore, 4)))
-                    self.best = fscore
-                else:
-                    print("fscore did not improve from {0}".format(best_fscore))
-            return
-
 def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             eval_ftdata, eval_time_data, eval_labels,
                             nfreq=64, ntime=256, epochs=32,
@@ -208,7 +170,9 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
 
     # save model with lowest validation loss
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
-    fscore_callback = FscoreCallback(saved_model_name) # monitor fscore and precision/recall
+
+    # cut learning rate in half if validation loss doesn't improve in 5 epochs
+    reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=1)
 
     # fit model using frequency-time training data and
     # time series training data, and evaluate on validation set
@@ -216,7 +180,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     model.fit(x=[train_ftdata, train_time_data], y=train_labels,
                 validation_data=([eval_ftdata, eval_time_data], eval_labels),
                 class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size,
-                epochs=epochs, callbacks=[loss_callback, fscore_callback])
+                epochs=epochs, callbacks=[loss_callback, reduce_lr_callback])
 
     # one last evaluation for the final model (usually not the best)
     score = model.evaluate([eval_ftdata, eval_time_data], eval_labels, batch_size=batch_size)
