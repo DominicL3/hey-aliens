@@ -22,7 +22,7 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_candidates(fil_file, cand_list, NCHAN, save_png=False):
+def extract_candidates(fil_file, cand_list, NCHAN, NTIME, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
     frb_cands = np.loadtxt(cand_list, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
@@ -30,7 +30,6 @@ def extract_candidates(fil_file, cand_list, NCHAN, save_png=False):
     # other parameters
     noplot = 1
     nchan = f.header['nchans']
-    num_pred_channels = NCHAN
     fch1 = f.header['fch1']
     foff = f.header['foff']
     fl = fch1 + (foff*nchan)
@@ -41,8 +40,9 @@ def extract_candidates(fil_file, cand_list, NCHAN, save_png=False):
     source_name = f.header['source_name']
     mask_file, smooth, zerodm, csv_file = [], [], [], [] # last arguments are missing
 
-    PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range, kill_chans,
-                            source_name, nchan, num_pred_channels, mask_file, smooth, zerodm, csv_file, save_png, cand_list)
+    PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range,
+                                    kill_chans, source_name, nchan, NCHAN, NTIME, mask_file, smooth,
+                                    zerodm, csv_file, save_png, cand_list)
 
     return frb_cands
 
