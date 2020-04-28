@@ -145,7 +145,9 @@ if __name__ == "__main__":
     parser.add_argument('model_names', nargs='+', type=str,
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
 
-    parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to resize psrchive files to.')
+    parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to use from filterbank files.')
+    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins from filterbank files.')
+
     parser.add_argument('--thresh', type=float, default=0.5, help='Threshold probability to admit whether example is FRB or RFI.')
     parser.add_argument('--no-FRBcandprob', dest='suppress_prob_save', action='store_true',
                             help='Chooses not to save the FRBcand .txt file along with candidate probabilities.')
@@ -163,10 +165,11 @@ if __name__ == "__main__":
     filterbank_candidate = args.filterbank_candidate
     frb_cand_file = args.frb_cand_file
     NCHAN = args.NCHAN
+    NTIME = args.NTIME
     model_names = args.model_names # either single model or list of models to ensemble predict
 
     print("Getting data about FRB candidates from " + frb_cand_file)
-    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN)
+    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN, NTIME)
 
     time.sleep(10) # give some leeway for extraction in background to finish
     print("Retrieving candidate spectra")
