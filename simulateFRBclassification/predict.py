@@ -8,7 +8,7 @@ from skimage.transform import resize
 import cPickle
 
 from keras.layers import average
-from keras.models import load_model
+from keras.models import load_model, Model
 
 from training_utils import scale_data, compute_time_series
 import PlotCand_dom
@@ -214,7 +214,6 @@ if __name__ == "__main__":
 
     # threshold predictions to choose FRB/RFI
     voted_FRB_probs = predictions > args.thresh
-    print(voted_FRB_probs)
 
     # get paths to predicted FRBs and their probabilities
     frb_filenames = spectra_paths[voted_FRB_probs]
