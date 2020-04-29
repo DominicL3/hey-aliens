@@ -9,11 +9,18 @@ from tqdm import tqdm
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
 
-"""Converts filterbank files to Spectra objects, which will then be used to
+"""
+Converts filterbank files to Spectra objects, which will then be used to
 artifically inject FRBs and train a neural network on. Takes in as input
-a directory of pertinent filterbank files."""
+a directory of pertinent filterbank files.
 
-def fil2spec(fname, num_channels, spectra_array, total_samples, samples_per_file=50):
+Requirements:
+
+PRESTO @Scott Ransom https://github.com/scottransom/presto
+sigpyproc @Ewan Barr https://github.com/ewanbarr/sigpyproc
+"""
+
+def fil2spec(fname, num_channels, num_time, spectra_array, total_samples, samples_per_file=50):
     """
     Given a filename, takes time samples from filterbank file
     and converts them into Spectra objects, which will then be
@@ -40,7 +47,7 @@ def fil2spec(fname, num_channels, spectra_array, total_samples, samples_per_file
     for timestep in tqdm(random_timesteps):
         # get spectra object at some timestep, incrementing timestep if successful
         spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=1,
-                                dm=0, nbins=256, nsub=num_channels)[0]
+                                dm=0, nbins=num_time, nsub=num_channels)[0]
         spectra_array.append(spectra_obj)
 
     freq = raw_filterbank_file.frequencies
@@ -131,6 +138,8 @@ if __name__ == "__main__":
 
     parser.add_argument('--NCHAN', type=int, default=64,
                         help='Number of frequency channels to resize Spectra to')
+    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins for each array')
+
     parser.add_argument('--min_DM', type=float, default=100.0, help='Minimum DM to sample')
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
 
@@ -142,6 +151,7 @@ if __name__ == "__main__":
     path = args.path_filterbank
     save_name = args.save_name
     NCHAN = args.NCHAN
+    NTIME = args.NTIME
     total_samples = args.total_samples
     samples_per_file = args.samples_per_file
     max_sampling_time = args.max_sampling_time
@@ -192,7 +202,7 @@ if __name__ == "__main__":
         print("\nSampling file: " + str(rand_filename))
 
         # get spectra information and append to growing list of samples
-        spectra_samples, freq = fil2spec(rand_filename, NCHAN, spectra_samples, total_samples, samples_per_file)
+        spectra_samples, freq = fil2spec(rand_filename, NCHAN, NTIME, spectra_samples, total_samples, samples_per_file)
         i += 1
         print("Number of samples after scan: " + str(len(spectra_samples)))
 
