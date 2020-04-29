@@ -135,8 +135,6 @@ if __name__ == "__main__":
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
                         default='./confusion_matrices/confusion_matrix.png', help='Filename to store final confusion matrix')
-    parser.add_argument('--save_classifications', type=str, default=None,
-                        help='Where to save classification results (TP, FP, etc.) and prediction probabilities')
 
     args = parser.parse_args()
 
@@ -144,7 +142,6 @@ if __name__ == "__main__":
     previous_model_name = args.previous_model
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.conf_mat
-    results_file = args.save_classifications
     RFI_samples = np.load(args.RFI_samples, allow_pickle=True)
 
     # set number of frequency channels to simulate
@@ -251,10 +248,6 @@ if __name__ == "__main__":
     accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred)
 
     TP, FP, TN, FN = get_classification_results(eval_labels, y_pred)
-
-    if results_file is not None:
-        print("Saving classification results to {0}".format(results_file))
-        np.savez(results_file, TP=TP, FP=FP, TN=TN, FN=FN, probabilities=y_pred_prob)
 
     # get lowest confidence selection for each category
     if TP.size:
