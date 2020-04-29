@@ -176,9 +176,10 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     # stop training if validation loss doesn't improve after 15 epochs
     early_stop_callback = EarlyStopping(monitor='val_loss', patience=15, verbose=1)
 
-    # fit model using frequency-time training data and
-    # time series training data, and evaluate on validation set
-    # on every epoch, saving best model according to validation accuracy
+    # (1) Fit model using frequency-time training data and time series training data
+    # (2) Evaluate on validation set on every epoch and saving model minimizing val_loss
+    # (3) Reduce learning rate if val_loss doesn't improve after 5 epochs (bouncing around minimum)
+    # (4) Stop training early if val_loss doesn't improve after 15 epochs
     model.fit(x=[train_ftdata, train_time_data], y=train_labels,
                 validation_data=([eval_ftdata, eval_time_data], eval_labels),
                 class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
