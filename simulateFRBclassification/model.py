@@ -2,7 +2,8 @@ import numpy as np
 import keras
 from keras.models import Model, Sequential, load_model
 from keras.layers import Dense, Dropout, Flatten, concatenate
-from keras.layers import Conv1D, MaxPooling1D, Conv2D, MaxPooling2D
+from keras.layers import Conv1D, Conv2D
+from keras.layers import MaxPooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D
 
 from sklearn.metrics import precision_recall_fscore_support
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
@@ -48,8 +49,8 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, num_filters=32):
         cnn_2d.add(Conv2D(num_filters, (2, 2), activation='relu'))
         cnn_2d.add(MaxPooling2D(pool_size=(2, 2)))
 
-    # flatten all neurons
-    cnn_2d.add(Flatten())
+    # max pool all feature maps
+    cnn_2d.add(GlobalMaxPooling2D())
 
     return cnn_2d
 
@@ -84,8 +85,8 @@ def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
         num_filters *= 2
         time_cnn.add(Conv1D(num_filters, 2, activation='relu'))
 
-    # flatten all neurons
-    time_cnn.add(Flatten())
+    # max pool all feature maps
+    time_cnn.add(GlobalMaxPooling1D())
 
     return time_cnn
 
@@ -166,6 +167,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
 
     print("\nBatch size: %d" % batch_size)
     print("Epochs: %d" % epochs)
+    print("Neural network will learn %d parameters" % model.count_params())
 
     # save model with lowest validation loss
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
