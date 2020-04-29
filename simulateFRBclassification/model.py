@@ -76,14 +76,13 @@ def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
 
     # create num_filters convolution filters, each of size 2x2
     # average pool to reduce the dimensionality
-    time_cnn.add(Conv1D(num_filters, 3, activation='relu', input_shape=(ntime, 1)))
-    time_cnn.add(MaxPooling1D(pool_size=2))
+    # stride 1 and NO pooling because the signal spike is very short
+    time_cnn.add(Conv1D(num_filters, 1, activation='relu', input_shape=(ntime, 1)))
 
     # repeat and double the filter size for each convolutional block to make this DEEP
     for layer_number in np.arange(num_conv_layers - 1):
         num_filters *= 2
         time_cnn.add(Conv1D(num_filters, 2, activation='relu'))
-        time_cnn.add(MaxPooling1D(pool_size=2))
 
     # flatten all neurons
     time_cnn.add(Flatten())
