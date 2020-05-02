@@ -219,8 +219,8 @@ if __name__ == "__main__":
     train_labels, eval_labels = labels[ind_train], labels[ind_eval]
 
     # encode RFI as [1, 0] and FRB as [0, 1]
-    train_labels_keras = to_categorical(train_labels)
-    eval_labels_keras = to_categorical(eval_labels)
+    # train_labels_keras = to_categorical(train_labels)
+    # eval_labels_keras = to_categorical(eval_labels)
 
     # used to enable saving the model
     os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
@@ -229,8 +229,8 @@ if __name__ == "__main__":
     start_time = time()
 
     # Fit convolutional neural network to the training data
-    fit_multi_input_model(train_ftdata, train_time_data, train_labels_keras,
-                            eval_ftdata, eval_time_data, eval_labels_keras,
+    fit_multi_input_model(train_ftdata, train_time_data, train_labels,
+                            eval_ftdata, eval_time_data, eval_labels,
                             nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, num_filters=args.num_filters,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,

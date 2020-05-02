@@ -158,7 +158,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
         dropout_2 = Dropout(0.3)(fc_2)
 
         # predict what the label should be
-        pred_layer = Dense(2, activation="softmax")(dropout_2)
+        pred_layer = Dense(1, activation="sigmoid")(dropout_2)
 
         # final model accepts freq-time data for Conv2D input and
         # 1D time series data for the Conv1D input
