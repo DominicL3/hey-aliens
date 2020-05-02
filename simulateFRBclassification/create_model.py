@@ -239,7 +239,7 @@ if __name__ == "__main__":
 
     # load the best model saved to test out confusion matrix
     model = load_model(best_model_name, compile=True)
-    y_pred_prob = model.predict([eval_ftdata, eval_time_data])[:, 1]
+    y_pred_prob = model.predict([eval_ftdata, eval_time_data])
     y_pred = np.round(y_pred_prob)
 
     print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60, 2)))

@@ -199,7 +199,7 @@ if __name__ == "__main__":
     else:
         model = create_ensemble(model_names)
 
-    predictions = model.predict([ftdata, time_series], verbose=1)[:, 1]
+    predictions = model.predict([ftdata, time_series], verbose=1)
     print(predictions)
 
     # save probabilities to disk along with candidate data
