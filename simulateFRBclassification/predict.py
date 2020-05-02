@@ -130,7 +130,7 @@ if __name__ == "__main__":
         Number of frequency channels (default 64) to resize psrchive files to.
     no-FRBcandprob: flag, optional
         Whether or not to save edited FRBcand file containing pulse probabilities.
-    --FRBcandprob: str, optional
+    FRBcandprob: str, optional
         Path to save FRBcandprob.txt (default is same path as frb_cand_file)
     save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     else:
         model = create_ensemble(model_names)
 
-    predictions = model.predict([ftdata, time_series], verbose=1)
+    predictions = model.predict([ftdata, time_series], verbose=1)[:, 0]
     print(predictions)
 
     # save probabilities to disk along with candidate data
