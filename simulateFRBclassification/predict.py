@@ -141,10 +141,16 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
 
-    parser.add_argument('filterbank_candidate', type=str, help='Path to filterbank file with candidates to be predicted.')
+    # main arguments needed for prediction
+    parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--pickle_dir' not in sys.argv,
+                        help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('model_names', nargs='+', type=str,
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
+
+    # can set if pickle files are already in directory to avoid having to redo extraction
+    parser.add_argument('--skip_extract', type=str, action='store_true',
+                            help='Path to pickled spectra with extracted candidates to be predicted.')
 
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to use from filterbank files.')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins from filterbank files.')
@@ -160,7 +166,7 @@ if __name__ == "__main__":
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
     args = parser.parse_args()
-    parser.set_defaults(suppress_prob_save=False, keep_spectra=False)
+    parser.set_defaults(skip_extract=False, suppress_prob_save=False, keep_spectra=False)
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
@@ -169,10 +175,12 @@ if __name__ == "__main__":
     NTIME = args.NTIME
     model_names = args.model_names # either single model or list of models to ensemble predict
 
-    print("Getting data about FRB candidates from " + frb_cand_file)
-    frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN, NTIME)
+    if args.skip_extract is False:
+        print("Getting data about FRB candidates from " + frb_cand_file)
+        frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN, NTIME)
 
-    time.sleep(10) # give some leeway for extraction in background to finish
+        time.sleep(10) # give some leeway for extraction in background to finish
+
     print("Retrieving candidate spectra")
     spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, keep_spectra=args.keep_spectra)
 
