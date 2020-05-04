@@ -22,10 +22,9 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_candidates(fil_file, cand_list, NCHAN, NTIME, save_png=False):
+def extract_candidates(fil_file, frb_cands, NCHAN, NTIME, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
-    frb_cands = np.loadtxt(cand_list, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
 
     # other parameters
     noplot = 1
@@ -43,8 +42,6 @@ def extract_candidates(fil_file, cand_list, NCHAN, NTIME, save_png=False):
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range,
                                     kill_chans, source_name, nchan, NCHAN, NTIME, mask_file, smooth,
                                     zerodm, csv_file, save_png, cand_list)
-
-    return frb_cands
 
 def save_prob_to_disk(frb_info, pred, fname):
     """Given the original FRB candidate info and predictions
@@ -85,7 +82,7 @@ def get_pulses(dir_spectra, num_channels, keep_spectra=False):
     for spec_file in tqdm(pickled_spectra):
         with open(spec_file, 'rb') as f:
             spectra_obj = cPickle.load(f)
-            print("File {0} has shape {1}".format(spec_file, spectra_obj.data.shape))
+            # print("File {0} has shape {1}".format(spec_file, spectra_obj.data.shape))
             # resize image to correct size for neural network prediction
             spectra_obj.data = resize(spectra_obj.data, (num_channels, 256), mode='symmetric', anti_aliasing=False)
             candidate_spectra.append(spectra_obj)
@@ -142,15 +139,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # main arguments needed for prediction
-    parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--pickle_dir' not in sys.argv,
+    parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--skip_extract' not in sys.argv,
                         help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('model_names', nargs='+', type=str,
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
 
     # can set if pickle files are already in directory to avoid having to redo extraction
-    parser.add_argument('--skip_extract', type=str, action='store_true',
-                            help='Path to pickled spectra with extracted candidates to be predicted.')
+    parser.add_argument('--skip_extract', action='store_true',
+                            help='Whether to directly predict pickled spectra found in same dir as frb_cand_file.')
 
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to use from filterbank files.')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins from filterbank files.')
@@ -175,9 +172,12 @@ if __name__ == "__main__":
     NTIME = args.NTIME
     model_names = args.model_names # either single model or list of models to ensemble predict
 
+    frb_cand_info = np.loadtxt(frb_cand_file, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),
+                                    'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
+
     if args.skip_extract is False:
         print("Getting data about FRB candidates from " + frb_cand_file)
-        frb_cand_info = extract_candidates(filterbank_candidate, frb_cand_file, NCHAN, NTIME)
+        extract_candidates(filterbank_candidate, frb_cand_info, NCHAN, NTIME)
 
         time.sleep(10) # give some leeway for extraction in background to finish
 
