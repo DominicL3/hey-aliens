@@ -22,7 +22,7 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_candidates(fil_file, frb_cands, frbcand_dir, NCHAN, NTIME, save_png=False):
+def extract_candidates(fil_file, frb_cands, frbcand_path, NCHAN, NTIME, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
 
@@ -41,7 +41,7 @@ def extract_candidates(fil_file, frb_cands, frbcand_dir, NCHAN, NTIME, save_png=
 
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range,
                                     kill_chans, source_name, nchan, NCHAN, NTIME, mask_file, smooth,
-                                    zerodm, csv_file, save_png, frbcand_dir)
+                                    zerodm, csv_file, save_png, frbcand_path)
 
 def save_prob_to_disk(frb_info, pred, fname):
     """Given the original FRB candidate info and predictions
@@ -118,7 +118,7 @@ if __name__ == "__main__":
     ---------------
     model_name: str
         Path to trained model used to make prediction. Should be .h5 file
-    frb_cand_file: str
+    frb_cand_path: str
         Path to .txt file that contains data about pulses within filterbank file. This
         file should contain columns 'snr','time','samp_idx','dm','filter', and'prim_beam'.
     filterbank_candidate: str
@@ -128,7 +128,7 @@ if __name__ == "__main__":
     no-FRBcandprob: flag, optional
         Whether or not to save edited FRBcand file containing pulse probabilities.
     FRBcandprob: str, optional
-        Path to save FRBcandprob.txt (default is same path as frb_cand_file)
+        Path to save FRBcandprob.txt (default is same path as frb_cand_path)
     save_top_candidates: str, optional
         Filename to save pre-processed candidates, just before they are thrown into CNN.
     save_predicted_FRBs: str, optional
@@ -141,13 +141,13 @@ if __name__ == "__main__":
     # main arguments needed for prediction
     parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--skip_extract' not in sys.argv,
                         help='Path to filterbank file with candidates to be predicted.')
-    parser.add_argument('frb_cand_file', type=str, help='Path to .txt file containing data about pulses.')
+    parser.add_argument('frb_cand_path', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('model_names', nargs='+', type=str,
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
 
     # can set if pickle files are already in directory to avoid having to redo extraction
     parser.add_argument('--skip_extract', action='store_true',
-                            help='Whether to directly predict pickled spectra found in same dir as frb_cand_file.')
+                            help='Whether to directly predict pickled spectra found in same dir as frb_cand_path.')
 
     parser.add_argument('--NCHAN', type=int, default=64, help='Number of frequency channels to use from filterbank files.')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins from filterbank files.')
@@ -158,7 +158,7 @@ if __name__ == "__main__":
     parser.add_argument('--keep_spectra', dest='keep_spectra', action='store_true',
                             help='Keep spectra pickle files after creating and using them. Default is to delete.')
     parser.add_argument('--FRBcandprob', type=str, default=None,
-                            help='Directory to save new FRBcand file with probabilities (default is same dir as frb_cand_file)')
+                            help='Directory to save new FRBcand file with probabilities (default is same dir as frb_cand_path)')
     parser.add_argument('--save_predicted_FRBs', type=str, default=None, help='Filename to save all candidates.')
     parser.add_argument('--save_top_candidates', type=str, default=None, help='Filename to save plot of top 5 candidates.')
 
@@ -167,22 +167,22 @@ if __name__ == "__main__":
 
     # load file path
     filterbank_candidate = args.filterbank_candidate
-    frb_cand_file = args.frb_cand_file
+    frb_cand_path = args.frb_cand_path
     NCHAN = args.NCHAN
     NTIME = args.NTIME
     model_names = args.model_names # either single model or list of models to ensemble predict
 
-    frb_cand_info = np.loadtxt(frb_cand_file, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),
+    frb_cand_info = np.loadtxt(frb_cand_path, dtype={'names': ('snr','time','samp_idx','dm','filter','prim_beam'),
                                     'formats': ('f4', 'f4', 'i4','f4','i4','i4')})
 
     if args.skip_extract is False:
-        print("Getting data about FRB candidates from " + frb_cand_file)
-        extract_candidates(filterbank_candidate, frb_cand_info, frb_cand_file, NCHAN, NTIME)
+        print("Getting data about FRB candidates from " + frb_cand_path)
+        extract_candidates(filterbank_candidate, frb_cand_info, frb_cand_path, NCHAN, NTIME)
 
         time.sleep(10) # give some leeway for extraction in background to finish
 
     print("Retrieving candidate spectra")
-    spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_file), NCHAN, keep_spectra=args.keep_spectra)
+    spectra_paths, candidate_spectra = get_pulses(os.path.dirname(frb_cand_path), NCHAN, keep_spectra=args.keep_spectra)
 
     # retrieve freq-time data from each spectra
     ftdata = np.array([spec.data for spec in candidate_spectra])
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     # save probabilities to disk along with candidate data
     if not args.suppress_prob_save:
         if not args.FRBcandprob:
-            FRBcand_prob_path = os.path.dirname(frb_cand_file) + '/FRBcand_prob.txt'
+            FRBcand_prob_path = os.path.dirname(frb_cand_path) + '/FRBcand_prob.txt'
         else:
             FRBcand_prob_path = args.FRBcandprob + '/FRBcand_prob.txt'
 
