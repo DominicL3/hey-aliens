@@ -22,7 +22,7 @@ saves those filenames to some specified document."""
 # used for reading in h5 files
 os.environ['HDF5_USE_FILE_LOCKING'] = 'FALSE'
 
-def extract_candidates(fil_file, frb_cands, NCHAN, NTIME, save_png=False):
+def extract_candidates(fil_file, frb_cands, frbcand_dir, NCHAN, NTIME, save_png=False):
     # load filterbank file and candidate list
     f = PlotCand_dom.FilReader(fil_file)
 
@@ -41,7 +41,7 @@ def extract_candidates(fil_file, frb_cands, NCHAN, NTIME, save_png=False):
 
     PlotCand_dom.extractPlotCand(fil_file, frb_cands, noplot, fl, fh, tint, Ttot, kill_time_range,
                                     kill_chans, source_name, nchan, NCHAN, NTIME, mask_file, smooth,
-                                    zerodm, csv_file, save_png, cand_list)
+                                    zerodm, csv_file, save_png, frbcand_dir)
 
 def save_prob_to_disk(frb_info, pred, fname):
     """Given the original FRB candidate info and predictions
@@ -177,7 +177,7 @@ if __name__ == "__main__":
 
     if args.skip_extract is False:
         print("Getting data about FRB candidates from " + frb_cand_file)
-        extract_candidates(filterbank_candidate, frb_cand_info, NCHAN, NTIME)
+        extract_candidates(filterbank_candidate, frb_cand_info, frb_cand_file, NCHAN, NTIME)
 
         time.sleep(10) # give some leeway for extraction in background to finish
 
