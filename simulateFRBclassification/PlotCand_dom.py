@@ -233,9 +233,11 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 				#TotDisplay = (downfact*bin_width)*tint*128 # To display 256 times the pulse width in the plot
 				#print TotDisplay
 
-				TotDisplay = (width/10**3)*256 #Roughly 256 times the pulse width window for display
+				# TotDisplay = (width/10**3)*256 #Roughly 256 times the pulse width window for display
+                                # NOTE: experimenting with TotDisplay to get 256 bins out
+                                TotDisplay = num_pred_time * tsamp * downfact
 
-				stime = time-(TotDisplay/2.0)
+                                stime = time-(TotDisplay/2.0)
 
 				if smooth: smooth_bins  = int(smooth*(bin_width)) # As downsampling is done after the smoothing, we do not need to multiplie downsample here
 				else: smooth_bins = 0
@@ -249,7 +251,6 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 					candname = os.path.dirname(frbcand_dir) + '/%04d' % (indx) + "_" + '%.3f' % (time) + "sec_DM" + '%.2f' % (dm)
 					cmd = "python /home/dleduc/hey-aliens/simulateFRBclassification/waterfaller_vg_dom.py --show-ts " + \
                                                " -t " + str(TotDisplay) + \
-                                               " -n " + str(num_pred_time) + \
 				 	       " --colour-map=viridis " + \
 					       " -T "  + str(stime) +  \
 					       " -d "  + str(dm) + \
