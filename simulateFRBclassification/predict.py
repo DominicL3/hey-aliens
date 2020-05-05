@@ -278,4 +278,4 @@ if __name__ == "__main__":
         fig.show()
         fig.savefig(args.save_top_candidates, dpi=300)
 
-    print('Number of FRBs: {}'.format(np.sum(voted_FRB_probs)))
+    print('Number of FRBs: {} / {} candidates'.format(np.sum(voted_FRB_probs), len(voted_FRB_probs)))
