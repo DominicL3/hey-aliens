@@ -235,7 +235,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
 
 				# TotDisplay = (width/10**3)*256 #Roughly 256 times the pulse width window for display
                                 # NOTE: experimenting with TotDisplay to get 256 bins out
-                                TotDisplay = num_pred_time * tsamp * downfact
+                                TotDisplay = num_pred_time * tint * downfact
 
                                 stime = time-(TotDisplay/2.0)
 
