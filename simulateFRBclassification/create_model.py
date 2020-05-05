@@ -109,21 +109,21 @@ if __name__ == "__main__":
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins for each array')
 
     # parameters for convolutional layers
-    parser.add_argument('--num_conv_layers', type=int, default=2, help='Number of convolutional layers to train with. Careful when setting this,\
+    parser.add_argument('--num_conv_layers', type=int, default=3, help='Number of convolutional layers to train with. Careful when setting this,\
                         the dimensionality of the image is reduced by half with each layer and will error out if there are too many!')
     parser.add_argument('--num_filters', type=int, default=32,
                         help='Number of filters in starting convolutional layer, doubles with every convolutional block')
 
     # parameters for dense layers
-    parser.add_argument('--n_dense1', type=int, default=64, help='Number of neurons in first dense layer')
-    parser.add_argument('--n_dense2', type=int, default=32, help='Number of neurons in second dense layer')
+    parser.add_argument('--n_dense1', type=int, default=256, help='Number of neurons in first dense layer')
+    parser.add_argument('--n_dense2', type=int, default=128, help='Number of neurons in second dense layer')
 
     # parameters for signal-to-noise ratio of FRB
     parser.add_argument('--SNRmin', type=float, default=8.0, help='Minimum SNR for FRB signal')
     parser.add_argument('--SNR_sigma', type=float, default=1.0, help='Standard deviation of SNR from log-normal distribution')
     parser.add_argument('--SNRmax', type=float, default=30.0, help='Maximum SNR of FRB signal')
 
-    parser.add_argument('--weight_FRB', type=float, default=5.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
+    parser.add_argument('--weight_FRB', type=float, default=25.0, help='Weighting (> 1) on FRBs, used to minimize false negatives')
 
     parser.add_argument('--batch_size', type=int, default=32, help='Batch size for model training')
     parser.add_argument('--epochs', type=int, default=32, help='Number of epochs to train with')
