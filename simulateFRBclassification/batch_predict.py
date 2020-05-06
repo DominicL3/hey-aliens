@@ -31,13 +31,13 @@ for i, fil_file in enumerate(fil_files):
         # predict using model on candidates in fil_file with coordinates in FRBcand file
         # save pngs of predicted FRBs to disk and FRBcand_prob.txt to same folder as
         # wherever the FRBcand file is (probably spandak_dir)
-        cmd = "python predict.py " + \
-            "-f {0} {1} {2} --thresh {3} --keep_spectra ".format(fil_file, path_to_FRBcand, model, thresh) + \
-            "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
-
         # cmd = "python predict.py " + \
-        #     "--skip_extract {0} {1} --thresh {2} --keep_spectra ".format(path_to_FRBcand, model, thresh) + \
+        #     "-f {0} {1} {2} --thresh {3} --keep_spectra ".format(fil_file, path_to_FRBcand, model, thresh) + \
         #     "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
+
+        cmd = "python predict.py " + \
+            "--skip_extract {0} {1} --thresh {2} --keep_spectra ".format(path_to_FRBcand, model, thresh) + \
+            "--save_predicted_FRBs /datax/scratch/dleduc/predicted_FRBs/{}".format('BLGCsurvey_Cband_A00_' + split[0] + '_' + split[1][:4])
 
         # execute the command
         print('Predicting on file {0} / {1}'.format(i+1, len(fil_files)))
