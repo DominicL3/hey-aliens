@@ -131,10 +131,10 @@ if __name__ == "__main__":
     # save the model, confusion matrix for last epoch, and validation set
     parser.add_argument('--previous_model', type=str, default=None,
                         help='Path to previous model, will be trained on new simulated data.')
-    parser.add_argument('--save_model', dest='best_model_file', type=str, default='./models/best_model.h5',
+    parser.add_argument('--save_model', dest='best_model_file', type=str, default='./best_model.h5',
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
-                        default='./confusion_matrices/confusion_matrix.png', help='Filename to store final confusion matrix')
+                        default='./confusion_matrix.png', help='Filename to store final confusion matrix')
 
     args = parser.parse_args()
 
