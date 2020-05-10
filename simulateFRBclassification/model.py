@@ -16,14 +16,10 @@ second branch runs the time series of the frequency-time data through a 1D CNN.
 Both network outputs are then concatenated and connected to 2 dense layers,
 culminating in a softmax layer predicting the probability of classification."""
 
-def construct_conv2d(nfreq, ntime, num_conv_layers=2, num_filters=32):
+def construct_conv2d(num_conv_layers=2, num_filters=32):
     """
     Parameters:
     ----------
-    nfreq : int
-        Number of frequency channels in frequency-time data.
-    ntime : int
-        Number of time bins in frequency-time data.
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to pooling layers,
         otherwise Keras will throw an error)
@@ -39,7 +35,7 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, num_filters=32):
     cnn_2d = Sequential()
 
     # create num_filters convolution filters, each of size 3x3
-    cnn_2d.add(Conv2D(num_filters, (3, 3), padding='same', input_shape=(nfreq, ntime, 1)))
+    cnn_2d.add(Conv2D(num_filters, (3, 3), padding='same', input_shape=(None, None, 1)))
     cnn_2d.add(BatchNormalization()) # standardize all inputs to activation function
     cnn_2d.add(Activation('relu'))
     cnn_2d.add(MaxPooling2D(pool_size=(2, 2))) # max pool to reduce the dimensionality
@@ -57,12 +53,10 @@ def construct_conv2d(nfreq, ntime, num_conv_layers=2, num_filters=32):
 
     return cnn_2d
 
-def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
+def construct_time_cnn(num_conv_layers=2, num_filters=32):
     """
     Parameters:
     ----------
-    ntime : int
-        Number of time bins in time series data.
     num_conv_layers : int
         Number of convolutional layers to implement (MAX 4 due to pooling layers,
         otherwise Keras will throw an error)
@@ -81,7 +75,7 @@ def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
     # create num_filters convolution filters, each of size 2x2
     # average pool to reduce the dimensionality
     # stride 1 and NO pooling because the signal spike is very short
-    time_cnn.add(Conv1D(num_filters, 1, padding='same', input_shape=(ntime, 1)))
+    time_cnn.add(Conv1D(num_filters, 1, padding='same', input_shape=(None, 1)))
     time_cnn.add(BatchNormalization())
     time_cnn.add(Activation('relu'))
 
@@ -99,10 +93,9 @@ def construct_time_cnn(ntime, num_conv_layers=2, num_filters=32):
 
 def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             eval_ftdata, eval_time_data, eval_labels,
-                            nfreq=64, ntime=256, epochs=32,
-                            num_conv_layers=2, num_filters=32,
+                            epochs=32, num_conv_layers=2, num_filters=32,
                             n_dense1=64, n_dense2=32, batch_size=32,
-                            weight_FRB=2, saved_model_name='best_model.h5',
+                            weight_FRB=10, saved_model_name='best_model.h5',
                             previous_model_to_train=None):
     """
     Parameters:
@@ -144,8 +137,8 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
 
     if previous_model_to_train is None:
         # construct each individual network
-        cnn_2d = construct_conv2d(nfreq, ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
-        time_cnn = construct_time_cnn(ntime, num_conv_layers=num_conv_layers, num_filters=num_filters)
+        cnn_2d = construct_conv2d(num_conv_layers=num_conv_layers, num_filters=num_filters)
+        time_cnn = construct_time_cnn(num_conv_layers=num_conv_layers, num_filters=num_filters)
 
         # use output of models as input to final set of layers
         combined_input = concatenate([cnn_2d.output, time_cnn.output])
