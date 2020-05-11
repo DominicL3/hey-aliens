@@ -43,7 +43,7 @@ def fil2spec(fname, num_channels, num_time, spectra_array, total_samples, sample
     # generate samples_per_file random timesteps to sample from in filterbank file
     random_timesteps = np.random.choice(np.arange(int(t_obs)), size=samples_per_file)
 
-    # grab 256-bin time samples using random_timesteps
+    # grab time samples beginning at random start times + ending at num_time bins
     for timestep in tqdm(random_timesteps):
         # get spectra object at some timestep, incrementing timestep if successful
         spectra_obj = waterfall(raw_filterbank_file, start=timestep, duration=1,
@@ -54,23 +54,23 @@ def fil2spec(fname, num_channels, num_time, spectra_array, total_samples, sample
 
     return spectra_array, freq
 
-def chop_off(array):
+def chop_off(array, time_bins_per_array):
     """
     Splits long 2D array into 3D array of multiple 2D arrays,
-    such that each has 256 time bins. Drops the last chunk if it
-    has fewer than 256 bins.
+    such that each has time_bins_per_array time bins. Drops the last chunk if it
+    has fewer than time_bins_per_array bins.
 
     Returns:
         array : numpy.ndarray
             Array after splitting.
     """
 
-    # split array into multiples of 256
-    subsections = np.arange(256, array.shape[-1], 256)
+    # split array into multiples of time_bins_per_array
+    subsections = np.arange(time_bins_per_array, array.shape[-1], time_bins_per_array)
     print('Splitting each array into {0} blocks'.format(len(subsections) + 1))
     split_array = np.split(array, subsections, axis=2)
 
-    if split_array[-1].shape[-1] < 256:
+    if split_array[-1].shape[-1] < time_bins_per_array:
         split_array.pop()
 
     combined_chunks = np.concatenate(split_array, axis=0)
