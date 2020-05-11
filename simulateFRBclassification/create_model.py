@@ -156,7 +156,8 @@ if __name__ == "__main__":
         NFREQ = args.NFREQ
         NTIME = args.NTIME
 
-    print('Number of frequency channels: {}'.format(NFREQ))
+    print('Number of frequency channels per sample: {}'.format(NFREQ))
+    print('Number of time bins per sample: {}'.format(NTIME))
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
