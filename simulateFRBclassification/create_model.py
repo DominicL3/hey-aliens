@@ -158,6 +158,7 @@ if __name__ == "__main__":
 
     print('Number of frequency channels per sample: {}'.format(NFREQ))
     print('Number of time bins per sample: {}'.format(NTIME))
+    print('\n')
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
@@ -244,7 +245,7 @@ if __name__ == "__main__":
 
     # load the best model saved to test out confusion matrix
     model = load_model(best_model_name, compile=True)
-    y_pred_prob = model.predict([eval_ftdata, eval_time_data])
+    y_pred_prob = model.predict([eval_ftdata, eval_time_data])[:, 0]
     y_pred = np.round(y_pred_prob)
 
     print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60, 2)))
