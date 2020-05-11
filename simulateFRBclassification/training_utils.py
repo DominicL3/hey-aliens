@@ -64,10 +64,10 @@ def get_classification_results(y_true, y_pred):
     label (y_pred) for a binary classifier, and return
     true_positives, false_positives, true_negatives, false_negatives
     """
-    true_positives = np.where((y_true == 1) & (y_pred == 1))[0]
-    false_positives = np.where((y_true == 0) & (y_pred == 1))[0]
-    true_negatives = np.where((y_true == 0) & (y_pred == 0))[0]
-    false_negatives = np.where((y_true == 1) & (y_pred == 0))[0]
+    true_positives = np.where((y_true == 1) & (y_pred >= 0.5))[0]
+    false_positives = np.where((y_true == 0) & (y_pred >= 0.5))[0]
+    true_negatives = np.where((y_true == 0) & (y_pred < 0.5))[0]
+    false_negatives = np.where((y_true == 1) & (y_pred < 0.5))[0]
 
     return true_positives, false_positives, true_negatives, false_negatives
 
