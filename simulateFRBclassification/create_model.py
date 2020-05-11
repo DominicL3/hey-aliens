@@ -106,7 +106,8 @@ if __name__ == "__main__":
 
     # option to input RFI array
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
-    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins for each array')
+    parser.add_argument('--NFREQ', type=int, default=64, help='Number of frequency channels')
+    parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins in each array')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=3, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -146,13 +147,16 @@ if __name__ == "__main__":
 
     # set number of frequency channels to simulate
     if RFI_samples is not None:
-        print('Getting number of channels from inputted RFI array')
-        NFREQ = RFI_samples['spectra_data'][0].numchans
+        print('Getting number of frequency channels and time bins from inputted RFI array')
+        # get num_channels and num_time from first spectra in loaded file
+        spec0 = RFI_samples['spectra_data'][0]
+        NFREQ = spec0.numchans
+        NTIME = spec0.numspectra
     else:
-        NFREQ = 64
+        NFREQ = args.NFREQ
+        NTIME = args.NTIME
 
     print('Number of frequency channels: {}'.format(NFREQ))
-    NTIME = args.NTIME
 
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
@@ -231,7 +235,7 @@ if __name__ == "__main__":
     # Fit convolutional neural network to the training data
     fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             eval_ftdata, eval_time_data, eval_labels,
-                            nfreq=NFREQ, ntime=NTIME, epochs=args.epochs, batch_size=args.batch_size,
+                            epochs=args.epochs, batch_size=args.batch_size,
                             num_conv_layers=args.num_conv_layers, num_filters=args.num_filters,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
                             weight_FRB=args.weight_FRB, saved_model_name=best_model_name,
