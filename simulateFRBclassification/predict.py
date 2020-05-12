@@ -197,7 +197,7 @@ if __name__ == "__main__":
     scale_data(ftdata)
     print("Done scaling!")
 
-    # add extra dimension to vectors for Keras
+    # add num_channel dimension to vectors for Keras
     ftdata = ftdata[..., None]
     time_series = time_series[..., None]
 
