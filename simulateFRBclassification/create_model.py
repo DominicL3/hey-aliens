@@ -16,10 +16,6 @@ from simulate_FRB import SimulatedFRB
 from training_utils import *
 from model import fit_multi_input_model
 
-# import waterfaller and filterbank from Vishal's path
-sys.path.append('/usr/local/lib/python2.7/dist-packages/')
-sys.path.append('/home/vgajjar/linux64_bin/lib/python2.7/site-packages/')
-
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
 import copy
