@@ -32,7 +32,8 @@ into numpy arrays that this program can inject FRBs into."""
 
 tf.logging.set_verbosity(tf.logging.INFO)
 
-def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_files=None,
+def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
+                dm_perturbation=None, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800,
                 'f_high': 2000, 'f_ref': 1350, 'bandwidth': 1500}):
 
@@ -71,7 +72,8 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30, background_fi
             event.simulateFRB(background=data, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
 
             # perturb DM and save to final simulated FRB object
-            # event.simulatedFRB = perturb_dm(spec, event.simulatedFRB)
+            if dm_perturbation:
+                event.simulatedFRB = perturb_dm(spec, event.simulatedFRB, dm_perturbation)
 
         # append noise to ftdata and label it RFI
         ftdata.append(event.background)
@@ -104,6 +106,7 @@ if __name__ == "__main__":
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
     parser.add_argument('--NFREQ', type=int, default=64, help='Number of frequency channels')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins in each array')
+    parser.add_argument('--perturb_dm', type=float, default=None, help='Standard deviation of noise to perturb DM (usually 0.005)')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=3, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -159,8 +162,10 @@ if __name__ == "__main__":
     # make dictionaries to pass all the arguments into functions succintly
     frb_params = {'shape': (NFREQ, NTIME), 'f_low': args.f_low, 'f_high': args.f_high,
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
-    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin, 'SNR_sigma': args.SNR_sigma,
-                    'SNRmax': args.SNRmax, 'background_files': RFI_samples, 'FRB_parameters': frb_params}
+    label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin,
+                    'SNR_sigma': args.SNR_sigma, 'SNRmax': args.SNRmax,
+                    'background_files': RFI_samples, 'dm_perturbation': args.perturb_dm,
+                    'FRB_parameters': frb_params}
 
     print('Simulating FRBs from given RFI samples')
     ftdata, labels = make_labels(**label_params)

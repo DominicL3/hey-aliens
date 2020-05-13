@@ -6,15 +6,15 @@ data preprocessing and computing training results.
 
 Credit to Liam Connor: https://github.com/liamconnor/single_pulse_ml"""
 
-def perturb_dm(spec_original, frb_freqtime):
+def perturb_dm(spec_original, frb_freqtime, stddev=0.005):
     """Shift background RFI and injected FRB by a small, randomly sampled
     percentage of the original DM to match cases when Heimdall would fail
     to reproduce the exact optimal DM. Shift percentage is normally distributed
-    around a mean of 0 and a standard deviation of 0.05% of the original DM."""
+    around a mean of 0 and a default standard deviation of 0.05% of the original DM."""
 
     # compute small amount to perturb DM
     dm = spec_original.dm
-    shifted_dm = dm * (1 + np.random.normal(scale=0.005))
+    shifted_dm = dm * (1 + np.random.normal(scale=stddev))
 
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
