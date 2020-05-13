@@ -106,7 +106,7 @@ if __name__ == "__main__":
     parser.add_argument('--RFI_samples', type=str, default=None, help='Array (.npz) that contains RFI data')
     parser.add_argument('--NFREQ', type=int, default=64, help='Number of frequency channels')
     parser.add_argument('--NTIME', type=int, default=256, help='Number of time bins in each array')
-    parser.add_argument('--perturb_dm', type=float, default=None, help='Standard deviation of noise to perturb DM (usually 0.005)')
+    parser.add_argument('--perturb_DM', type=float, default=None, help='Standard deviation of noise to perturb DM (usually 0.005 if set)')
 
     # parameters for convolutional layers
     parser.add_argument('--num_conv_layers', type=int, default=3, help='Number of convolutional layers to train with. Careful when setting this,\
@@ -164,7 +164,7 @@ if __name__ == "__main__":
                   'f_ref': args.f_ref, 'bandwidth': args.bandwidth}
     label_params = {'num_samples': args.num_samples, 'SNRmin': args.SNRmin,
                     'SNR_sigma': args.SNR_sigma, 'SNRmax': args.SNRmax,
-                    'background_files': RFI_samples, 'dm_perturbation': args.perturb_dm,
+                    'background_files': RFI_samples, 'dm_perturbation': args.perturb_DM,
                     'FRB_parameters': frb_params}
 
     print('Simulating FRBs from given RFI samples')
