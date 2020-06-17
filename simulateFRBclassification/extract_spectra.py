@@ -180,7 +180,7 @@ if __name__ == "__main__":
     num_files = len(files)
 
     print("Randomly sampling {0} spectra from {1} files".format(samples_per_file, num_files))
-    print("Max sampling time allowed before duplicating: {0}".format(max_sampling_time))
+    print("Max sampling time allowed before duplicating: {0} minutes".format(np.round(max_sampling_time/60, 2)))
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
