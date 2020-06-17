@@ -5,18 +5,17 @@ psr
 *.local
 *.pytest*
 *.vscode
-agarwal_model.h5
 *.ipynb_checkpoints
 *report*
 dominic-connor-FRB.py
 breakthrough
 *.h5
-simulateFRBclassification/.ipynb_checkpoints/BL_notebook-checkpoint.ipynb
+*.ipynb
 *.np*
 debugging plots/
 waterfaller_functions
 fetch_functions/*
 simulateFRBclassification/cand_plot_commands
 simulateFRBclassification/scratch_space
-simulateFRBclassification/scratch.ipynb
 simulateFRBclassification/vnc_commands.txt
+papers
