@@ -129,8 +129,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument('path_filterbank', nargs='+', type=str, help='Regex pattern of matching .fil or .h5 names to sample. Example: ./*0000.fil')
     parser.add_argument('-tot', '--total_samples', type=int, default=320, help='Total number of spectra to generate')
-    parser.add_argument('-nfiles', '--num_files', type=int, default=None,
-                        help='Number of files to sample from (speedup with lower number of files)')
     parser.add_argument('-spf', '--samples_per_file', type=int, default=50,
                         help='Number of spectra samples to extract from each filterbank file')
     parser.add_argument('-s', '--save_name', type=str, default='spectra_arrays.npz',
@@ -181,7 +179,8 @@ if __name__ == "__main__":
     # user-inputted sample size or initial number of files
     num_files = len(files)
 
-    print("Randomly sampling {0} Spectra from {1} files".format(samples_per_file, num_files))
+    print("Randomly sampling {0} spectra from {1} files".format(samples_per_file, num_files))
+    print("Max sampling time allowed before duplicating: {0}".format(max_sampling_time))
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
