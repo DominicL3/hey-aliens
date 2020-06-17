@@ -127,7 +127,7 @@ def random_dedispersion(spec_array, min_DM, max_DM):
 if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
-    parser.add_argument('path_filterbank', type=str)
+    parser.add_argument('path_filterbank', nargs='+', type=str, help='Regex pattern of matching .fil or .h5 names to sample. Example: ./*0000.fil')
     parser.add_argument('--total_samples', type=int, default=320, help='Total number of spectra to generate')
     parser.add_argument('--num_files', type=int, default=None,
                         help='Number of files to sample from (speedup with lower number of files)')
@@ -144,40 +144,42 @@ if __name__ == "__main__":
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
 
     parser.add_argument('--max_sampling_time', type=int, default=600,
-        help='Max amount of time (seconds) to sample Spectra from files before duplicating existing files')
+        help='Max amount of time (seconds) to sample Spectra from files before duplicating existing files. If 0, there is no limit on the sampling time.')
 
     args = parser.parse_args()
 
-    path = args.path_filterbank
+    path_to_files = args.path_filterbank
     save_name = args.save_name
     NCHAN = args.NCHAN
     NTIME = args.NTIME
     total_samples = args.total_samples
     samples_per_file = args.samples_per_file
-    max_sampling_time = args.max_sampling_time
-
-    # files = glob.glob(path + "*.fil" if path[-1] == '/' else path + '/*.fil')
+    max_sampling_time = args.max_sampling_time if args.max_sampling_time is not None else np.inf
 
     # NOTE: this is only to get spectra without any other pulses in them! Delete later!
-    with open('/datax/scratch/vgajjar/Pipeline_test_run/files_2') as f:
+    '''with open('/datax/scratch/vgajjar/Pipeline_test_run/files_2') as f:
         content = f.readlines()
         # you may also want to remove whitespace characters like `\n` at the end of each line
         content = [x.strip() for x in content]
-    files = [path + fname for fname in content]
-
-    print("Total number of files to possibly sample from: %d" % len(files))
-
-    if not files:
-        raise ValueError("No files found in path " + path)
+    files = [path + fname for fname in content]'''
 
     # choose number of files to sample from based on
     # user-inputted sample size or initial number of files
-    if args.num_files:
-        num_files = args.num_files
-    elif len(files) >= 100:
-        num_files = int(0.1 * len(files)) # randomly choose 10% of files if enough
+    if isinstance(path_to_files, list):
+        files = path_to_files
+    elif isinstance(path_to_files, str):
+        files = glob.glob(path_to_files)
     else:
-        num_files = len(files)
+        raise ValueError("path_to_files should be list or str type, not {0}.".format(type(path_to_files)))
+
+    if files is None:
+        raise ValueError("No files found with path " + path_to_files)
+
+    print("Total number of files to possibly sample from: %d" % len(files))
+
+    # choose number of files to sample from based on
+    # user-inputted sample size or initial number of files
+    num_files = len(files)
 
     print("Randomly sampling {0} Spectra from {1} files".format(samples_per_file, num_files))
     # NOTE: should be replace=False, but only True because there are only 38 non-pulse files
@@ -220,4 +222,4 @@ if __name__ == "__main__":
     print("Saving data to " + save_name)
     np.savez(save_name, spectra_data=spectra_samples, freq=freq)
 
-    print("\n\nTraining set creation complete")
+    print("\n\nTraining set creation complete!")
