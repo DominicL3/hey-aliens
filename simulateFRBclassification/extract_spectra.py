@@ -189,13 +189,16 @@ if __name__ == "__main__":
     spectra_samples, i = [], 0
 
     loop_start = time()
+    elapsed_time = 0
     while len(spectra_samples) < total_samples:
-        elapsed_time = time() - loop_start
-        print("Elapsed time: {} minutes".format(np.round(elapsed_time / 60, 2)))
-
         # end scanning if we looked through all files or takes too long
         if i >= len(random_files) or elapsed_time >= max_sampling_time:
-            print("\nTaking too long. Duplicating spectra...")
+            if i >= len(random_files):
+                print("\nOut of files to sample without replacement. Either increase samples_per_file or find more files to sample from.")
+            if elapsed_time >= max_sampling_time:
+                print("\nExceeded max sampling time.")
+
+            print("Duplicating spectra...")
             duplicate_spectra(spectra_samples, total_samples) # copy spectra (dedisperse with different DM)
             break
 
@@ -207,6 +210,10 @@ if __name__ == "__main__":
         spectra_samples, freq = fil2spec(rand_filename, NCHAN, NTIME, spectra_samples, total_samples, samples_per_file)
         i += 1
         print("Number of samples after scan: " + str(len(spectra_samples)))
+
+        # see how much time has passed since sampling began
+        elapsed_time = time() - loop_start
+        print("Elapsed time: {} minutes".format(np.round(elapsed_time / 60, 2)))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
     spectra_samples = np.array(spectra_samples)
