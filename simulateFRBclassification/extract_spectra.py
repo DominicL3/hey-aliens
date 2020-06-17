@@ -128,12 +128,12 @@ if __name__ == "__main__":
     # Read command line arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('path_filterbank', nargs='+', type=str, help='Regex pattern of matching .fil or .h5 names to sample. Example: ./*0000.fil')
-    parser.add_argument('--total_samples', type=int, default=320, help='Total number of spectra to generate')
-    parser.add_argument('--num_files', type=int, default=None,
+    parser.add_argument('-tot', '--total_samples', type=int, default=320, help='Total number of spectra to generate')
+    parser.add_argument('-nfiles', '--num_files', type=int, default=None,
                         help='Number of files to sample from (speedup with lower number of files)')
-    parser.add_argument('--samples_per_file', type=int, default=50,
+    parser.add_argument('-spf', '--samples_per_file', type=int, default=50,
                         help='Number of spectra samples to extract from each filterbank file')
-    parser.add_argument('--save_name', type=str, default='spectra_arrays.npz',
+    parser.add_argument('-s', '--save_name', type=str, default='spectra_arrays.npz',
                         help='Filename to save frequency-time arrays')
 
     parser.add_argument('--NCHAN', type=int, default=64,
@@ -143,7 +143,7 @@ if __name__ == "__main__":
     parser.add_argument('--min_DM', type=float, default=100.0, help='Minimum DM to sample')
     parser.add_argument('--max_DM', type=float, default=1000.0, help='Maximum DM to sample')
 
-    parser.add_argument('--max_sampling_time', type=int, default=600,
+    parser.add_argument('-t', '--max_sampling_time', type=int, default=600,
         help='Max amount of time (seconds) to sample Spectra from files before duplicating existing files. If 0, there is no limit on the sampling time.')
 
     args = parser.parse_args()
@@ -182,7 +182,6 @@ if __name__ == "__main__":
     num_files = len(files)
 
     print("Randomly sampling {0} Spectra from {1} files".format(samples_per_file, num_files))
-    # NOTE: should be replace=False, but only True because there are only 38 non-pulse files
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
