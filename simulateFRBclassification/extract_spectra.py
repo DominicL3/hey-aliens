@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
         # see how much time has passed since sampling began
         elapsed_time = time() - loop_start
-        print("Elapsed time: {:.2f} minutes".format(elapsed_time / 60)))
+        print("Elapsed time: {:.2f} minutes".format(elapsed_time / 60))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
     spectra_samples = np.array(spectra_samples)
