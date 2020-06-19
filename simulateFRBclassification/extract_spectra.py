@@ -180,7 +180,7 @@ if __name__ == "__main__":
     num_files = len(files)
 
     print("Randomly sampling {0} spectra from {1} files".format(samples_per_file, num_files))
-    print("Max sampling time allowed before duplicating: {0} minutes".format(np.round(max_sampling_time/60, 2)))
+    print("Max sampling time allowed before duplicating: {:.2f} minutes".format(max_sampling_time/60))
     random_files = np.random.choice(files, size=num_files, replace=False)
 
     # extract spectra from .fil files until number of samples is reached
@@ -211,7 +211,7 @@ if __name__ == "__main__":
 
         # see how much time has passed since sampling began
         elapsed_time = time() - loop_start
-        print("Elapsed time: {} minutes".format(np.round(elapsed_time / 60, 2)))
+        print("Elapsed time: {:.2f} minutes".format(elapsed_time / 60)))
 
     print("Unique number of files after random sampling: " + str(len(np.unique(random_files))))
     spectra_samples = np.array(spectra_samples)
@@ -224,7 +224,8 @@ if __name__ == "__main__":
     random_dedispersion(spectra_samples, args.min_DM, args.max_DM)
 
     # save final array to disk
-    print("Saving data to " + save_name)
+    print("\nSaving data to " + save_name)
     np.savez(save_name, spectra_data=spectra_samples, freq=freq)
 
-    print("\n\nTraining set creation complete!")
+    elapsed_time = time() - loop_start # final timing
+    print("Training set creation complete in {:.2f} minutes!".format(elapsed_time / 60))
