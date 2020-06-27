@@ -41,8 +41,7 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
     Each iteration will contain one RFI and one FRB array, so the label list should
     be populated with consecutive 0s and 1s, which will then be shuffled later."""
 
-    ftdata = []
-    labels = []
+    ftdata, labels = [], []
 
     if background_files is not None:
         freq_RFI = background_files['freq']
