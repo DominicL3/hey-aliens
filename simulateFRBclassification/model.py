@@ -4,8 +4,6 @@ from keras.models import Model, Sequential, load_model
 from keras.layers import Activation, Dense, Dropout, Flatten, concatenate
 from keras.layers import Conv1D, Conv2D, BatchNormalization
 from keras.layers import MaxPooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D
-
-from sklearn.metrics import precision_recall_fscore_support
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 
 
