@@ -139,11 +139,11 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
     # main arguments needed for prediction
-    parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--skip_extract' not in sys.argv,
-                        help='Path to filterbank file with candidates to be predicted.')
     parser.add_argument('frb_cand_path', type=str, help='Path to .txt file containing data about pulses.')
     parser.add_argument('model_names', nargs='+', type=str,
                             help='Path to trained models used to make prediction. If multiple are given, use all to ensemble.')
+    parser.add_argument('-f', '--fil_file', dest='filterbank_candidate', type=str, required='--skip_extract' not in sys.argv,
+                        help='Path to filterbank file with candidates to be predicted.')
 
     # can set if pickle files are already in directory to avoid having to redo extraction
     parser.add_argument('--skip_extract', action='store_true',
