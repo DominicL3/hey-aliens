@@ -19,4 +19,4 @@ simulateFRBclassification/cand_plot_commands
 simulateFRBclassification/scratch_space
 simulateFRBclassification/vnc_commands.txt
 papers
-presentation_plots/
+*.png
