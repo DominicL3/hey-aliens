@@ -48,8 +48,11 @@ def save_prob_to_disk(frb_info, pred, fname):
     for each candidate, save candidate info and prediction probabilities
     to disk in the same directory as the original .txt file."""
 
-    assert len(pred) == len(frb_info), \
+    assert pred.size == frb_info.size, \
         "Number of predictions don't match number of candidates ({0} vs. {1})".format(len(pred), len(frb_info))
+
+    if frb_info.size == 1: # length-1 structured arrays are buggy
+        frb_info = frb_info.reshape(1)
 
     # sort original FRBcand file by largest SNR to be consistent with prediction order
     frb_info[::-1].sort(order='snr')
