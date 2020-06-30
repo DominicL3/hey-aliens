@@ -6,19 +6,19 @@ from time import time
 import os, sys
 from tqdm import tqdm, trange  # progress bar
 import argparse  # to parse arguments in command line
-import tensorflow as tf
 
 from keras.utils import to_categorical
 from keras.models import load_model
 
 # simulate FRB, create a model, and helper functions for training
 from simulate_FRB import SimulatedFRB
-from training_utils import *
+import training_utils as utils
 from model import fit_multi_input_model
 
 # generate Spectra objects for FRB injection
 from waterfaller import filterbank, waterfall
 import copy
+
 
 """Adapted from the code published alongside the paper 'Applying Deep Learning
 to Fast Radio Burst Classification' by Liam Connor and Joeri van Leeuwen, as
@@ -30,8 +30,6 @@ examples and injecting them into noisy Gaussian backgrounds. To include actual
 RFI data, extract_spectra gets real data from filterbank files and turns them
 into numpy arrays that this program can inject FRBs into."""
 
-tf.logging.set_verbosity(tf.logging.INFO)
-
 def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
                 dm_perturbation=None, background_files=None,
                 FRB_parameters={'shape': (64, 256), 'f_low': 800,
@@ -40,8 +38,6 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
     """Simulates the background for num_data number of points and appends to ftdata.
     Each iteration will contain one RFI and one FRB array, so the label list should
     be populated with consecutive 0s and 1s, which will then be shuffled later."""
-
-    ftdata, labels = [], []
 
     if background_files is not None:
         freq_RFI = background_files['freq']
@@ -56,15 +52,20 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
         background_spectra = background_files['spectra_data']
         num_samples = len(background_spectra)
 
+    # initialize arrays for training data and labels
+    nfreq, ntime = FRB_parameters['shape']
+    ftdata, labels = np.zeros([2 * num_samples, nfreq, ntime]), np.zeros(num_samples)
+    labels[1::2] = 1 # alternate training labels with 1s
+
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
-    for sim in trange(num_samples):
+    for sample_number in trange(num_samples):
         event = SimulatedFRB(**FRB_parameters)
 
         if background_files is None:
             event.simulateFRB(background=None, SNRmin=SNRmin, SNR_sigma=SNR_sigma, SNRmax=SNRmax)
         else:
             # get spectra and extract data from background file
-            spec = copy.deepcopy(background_spectra[sim]) # copy to avoid modifying original object
+            spec = copy.deepcopy(background_spectra[sample_number]) # copy to avoid modifying original object
             data = spec.data
 
             # inject FRB into real noise array
@@ -72,17 +73,11 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
 
             # perturb DM and save to final simulated FRB object
             if dm_perturbation:
-                event.simulatedFRB = perturb_dm(spec, event.simulatedFRB, dm_perturbation)
+                event.simulatedFRB = utils.perturb_dm(spec, event.simulatedFRB, dm_perturbation)
 
-        # append noise to ftdata and label it RFI
-        ftdata.append(event.background)
-        labels.append(0)
-
-        # inject FRB into data and label it true sighting
-        ftdata.append(event.simulatedFRB)
-        labels.append(1)
-
-    ftdata, labels = np.array(ftdata), np.array(labels)
+        # append noise array and FRB as separate training examples
+        ftdata[2*sample_number, :, :] = event.background
+        ftdata[2*sample_number + 1, :, :] = event.simulatedFRB
 
     return ftdata, labels
 
@@ -196,12 +191,12 @@ if __name__ == "__main__":
 
     # compute time series for every spectrogram in ftdata
     print('Getting time series for each sample...')
-    time_series = compute_time_series(ftdata)
+    time_series = utils.compute_time_series(ftdata)
     print('All time series computed!\n')
 
     # bring each channel to zero median and each array to unit stddev
     print('Scaling arrays...')
-    scale_data(ftdata)
+    utils.scale_data(ftdata)
     print('Done scaling!\n')
 
     # add extra dimension to vectors for Keras
@@ -251,9 +246,9 @@ if __name__ == "__main__":
     print("Training on {0} samples took {1} minutes".format(len(train_labels), np.round((time() - start_time) / 60, 2)))
 
     # print out scores of various metrics
-    accuracy, precision, recall, fscore, conf_mat = print_metric(eval_labels, y_pred)
+    accuracy, precision, recall, fscore, conf_mat = utils.print_metric(eval_labels, y_pred)
 
-    TP, FP, TN, FN = get_classification_results(eval_labels, y_pred)
+    TP, FP, TN, FN = utils.get_classification_results(eval_labels, y_pred)
 
     # get lowest confidence selection for each category
     if TP.size:
