@@ -191,7 +191,7 @@ def extractPlotCand(fil_file,frb_cands,noplot,fl,fh,tint,Ttot,kill_time_range,ki
                                 filter = frb['filter']
                                 width = tint * (2 ** filter)*(10**3) # Width in msec
                                 snr = frb['snr']
-				if frb.size>6: prob = frb['FRBprob']
+				if np.size(frb.to_list()) > 6: prob = frb['FRBprob']
 				else: prob = ""
 
 				#print "here"
