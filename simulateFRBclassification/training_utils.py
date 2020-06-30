@@ -1,5 +1,5 @@
 import numpy as np
-from tqdm import trange
+from tqdm import tqdm, trange
 
 """Helper functions for training neural network, including
 data preprocessing and computing training results.
