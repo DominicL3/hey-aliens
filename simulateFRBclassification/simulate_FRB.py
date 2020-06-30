@@ -35,7 +35,7 @@ class SimulatedFRB(object):
 
         # randomly generated SNR and FRB generated after calling injectFRB()
         self.SNR = None
-        self.FRB = None
+        self.simulatedFRB = None
 
         '''Simulates background noise similar to the .ar
         files. Backgrounds will be injected with FRBs to
@@ -110,8 +110,8 @@ class SimulatedFRB(object):
         """Move FRB to random location of the time axis (in-place),
         ensuring that the shift does not cause one end of the FRB
         to end up on the other side of the array."""
-        # bin_shift = np.random.randint(low=-self.nt // 3, high=self.nt // 3)
-        bin_shift = np.random.randint(low=-3, high=3)
+        bin_shift = np.random.randint(low=-self.nt // 3, high=self.nt // 3)
+        # bin_shift = np.random.randint(low=-3, high=3)
         self.FRB = np.roll(self.FRB, bin_shift, axis=1)
 
     def fractional_bandwidth(self, frac_low=0.5, frac_high=0.9):
@@ -146,7 +146,7 @@ class SimulatedFRB(object):
         """Inject FRB into the background. If specified, signal will
         be multiplied by the given weights along the frequency axis."""
 
-        # update object background if provided
+        # update object's self.sbackground if provided
         if background is not None:
             self.background = background
 
@@ -177,9 +177,7 @@ class SimulatedFRB(object):
         """Combine everything together and inject the FRB into a
         background array (Gaussian noise if background is not specified).
         If given, the signal will be multiplied by the given weights
-        along the frequency axis."""
-        if background is None:
-            background = self.background
+        along the frequency axis. Does not return anything!"""
 
         # Create the FRB
         self.scintillate() # make the pulse profile with scintillation
