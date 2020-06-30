@@ -14,7 +14,8 @@ def perturb_dm(spec_original, frb_freqtime, stddev=0.005):
 
     # compute small amount to perturb DM
     dm = spec_original.dm
-    shifted_dm = dm * (1 + np.random.normal(scale=stddev))
+    # shifted_dm = dm * (1 + np.random.normal(scale=stddev)) NOTE: CHANGE BACK TO THIS
+    shifted_dm = dm - np.random.uniform(low=100, high=400)
 
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
@@ -24,19 +25,20 @@ def perturb_dm(spec_original, frb_freqtime, stddev=0.005):
     # return the FRB after being dispersed slightly
     return spec_original.data
 
+def scaling_helper(array):
+    stddev = np.std(array)
+
+    # subtract median from each row (spectrum) and divide every 2D array by its global stddev
+    array -= np.median(array, axis=1).reshape(-1, 1)
+    array[:, :] /= stddev
+
 def scale_data(ftdata):
-    """Subtract each channel in 3D array by its median and
+    """Subtract each frequency channel in 3D array by its median and
     divide each array by its global standard deviation. Perform
     this standardization in chunks to avoid a memory overload."""
 
-    N = 10000
-    for i in trange(int(np.ceil(len(ftdata)/float(N)))):
-        ftdata_chunk = ftdata[i*N:(i + 1) * N]
-        medians = np.median(ftdata_chunk, axis=-1)[:, :, np.newaxis]
-        stddev = np.std(ftdata_chunk.reshape(len(ftdata_chunk), -1), axis=-1)[:, np.newaxis, np.newaxis]
-
-        scaled_ftdata = (ftdata_chunk - medians) / stddev
-        ftdata[i*N:(i + 1) * N] = scaled_ftdata
+    for arr in tqdm(ftdata):
+        scaling_helper(arr) #rescaled_chunk
 
 def compute_time_series(ftdata, scale=True):
     """Get the 1D time series representations of all signals in ftdata.
