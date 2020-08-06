@@ -3,14 +3,14 @@
 Fast radio bursts (FRBs) are highly energetic radio pulses whose origin is still hotly debated. Neutron stars? Supernovae? Aliens? **Nobody knows!** The image below ([UTMOST collaboration](https://astronomy.swin.edu.au/research/utmost/?p=1508)) is an example spectrogram of a dedispersed FRB. Notice how the signal is broad in frequency but extremely narrow in time.
 
 <p align="center">
-  <img src="simulateFRBclassification/presentation_plots/181017.png">
+  <img src="plots/181017.png">
 </p>
 
 At these frequencies, however, a major problem for current detection software is radio frequency interference (RFI). Emissions like WiFi would very likely be mistaken for an FRB, as seen in the image below ([Miller et al. 2007](https://www.researchgate.net/publication/4281289_Service_Discovery_and_Device_Identification_in_Cognitive_Radio_Networks)).
 
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/rfi.png">
+    <img src="plots/rfi.png">
 </p>
 
 
@@ -85,7 +85,7 @@ fscore: 0.999452
 and a plot should appear like the following:
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/readme_confmat.png">
+    <img src="plots/readme_confmat.png">
 </p>
 
 ## Prediction
@@ -103,13 +103,13 @@ The prediction script takes in a model name, a candidate file, and `.txt` file s
 The given file has 19 candidates in it, and several examples of the candidates are shown below. As you can see, only a few of them are true signals.
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/candidate_frbs.png">
+    <img src="plots/candidate_frbs.png">
 </p>
 
 When using the above prediction script with the optional argument `--save_top_candidates`, the candidates that the model has the highest confidence in are saved. For our given example, this looks like
 
 <p align="center">
-    <img src="simulateFRBclassification/presentation_plots/spec_predicted.png">
+    <img src="plots/spec_predicted.png">
 </p>
 
 As you can see, the CNN predicts each of these arrays to contain FRBs with absolute certainty, and from visual inspection, they do! The model does misclassify several instances of RFI as FRBs, however, so it isn't completely perfect.
