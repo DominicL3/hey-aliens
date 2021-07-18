@@ -1,11 +1,12 @@
 import numpy as np
-import keras
+import pandas as pd
 from keras.models import Model, Sequential, load_model
-from keras.layers import Activation, Dense, Dropout, Flatten, concatenate
+from keras.layers import Activation, Dense, Dropout, concatenate
 from keras.layers import Conv1D, Conv2D, BatchNormalization
 from keras.layers import MaxPooling2D, GlobalMaxPooling1D, GlobalMaxPooling2D
 from keras.callbacks import ModelCheckpoint, ReduceLROnPlateau, EarlyStopping
 
+import training_utils as utils
 
 """Build a multi-input convolutional neural network for binary classification.
 First branch takes in frequency-time data and is run through a 2D CNN, while the
@@ -94,16 +95,20 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
                             epochs=32, num_conv_layers=2, num_filters=32,
                             n_dense1=64, n_dense2=32, batch_size=32,
                             weight_FRB=10, saved_model_name='best_model.h5',
-                            previous_model_to_train=None):
+                            previous_model_to_train=None, history_file=None):
     """
     Parameters:
     ----------
     train_ftdata : ndarray
-        (ntrain, ntime, 1) float64 array with training data
+        (ntrain, nfreq, ntime, 1) float64 array with training data
+    train_time_data : ndarray
+        (ntrain, ntime, 1) float64 array of training time series data
     train_labels :  ndarray
-        (ntrigger, 2) binary labels of training data [0, 1] = FRB, [1, 0] = RFI
+        (ntrain, 2) binary labels of training data [0, 1] = FRB, [1, 0] = RFI
     eval_ftdata : ndarray
-        (neval, ntime, 1) float64 array with evaluation data
+        (neval, nfreq, ntime, 1) float64 array with evaluation data
+    eval_time_data : ndarray
+        (ntrain, ntime, 1) float64 array of evaluation time series data
     eval_labels :
         (neval, 2) binary labels of eval data
     epochs : int
@@ -123,6 +128,14 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     weight_FRB : float
         Class weight given to FRB during fitting. This means the loss function
         will penalize missing an FRB more with larger weight_FRB.
+
+    saved_model_name : str
+        Path to save best model after training.
+    previous_model_to_train : str
+        Path to a previous Keras .h5 model. If given, program will train a model
+        based on the weights of the given previous model.
+    history_file : str
+        Path to save history file.
 
     Returns
     -------
@@ -161,7 +174,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
         model = load_model(previous_model_to_train, compile=False)
 
     # optimize using Adam
-    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy'])
+    model.compile(loss='binary_crossentropy', optimizer='adam', metrics=['accuracy', utils.recall])
 
     print("\nBatch size: %d" % batch_size)
     print("Epochs: %d" % epochs)
@@ -180,10 +193,15 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     # (2) Evaluate on validation set on every epoch and saving model minimizing val_loss
     # (3) Reduce learning rate if val_loss doesn't improve after 5 epochs (bouncing around minimum)
     # (4) Stop training early if val_loss doesn't improve after 15 epochs
-    model.fit(x=[train_ftdata, train_time_data], y=train_labels,
-                validation_data=([eval_ftdata, eval_time_data], eval_labels),
-                class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
-                callbacks=[loss_callback, reduce_lr_callback, early_stop_callback])
+    hist = model.fit(x=[train_ftdata, train_time_data], y=train_labels,
+                    validation_data=([eval_ftdata, eval_time_data], eval_labels),
+                    class_weight={0: 1, 1: weight_FRB}, batch_size=batch_size, epochs=epochs,
+                    callbacks=[loss_callback, reduce_lr_callback, early_stop_callback])
+
+    # save history as CSV
+    if history_file:
+        hist_df = pd.DataFrame(hist.history)
+        hist_df.to_csv(history_file)
 
     # one last evaluation for the final model (usually not the best)
     score = model.evaluate([eval_ftdata, eval_time_data], eval_labels, batch_size=batch_size)
