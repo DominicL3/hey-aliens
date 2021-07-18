@@ -35,7 +35,9 @@ My SSHing abilities aren't too hot, so I'll try to break down what I can.
 
 From my understanding, `HostName` tells the computer the actual address that you're SSHing into. For instance, my original first command was `ssh -Y myusername@digilab.astro.berkeley.edu`, and you can work out that the `HostName` is `digilab.astro.berkeley.edu`.
 
-`ProxyCommand` looks like it's the command prior to the next step of the tunnel. You can see that I don't have a `ProxyCommand` for the bottom SSH, but I do have them for the ones above. Not sure what those flags are, but keep them.
+`ProxyCommand` looks like it's the command prior to the next step of the tunnel. You can see that I don't have a `ProxyCommand` for the bottom SSH, but I do have them for the ones above. Not sure what those flags are, but keep them. 
+
+Note that you must replace `MYUSERNAME` with your actual username for each machine. 
 
 Finally, I think `Host` just sets an alias, and `forwardX11trusted yes` is the same as the `-Y` flag in a regular SSH command.
 
