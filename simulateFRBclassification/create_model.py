@@ -54,7 +54,9 @@ def make_labels(num_samples=0, SNRmin=8, SNR_sigma=1.0, SNRmax=30,
 
     # initialize arrays for training data and labels
     nfreq, ntime = FRB_parameters['shape']
-    ftdata, labels = np.zeros([2 * num_samples, nfreq, ntime]), np.zeros(num_samples)
+    # 2 samples per data point, one true positive and one true negative
+    ftdata = np.zeros([2 * num_samples, nfreq, ntime])
+    labels = np.zeros(2 * num_samples)
     labels[1::2] = 1 # alternate training labels with 1s
 
     # inject FRB into each RFI file or simulate the samples if no backgrounds given
@@ -87,7 +89,7 @@ if __name__ == "__main__":
 
     # parameters that will be used to simulate FRB
     parser.add_argument('f_low', type=float, help='Minimum cutoff frequency (MHz) to inject FRB')
-    parser.add_argument('f_high', type=float, help='Maximum cutoff frequency (MHz) to allow inject FRB')
+    parser.add_argument('f_high', type=float, help='Maximum cutoff frequency (MHz) to inject FRB')
     parser.add_argument('--f_ref', type=float, default=1350, help='Reference frequency (MHz) (center of data)')
     parser.add_argument('--bandwidth', type=float, default=1500, help='Frequency range (MHz) of array')
     parser.add_argument('--num_samples', type=int, default=1000, help='Number of samples to train neural network on.\
@@ -129,6 +131,8 @@ if __name__ == "__main__":
                         help='Filename to save best model in')
     parser.add_argument('--save_confusion_matrix', dest='conf_mat', metavar='confusion matrix name', type=str,
                         default='./confusion_matrix.png', help='Filename to store final confusion matrix')
+    parser.add_argument('--save_history', dest='hist_file', metavar='history file location', type=str,
+                        default='./history.csv', help='Filename to save training history')
 
     args = parser.parse_args()
 
@@ -136,6 +140,7 @@ if __name__ == "__main__":
     previous_model_name = args.previous_model
     best_model_name = args.best_model_file  # Path and Pattern to find all the .ar files to read and train on
     confusion_matrix_name = args.conf_mat
+    history_file = args.hist_file
     RFI_samples = np.load(args.RFI_samples, allow_pickle=True)
 
     # set number of frequency channels to simulate
@@ -236,7 +241,7 @@ if __name__ == "__main__":
                             num_conv_layers=args.num_conv_layers, num_filters=args.num_filters,
                             n_dense1=args.n_dense1, n_dense2=args.n_dense2,
                             weight_FRB=args.weight_FRB, saved_model_name=best_model_name,
-                            previous_model_to_train=previous_model_name)
+                            previous_model_to_train=previous_model_name, history_file=history_file)
 
     # load the best model saved to test out confusion matrix
     model = load_model(best_model_name, compile=True)
