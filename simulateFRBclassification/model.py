@@ -184,10 +184,10 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     loss_callback = ModelCheckpoint(saved_model_name, monitor='val_loss', verbose=1, save_best_only=True)
 
     # cut learning rate in half if validation loss doesn't improve in 5 epochs
-    reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=5, verbose=1)
+    reduce_lr_callback = ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=15, verbose=1)
 
-    # stop training if validation loss doesn't improve after 15 epochs
-    early_stop_callback = EarlyStopping(monitor='val_loss', patience=15, verbose=1)
+    # stop training if validation loss doesn't improve after 30 epochs
+    early_stop_callback = EarlyStopping(monitor='val_loss', patience=30, verbose=1)
 
     # (1) Fit model using frequency-time training data and time series training data
     # (2) Evaluate on validation set on every epoch and saving model minimizing val_loss
@@ -201,7 +201,7 @@ def fit_multi_input_model(train_ftdata, train_time_data, train_labels,
     # save history as CSV
     if history_file:
         hist_df = pd.DataFrame(hist.history)
-        hist_df.to_csv(history_file)
+        hist_df.to_csv(history_file, index=False)
 
     # one last evaluation for the final model (usually not the best)
     score = model.evaluate([eval_ftdata, eval_time_data], eval_labels, batch_size=batch_size)
