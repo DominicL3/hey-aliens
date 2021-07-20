@@ -244,7 +244,7 @@ if __name__ == "__main__":
                             previous_model_to_train=previous_model_name, history_file=history_file)
 
     # load the best model saved to test out confusion matrix
-    model = load_model(best_model_name, compile=True)
+    model = load_model(best_model_name, compile=False)
     y_pred_prob = model.predict([eval_ftdata, eval_time_data])[:, 0]
     y_pred = np.round(y_pred_prob)
 
