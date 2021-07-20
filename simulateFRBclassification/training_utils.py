@@ -1,5 +1,6 @@
 import numpy as np
 from tqdm import tqdm, trange
+import tensorflow as tf
 
 """Helper functions for training neural network, including
 data preprocessing and computing training results.
@@ -14,8 +15,7 @@ def perturb_dm(spec_original, frb_freqtime, stddev=0.005):
 
     # compute small amount to perturb DM
     dm = spec_original.dm
-    # shifted_dm = dm * (1 + np.random.normal(scale=stddev)) NOTE: CHANGE BACK TO THIS
-    shifted_dm = dm - np.random.uniform(low=100, high=400)
+    shifted_dm = dm * (1 + np.random.normal(scale=stddev))
 
     # replace original data with injected FRB data
     # disperse FRB data by small amount found above
@@ -113,3 +113,10 @@ def print_metric(y_true, y_pred):
     print("fscore: %f" % fscore)
 
     return accuracy, precision, recall, fscore, conf_mat
+
+def recall(y_true, y_pred):
+    """Compute recall for a set of truths and predictions using TensorFlow language."""
+    TP = tf.count_nonzero(y_true * y_pred)
+    FN = tf.count_nonzero((y_pred - 1) * y_true)
+    score = tf.divide(TP, TP + FN)
+    return score
