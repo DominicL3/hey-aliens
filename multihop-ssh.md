@@ -2,7 +2,7 @@
 For my research, I often have to SSH into the data center at the Colo facility. When I first began, getting access to the online compute server was insanely tedious because I  had to chain these three commands every single time:
 
 ```
-ssh -Y MYUSERNAME@digilab.astro.berkeley.edu
+ssh -Y MYUSERNAME@blpl1.ssl.berkeley.edu
 ssh -Y MYUSERNAME@blph0.ssl.berkeley.edu
 ssh -Y blpc0
 ```
@@ -23,17 +23,17 @@ Host blpc0
 Host blph0
   HostName blph0.ssl.berkeley.edu
   User MYUSERNAME
-  ProxyCommand ssh digilab -W %h:%p
+  ProxyCommand ssh blpl1 -W %h:%p
   ForwardX11Trusted yes
-Host digilab
-  HostName digilab.astro.berkeley.edu
+Host blpl1
+  HostName blpl1.ssl.berkeley.edu
   User MYUSERNAME
   ForwardX11Trusted yes
 ```
-This allows me to tunnel through `digilab -> blph0 -> blpc0`, which is amazing.
+This allows me to tunnel through `blpl1 -> blph0 -> blpc0`, which is amazing.
 My SSHing abilities aren't too hot, so I'll try to break down what I can.
 
-From my understanding, `HostName` tells the computer the actual address that you're SSHing into. For instance, my original first command was `ssh -Y myusername@digilab.astro.berkeley.edu`, and you can work out that the `HostName` is `digilab.astro.berkeley.edu`.
+From my understanding, `HostName` tells the computer the actual address that you're SSHing into. For instance, my original first command was `ssh -Y myusername@blpl1.ssl.berkeley.edu`, and you can work out that the `HostName` is `blpl1.ssl.berkeley.edu`.
 
 `ProxyCommand` looks like it's the command prior to the next step of the tunnel. You can see that I don't have a `ProxyCommand` for the bottom SSH, but I do have them for the ones above. Not sure what those flags are, but keep them. 
 
@@ -70,20 +70,20 @@ The key's randomart image is:
 ```
 Passwords are optional, though I recommend it for your personal security.
 
-Now, you can use the `ssh-copy-id` command like so to copy your RSA key to the server. Since I first SSH to the digilab server, the public key on my machine gets copied there.
+Now, you can use the `ssh-copy-id` command like so to copy your RSA key to the server. Since I first SSH to the blpl1 server, the public key on my machine gets copied there.
 
 The default public key is saved to `id-rsa.pub`, but if you've decided to name it something else, copy with that file instead.
 
 ```
-ssh-copy-id -i ~/.ssh/id_rsa.pub myusername@digilab.astro.berkeley.edu
+ssh-copy-id -i ~/.ssh/id_rsa.pub myusername@blpl1.ssl.berkeley.edu
 ```
-where you can replace `myusername@digilab.astro.berkeley.edu` with your own username and host.
+where you can replace `myusername@blpl1.ssl.berkeley.edu` with your own username and host.
 
 **IMPORTANT: Do not copy your private key, only your public key (usually ends in .pub)**
 
 You'll know if it worked if you can log in without being asked for a password.
 ```
-ssh -i ~/.ssh/mykey myusername@digilab.astro.berkeley.edu
+ssh -i ~/.ssh/mykey myusername@blpl1.ssl.berkeley.edu
 ```
 
 Troubleshooting can be found at https://www.ssh.com/ssh/copy-id, which I totally ripped off.
@@ -99,7 +99,7 @@ There should be at least one key there. If not, something's up.
 
 Assuming you've gotten this far, you can just `scp` your public key to as many machines as you want. **Note**: you must ensure that the `.ssh` directory exists in the machines you are copying to—if it doesn't, simply create it!
 
-After verifying that the `.ssh` directory exists on the second machine, run the following command while you're on the first machine that you need to SSH into (usually digilab):
+After verifying that the `.ssh` directory exists on the second machine, run the following command while you're on the first machine that you need to SSH into (usually blpl1):
 
 ```
 scp ~/.ssh/authorized_keys blph0.ssl.berkeley.edu:.ssh/.
